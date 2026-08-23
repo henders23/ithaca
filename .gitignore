@@ -4,4 +4,4 @@ coverage/
 .DS_Store
 *.local
 *.log
-
+generated_images/
