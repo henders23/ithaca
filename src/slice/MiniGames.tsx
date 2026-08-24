@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ASSETS } from './content.js'
 
 export interface MiniGameResult {
   success: boolean
@@ -10,20 +11,30 @@ interface MiniGameFrameProps {
   beat: string
   title: string
   instruction: string
+  variant: 'power' | 'triage' | 'memory' | 'chase' | 'circuit'
+  background: string
+  station: string
+  risk: string
   children: React.ReactNode
 }
 
-function MiniGameFrame({ beat, title, instruction, children }: MiniGameFrameProps) {
+function MiniGameFrame({ beat, title, instruction, variant, background, station, risk, children }: MiniGameFrameProps) {
   return (
-    <section className="minigame-screen">
+    <section className={`minigame-screen mini-${variant}`} style={{ '--minigame-bg': `url(${background})` } as React.CSSProperties}>
+      <div className="minigame-ambient" aria-hidden="true"><i /><i /><i /></div>
       <header className="minigame-heading">
         <div><span>{beat}</span><strong>FIELD PROCEDURE</strong></div>
-        <small>INTERACTIVE</small>
+        <small>LIVE SHIPBOARD INTERFACE</small>
       </header>
       <div className="minigame-card">
-        <p className="eyebrow">CREW ACTION</p>
-        <h1>{title}</h1>
-        <p className="minigame-instruction">{instruction}</p>
+        <div className="minigame-titlebar">
+          <div>
+            <p className="eyebrow">CREW ACTION · {station}</p>
+            <h1>{title}</h1>
+            <p className="minigame-instruction">{instruction}</p>
+          </div>
+          <div className="procedure-seal"><span>LIVE</span><strong>{variant.slice(0, 3).toUpperCase()}</strong><small>{risk}</small></div>
+        </div>
         {children}
       </div>
     </section>
@@ -50,10 +61,14 @@ export function PowerGridGame({ onComplete }: { onComplete: (result: MiniGameRes
   }
 
   return (
-    <MiniGameFrame beat="BEAT 02 · THE WRONG STARS" title="Restore emergency power" instruction="The reactor can support eight load units. Keep life support online and decide what the ship can afford to save.">
+    <MiniGameFrame beat="BEAT 02 · THE WRONG STARS" title="Restore emergency power" instruction="The reactor can support eight load units. Keep life support online and decide what the ship can afford to save." variant="power" background={ASSETS.cinematics.wrongStars} station="ENGINEERING" risk="CASCADE RISK">
       <div className="power-grid">
-        <div className="reactor-core"><span>REACTOR</span><strong>{capacity - used}</strong><small>UNITS FREE</small></div>
-        <div className="power-lines" aria-hidden="true" />
+        <div className={`reactor-core load-${used}`}>
+          <i className="reactor-ring outer" /><i className="reactor-ring inner" />
+          <span>REACTOR</span><strong>{capacity - used}</strong><small>UNITS FREE</small>
+          <em>{used} / {capacity} COMMITTED</em>
+        </div>
+        <div className="power-lines" aria-hidden="true">{POWER_SYSTEMS.map((system, index) => <i key={system.id} className={selected.includes(system.id) ? 'energized' : ''} style={{ '--line-index': index } as React.CSSProperties} />)}</div>
         <div className="system-list">
           {POWER_SYSTEMS.map((system) => {
             const active = selected.includes(system.id)
@@ -64,6 +79,7 @@ export function PowerGridGame({ onComplete }: { onComplete: (result: MiniGameRes
                 <strong>{system.label}</strong>
                 <small>{system.note}</small>
                 <b>{system.load} LOAD</b>
+                <span className="load-pips">{Array.from({ length: system.load }, (_, index) => <i key={index} />)}</span>
               </button>
             )
           })}
@@ -90,13 +106,14 @@ export function TriageGame({ onComplete }: { onComplete: (result: MiniGameResult
     : current.length < 2 ? [...current, id] : current)
 
   return (
-    <MiniGameFrame beat="BEAT 02 · THE WRONG STARS" title="Two surgical bays. Four lives." instruction="Corelli can stabilize only two cases before the reserve batteries fail. There is no hidden correct answer.">
+    <MiniGameFrame beat="BEAT 02 · THE WRONG STARS" title="Two surgical bays. Four lives." instruction="Corelli can stabilize only two cases before the reserve batteries fail. There is no hidden correct answer." variant="triage" background={ASSETS.cinematics.wrongStars} station="EMERGENCY MEDICAL" risk="POWER 08:00">
       <div className="triage-grid">
         {PATIENTS.map((patient) => (
           <button key={patient.id} className={`patient-card ${selected.includes(patient.id) ? 'selected' : ''}`} onClick={() => choose(patient.id)}>
             <span className="patient-time">{patient.time}</span>
             <strong>{patient.name}</strong>
             <small>{patient.injury}</small>
+            <span className="patient-vitals" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>
             <p>{patient.effect}</p>
             <b>{selected.includes(patient.id) ? 'ASSIGNED' : 'HOLDING'}</b>
           </button>
@@ -131,7 +148,7 @@ export function MemoryGame({ onComplete }: { onComplete: (result: MiniGameResult
   }
 
   return (
-    <MiniGameFrame beat="BEAT 03 · THE GARDEN OF FORGETTING" title="Reconstruct the erased memory" instruction="The garden has loosened Lieutenant Sato’s autobiographical chain. Select the fragments from earliest to latest.">
+    <MiniGameFrame beat="BEAT 03 · THE GARDEN OF FORGETTING" title="Reconstruct the erased memory" instruction="The garden has loosened Lieutenant Sato’s autobiographical chain. Select the fragments from earliest to latest." variant="memory" background={ASSETS.cinematics.garden} station="NEURAL DIAGNOSTICS" risk="IDENTITY DECAY">
       <div className="memory-layout">
         <div className="memory-pool">
           {[MEMORY_FRAGMENTS[2], MEMORY_FRAGMENTS[0], MEMORY_FRAGMENTS[3], MEMORY_FRAGMENTS[1]].map((fragment) => (
@@ -140,11 +157,15 @@ export function MemoryGame({ onComplete }: { onComplete: (result: MiniGameResult
             </button>
           ))}
         </div>
-        <div className={`memory-chain ${error ? 'error' : ''}`}>
-          {Array.from({ length: 4 }, (_, index) => {
-            const fragment = MEMORY_FRAGMENTS.find((item) => item.id === sequence[index])
-            return <div key={index} className={fragment ? 'filled' : ''}>{fragment?.index ?? index + 1}</div>
-          })}
+        <div className="memory-subject">
+          <div className="neural-head" aria-hidden="true"><i /><i /><i /><i /></div>
+          <span>AUTOBIOGRAPHICAL CHAIN</span>
+          <div className={`memory-chain ${error ? 'error' : ''}`}>
+            {Array.from({ length: 4 }, (_, index) => {
+              const fragment = MEMORY_FRAGMENTS.find((item) => item.id === sequence[index])
+              return <div key={index} className={fragment ? 'filled' : ''}>{fragment?.index ?? index + 1}</div>
+            })}
+          </div>
         </div>
       </div>
       {error && <p className="error-message">Sequence rejected. The memory fractures and begins again.</p>}
@@ -201,15 +222,16 @@ export function ShuttleChaseGame({ onComplete }: { onComplete: (result: MiniGame
   }, [onComplete, started])
 
   return (
-    <MiniGameFrame beat="BEAT 03 · THE GARDEN OF FORGETTING" title="Catch the departing shuttle" instruction="Thread the Ithaca’s launch through the rotating habitat rings. Use A/D, arrow keys, or the controls below.">
+    <MiniGameFrame beat="BEAT 03 · THE GARDEN OF FORGETTING" title="Catch the departing shuttle" instruction="Thread the Ithaca’s launch through the rotating habitat rings. Use A/D, arrow keys, or the controls below." variant="chase" background={ASSETS.cinematics.garden} station="FLIGHT CONTROL" risk="LIVE PURSUIT">
       <div className={`chase-view ${started ? 'running' : ''}`}>
         <div className="chase-stars" />
+        <div className="chase-lanes" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="chase-rings"><i /><i /><i /></div>
         {OBSTACLES.filter((obstacle) => obstacle.at > progress - 8 && obstacle.at < progress + 28).map((obstacle) => (
           <span key={obstacle.at} className="chase-obstacle" style={{ left: `${16 + obstacle.lane * 34}%`, top: `${90 - (obstacle.at - progress) * 3.4}%` }} />
         ))}
         <div className="shuttle-target">SHUTTLE<br /><strong>{Math.max(0, 18 - Math.floor(progress / 6))} KM</strong></div>
-        <div className="chase-ship" style={{ left: `${18 + lane * 32}%` }}>▲</div>
+        <div className="chase-ship" style={{ left: `${18 + lane * 32}%` }}><img src={ASSETS.ships.ithaca} alt="" /><i /></div>
         {!started && <button className="launch-chase" onClick={() => setStarted(true)}>LAUNCH</button>}
       </div>
       <div className="chase-hud"><span>RANGE <strong>{Math.round(progress)}%</strong></span><span>HULL <strong>{integrity}%</strong></span></div>
@@ -240,9 +262,13 @@ export function CircuitGame({ onComplete }: { onComplete: (result: MiniGameResul
   }
 
   return (
-    <MiniGameFrame beat="BEAT 04 · THE ONE-EYED FORTRESS" title="Blind the central eye" instruction="Rotate each stolen calibration ring to reproduce the sensor’s null harmonic. Four failed tests will alert every cutter in the moon.">
+    <MiniGameFrame beat="BEAT 04 · THE ONE-EYED FORTRESS" title="Blind the central eye" instruction="Rotate each stolen calibration ring to reproduce the sensor’s null harmonic. Four failed tests will alert every cutter in the moon." variant="circuit" background={ASSETS.cinematics.fortressInterior} station="SCIENCE / ELECTRONIC WARFARE" risk="ARGUS LISTENING">
       <div className="circuit-console">
-        <div className="eye-display"><span /><p>{message}</p></div>
+        <div className="eye-display">
+          <img src={ASSETS.portraits['argus-one']} alt="ARGUS-1 optical sensor" />
+          <span className="eye-reticle"><i /><i /><i /></span>
+          <p>{message}</p>
+        </div>
         <div className="phase-rings">
           {phases.map((phase, index) => (
             <button key={index} onClick={() => turn(index)} style={{ '--phase': `${phase * 90}deg` } as React.CSSProperties}>

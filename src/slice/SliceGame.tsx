@@ -3,16 +3,18 @@ import type { CampaignEffect, GameState } from '../state/types.js'
 import { createInitialState } from '../state/initial.js'
 import { reduceGame } from '../state/reducer.js'
 import { CinematicCombat, type CombatConfig } from './CinematicCombat.js'
-import { ASSETS, DIALOGUE_SCENES, type DialogueChoice, type SliceScreenId } from './content.js'
+import { ASSETS, DIALOGUE_SCENES, INTERLUDES, type DialogueChoice, type SliceScreenId } from './content.js'
+import { BeatInterlude } from './BeatInterlude.js'
 import { DialogueScene } from './DialogueScene.js'
 import { CircuitGame, MemoryGame, PowerGridGame, ShuttleChaseGame, TriageGame } from './MiniGames.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
 export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
-  'title', 'prologue', 'b1-briefing', 'b1-combat', 'b1-collapse', 'b2-grid', 'b2-triage',
-  'b2-accounting', 'b3-arrival', 'b3-memory', 'b3-choice', 'b3-chase', 'b3-aftermath',
-  'b4-contact', 'b4-circuit', 'b4-combat', 'complete',
+  'title', 'prologue', 'b1-briefing', 'b1-combat', 'b1-collapse', 'interlude-02',
+  'b2-grid', 'b2-triage', 'b2-accounting', 'interlude-03', 'b3-arrival', 'b3-memory',
+  'b3-choice', 'b3-chase', 'b3-aftermath', 'interlude-04', 'b4-contact', 'b4-circuit',
+  'b4-combat', 'complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -148,7 +150,9 @@ export function SliceGame() {
       case 'b1-combat':
         return <CinematicCombat config={gateCombat} onComplete={(result) => completeActivity('01-burning-tide-gate', 'gate-assault', 'b1-collapse', 'screen-broken', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }])} />
       case 'b1-collapse':
-        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b1-collapse']} onContinue={() => completeActivity('01-burning-tide-gate', 'gate-collapse', 'b2-grid', 'lost-in-transit', [{ kind: 'add-scar', scarId: 'tide-gate-burn' }, { kind: 'damage-system', system: 'engines', amount: 45 }, { kind: 'damage-system', system: 'sensors', amount: 30 }], true)} />
+        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b1-collapse']} onContinue={() => completeActivity('01-burning-tide-gate', 'gate-collapse', 'interlude-02', 'lost-in-transit', [{ kind: 'add-scar', scarId: 'tide-gate-burn' }, { kind: 'damage-system', system: 'engines', amount: 45 }, { kind: 'damage-system', system: 'sensors', amount: 30 }], true)} />
+      case 'interlude-02':
+        return <BeatInterlude data={INTERLUDES['interlude-02']} game={game} onContinue={() => setScreen('b2-grid')} />
       case 'b2-grid':
         return <PowerGridGame onComplete={(result) => {
           const effects: CampaignEffect[] = [
@@ -169,9 +173,11 @@ export function SliceGame() {
           completeActivity('02-wrong-stars', 'triage', 'b2-accounting', result.choiceId, effects)
         }} />
       case 'b2-accounting':
-        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b2-accounting']} onChoice={(choice) => completeActivity('02-wrong-stars', 'first-accounting', 'b3-arrival', choice.id, choice.id === 'share-the-record'
+        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b2-accounting']} onChoice={(choice) => completeActivity('02-wrong-stars', 'first-accounting', 'interlude-03', choice.id, choice.id === 'share-the-record'
           ? [{ kind: 'set-flag', flag: 'vale-questioned-orders' }, { kind: 'relationship', character: 'helen-morozova', delta: 2 }, { kind: 'add-evidence', evidenceId: 'crew-received-gate-record' }]
           : [{ kind: 'relationship', character: 'helen-morozova', delta: -2 }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }], true)} />
+      case 'interlude-03':
+        return <BeatInterlude data={INTERLUDES['interlude-03']} game={game} onContinue={() => setScreen('b3-arrival')} />
       case 'b3-arrival':
         return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b3-arrival']} onContinue={() => completeActivity('03-garden-forgetting', 'garden-welcome', 'b3-memory', 'accept-limited-hospitality', [{ kind: 'repair-hull', amount: 8 }])} />
       case 'b3-memory':
@@ -186,7 +192,9 @@ export function SliceGame() {
           ? [{ kind: 'set-flag', flag: 'deserters-forced-back' }, { kind: 'relationship', character: 'isabella-corelli', delta: -1 }, { kind: 'damage-hull', amount: Math.max(0, Math.round((100 - result.score) / 12)) }]
           : [{ kind: 'set-flag', flag: 'deserters-left-in-peace' }, { kind: 'damage-hull', amount: 10 }])} />
       case 'b3-aftermath':
-        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b3-aftermath']} onContinue={() => finishBeat('03-garden-forgetting', 'b4-contact')} />
+        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b3-aftermath']} onContinue={() => finishBeat('03-garden-forgetting', 'interlude-04')} />
+      case 'interlude-04':
+        return <BeatInterlude data={INTERLUDES['interlude-04']} game={game} onContinue={() => setScreen('b4-contact')} />
       case 'b4-contact':
         return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b4-contact']} onChoice={(choice) => completeActivity('04-one-eyed-fortress', 'salvage-dispute', 'b4-circuit', choice.id, choice.id === 'assert-personhood' ? [{ kind: 'relationship', character: 'helen-morozova', delta: 1 }] : [{ kind: 'relationship', character: 'lena-mori', delta: 1 }])} />
       case 'b4-circuit':

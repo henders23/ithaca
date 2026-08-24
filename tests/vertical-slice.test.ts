@@ -1,14 +1,14 @@
 import { existsSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ASSETS, DIALOGUE_SCENES, SLICE_ASSET_PATHS } from '../src/slice/content.js'
+import { ASSETS, DIALOGUE_SCENES, INTERLUDES, SLICE_ASSET_PATHS } from '../src/slice/content.js'
 import { SLICE_SCREEN_IDS, VERTICAL_SLICE_BEATS } from '../src/slice/SliceGame.js'
 import { createInitialState } from '../src/state/initial.js'
 import { reduceGame } from '../src/state/reducer.js'
 
 describe('playable vertical slice', () => {
   it('registers one continuous and unique screen sequence', () => {
-    expect(SLICE_SCREEN_IDS).toHaveLength(17)
+    expect(SLICE_SCREEN_IDS).toHaveLength(20)
     expect(new Set(SLICE_SCREEN_IDS).size).toBe(SLICE_SCREEN_IDS.length)
     expect(SLICE_SCREEN_IDS[0]).toBe('title')
     expect(SLICE_SCREEN_IDS.at(-1)).toBe('complete')
@@ -18,6 +18,15 @@ describe('playable vertical slice', () => {
       '03-garden-forgetting',
       '04-one-eyed-fortress',
     ])
+  })
+
+  it('briefs the player between every completed beat in the slice', () => {
+    expect(Object.keys(INTERLUDES)).toEqual(['interlude-02', 'interlude-03', 'interlude-04'])
+    for (const interlude of Object.values(INTERLUDES)) {
+      expect(interlude.recap.length).toBeGreaterThan(100)
+      expect(interlude.situation).toHaveLength(3)
+      expect(interlude.objective.length).toBeGreaterThan(30)
+    }
   })
 
   it('ships every cinematic, portrait and combat asset used by the slice', () => {
