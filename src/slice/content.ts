@@ -33,14 +33,17 @@ export type SliceScreenId =
   | 'b1-briefing'
   | 'b1-combat'
   | 'b1-collapse'
+  | 'interlude-02'
   | 'b2-grid'
   | 'b2-triage'
   | 'b2-accounting'
+  | 'interlude-03'
   | 'b3-arrival'
   | 'b3-memory'
   | 'b3-choice'
   | 'b3-chase'
   | 'b3-aftermath'
+  | 'interlude-04'
   | 'b4-contact'
   | 'b4-circuit'
   | 'b4-combat'
@@ -67,6 +70,74 @@ export interface DialogueSceneData {
   lines: readonly DialogueLine[]
   choices?: readonly DialogueChoice[]
   continueLabel?: string
+}
+
+export interface InterludeData {
+  id: 'interlude-02' | 'interlude-03' | 'interlude-04'
+  incomingBeat: number
+  chapter: string
+  headline: string
+  elapsed: string
+  location: string
+  background: string
+  recap: string
+  situation: readonly string[]
+  objective: string
+  continueLabel: string
+}
+
+export const INTERLUDES: Record<InterludeData['id'], InterludeData> = {
+  'interlude-02': {
+    id: 'interlude-02',
+    incomingBeat: 2,
+    chapter: 'THE WRONG STARS',
+    headline: 'The battle is over. The voyage home has not begun.',
+    elapsed: '00:07:18 SINCE GATE COLLAPSE',
+    location: 'POSITION UNKNOWN · NO CHARTED CONSTELLATIONS',
+    background: ASSETS.cinematics.wrongStars,
+    recap: 'The Tide Gate did not merely explode. Its transit corridor folded around the Ithaca and carried the ship beyond every human survey. The crew has survived the crossing, but survival is still being decided deck by deck.',
+    situation: [
+      'Main power is down and the reactor bus is unstable.',
+      'Multiple compartments are open to vacuum; medical reserve is finite.',
+      'Navigation cannot identify a single star, beacon or human transmission.',
+    ],
+    objective: 'Restore enough of the ship to discover where the Gate sent you.',
+    continueLabel: 'Begin damage control',
+  },
+  'interlude-03': {
+    id: 'interlude-03',
+    incomingBeat: 3,
+    chapter: 'THE GARDEN OF FORGETTING',
+    headline: 'Nineteen days without a bearing. Then, a human voice.',
+    elapsed: 'SHIPBOARD DAY 19 · 06:40',
+    location: 'EIRENAI ORBITAL HABITAT · UNCHARTED G-TYPE STAR',
+    background: ASSETS.cinematics.garden,
+    recap: 'Emergency repairs have kept the Ithaca alive, but the drive remains fused with alien matter and the food reserve is falling. A vast green habitat has answered Kiara N’Dala’s distress call—in unaccented human English.',
+    situation: [
+      'The inhabitants descend from a survey vessel lost two centuries ago.',
+      'They offer food, atmosphere and sanctuary without payment.',
+      'No resident of Eirenai has chosen to leave in 146 years.',
+    ],
+    objective: 'Resupply the Ithaca and learn why nobody remembers wanting home.',
+    continueLabel: 'Enter Eirenai orbit',
+  },
+  'interlude-04': {
+    id: 'interlude-04',
+    incomingBeat: 4,
+    chapter: 'THE ONE-EYED FORTRESS',
+    headline: 'A dead moon has opened its eye.',
+    elapsed: 'SHIPBOARD DAY 24 · 21:13',
+    location: 'UNREGISTERED MINING MOON · DEBRIS APPROACH',
+    background: ASSETS.cinematics.fortress,
+    recap: 'The Ithaca left Eirenai with food and consequences, but no route home. Mori has found refined drive fuel inside an apparently abandoned mining moon. The moon is cold, silent—and already tracking the ship.',
+    situation: [
+      'The entrance channel is large enough to swallow the Ithaca whole.',
+      'Every scan returns the same impossible age: 38,000 years operational.',
+      'A single red sensor is following the bridge across every frequency.',
+    ],
+    objective: 'Secure fuel before the damaged drive fails, without waking the moon.',
+    continueLabel: 'Approach the fortress',
+  },
 }
 
 export const DIALOGUE_SCENES = {

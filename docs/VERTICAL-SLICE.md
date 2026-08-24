@@ -1,6 +1,6 @@
 # Playable vertical slice
 
-The first four campaign beats form one continuous playable episode. Dialogue, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition.
+The first four campaign beats form one continuous playable episode. Dialogue, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
 
 ## Sequence
 
@@ -14,7 +14,7 @@ The first four campaign beats form one continuous playable episode. Dialogue, mi
 ## Controls
 
 - Dialogue and choices: pointer or keyboard focus.
-- Combat: select a target, then fire a charged weapon. Pause is available from the tactical header or the spacebar.
+- Combat: select a subsystem, then fire a charged rail lance, kinetic salvo or ion shear. Each weapon has its own projectile, travel timing, impact, shield response and synthesized sound. Pause is available from the tactical header or the spacebar.
 - Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls.
 - All other minigames use pointer or keyboard focus.
 
@@ -22,4 +22,4 @@ The first four campaign beats form one continuous playable episode. Dialogue, mi
 
 The vertical slice uses original generated imagery rather than assets copied from `starship-explorer`. The art direction is photorealistic prestige science fiction: grounded military-NASA human engineering, steel-and-amber bridge lighting, and increasingly unfamiliar alien geometry. Cinematic backgrounds are 16:9 WebP files; recurring-character portraits are consistently framed 4:5 WebP files; combat ships are transparent PNGs.
 
-Assets live under `public/assets/` and are compressed to keep the first load practical.
+Assets live under `public/assets/` and are compressed to keep the first load practical. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation: animated reactor routing, patient vitals, a neural reconstruction display, a cinematic chase HUD and ARGUS targeting optics.

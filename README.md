@@ -9,8 +9,10 @@ This repository is a clean rebuild. It does not inherit the procedural galaxy or
 The browser opens directly into a cinematic episode covering the first four sequential set pieces:
 
 - cinematic dialogue with a consistent recurring cast;
+- cinematic voyage interludes that recap consequences and establish the next objective;
 - two real-time-with-pause ship combat encounters;
-- power routing, medical triage, memory reconstruction, navigation and circuit minigames;
+- weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
+- visually distinct power routing, medical triage, memory reconstruction, navigation and circuit minigames;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
 - sixteen original, optimized backgrounds, portraits and combat assets.

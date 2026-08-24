@@ -27,31 +27,34 @@ interface CombatResult {
 }
 
 type WeaponId = 'lance' | 'missile' | 'ion'
+type SfxId = WeaponId | 'impact' | 'shield'
+
+interface WeaponEffect {
+  id: number
+  kind: WeaponId
+  incoming: boolean
+  duration: number
+}
+
+interface ImpactEffect {
+  id: number
+  kind: WeaponId
+  incoming: boolean
+  shielded: boolean
+}
+
+interface CombatFloater {
+  id: number
+  incoming: boolean
+  text: string
+  color: string
+}
 
 const WEAPONS = {
-  lance: { name: 'Rail lance', cost: 42, damage: 1, tone: 148 },
-  missile: { name: 'Kinetic salvo', cost: 68, damage: 2, tone: 92 },
-  ion: { name: 'Ion shear', cost: 55, damage: 1, tone: 310 },
+  lance: { name: 'Rail lance', cost: 42, damage: 1, duration: 240 },
+  missile: { name: 'Kinetic salvo', cost: 68, damage: 2, duration: 860 },
+  ion: { name: 'Ion shear', cost: 55, damage: 1, duration: 640 },
 } as const
-
-function playTone(frequency: number, duration = 0.12) {
-  try {
-    const context = new AudioContext()
-    const oscillator = context.createOscillator()
-    const gain = context.createGain()
-    oscillator.type = 'sawtooth'
-    oscillator.frequency.setValueAtTime(frequency, context.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, frequency / 2), context.currentTime + duration)
-    gain.gain.setValueAtTime(0.04, context.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration)
-    oscillator.connect(gain).connect(context.destination)
-    oscillator.start()
-    oscillator.stop(context.currentTime + duration)
-    oscillator.addEventListener('ended', () => void context.close())
-  } catch {
-    // Audio is a progressive enhancement; some browsers require stricter gestures.
-  }
-}
 
 export function CinematicCombat({ config, onComplete }: { config: CombatConfig; onComplete: (result: CombatResult) => void }) {
   const freshTargets = () => config.targets.map((target) => ({ ...target, currentHp: target.hp }))
@@ -63,12 +66,16 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const [missiles, setMissiles] = useState(3)
   const [paused, setPaused] = useState(false)
   const [phase, setPhase] = useState<'playing' | 'victory' | 'defeat'>('playing')
-  const [beam, setBeam] = useState<{ id: number; incoming: boolean } | null>(null)
+  const [effects, setEffects] = useState<WeaponEffect[]>([])
+  const [impacts, setImpacts] = useState<ImpactEffect[]>([])
+  const [floaters, setFloaters] = useState<CombatFloater[]>([])
   const [log, setLog] = useState('Weapons hot. Select a subsystem and fire.')
   const shieldRef = useRef(shield)
   const hullRef = useRef(hull)
   const pausedRef = useRef(paused)
   const phaseRef = useRef(phase)
+  const audioRef = useRef<AudioContext | null>(null)
+  const timersRef = useRef(new Set<number>())
   shieldRef.current = shield
   hullRef.current = hull
   pausedRef.current = paused
@@ -76,6 +83,86 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   const survivingTargets = useMemo(() => targets.filter((target) => target.currentHp > 0), [targets])
   const objectiveProgress = Math.round((1 - targets.reduce((sum, target) => sum + target.currentHp, 0) / targets.reduce((sum, target) => sum + target.hp, 0)) * 100)
+
+  const later = (callback: () => void, delay: number) => {
+    const timer = window.setTimeout(() => {
+      timersRef.current.delete(timer)
+      callback()
+    }, delay)
+    timersRef.current.add(timer)
+    return timer
+  }
+
+  const sfx = (type: SfxId) => {
+    try {
+      const context = audioRef.current ?? new AudioContext()
+      audioRef.current = context
+      if (context.state === 'suspended') void context.resume()
+      const at = context.currentTime
+      const output = context.createGain()
+      output.gain.setValueAtTime(0.82, at)
+      output.connect(context.destination)
+      const oscillator = (shape: OscillatorType, from: number, to: number, duration: number, volume: number) => {
+        const source = context.createOscillator()
+        const gain = context.createGain()
+        source.type = shape
+        source.frequency.setValueAtTime(from, at)
+        source.frequency.exponentialRampToValueAtTime(Math.max(1, to), at + duration)
+        gain.gain.setValueAtTime(volume, at)
+        gain.gain.exponentialRampToValueAtTime(0.001, at + duration)
+        source.connect(gain).connect(output)
+        source.start(at)
+        source.stop(at + duration + 0.02)
+      }
+      const noise = (duration: number, volume: number, from: number, to: number) => {
+        const length = Math.ceil(context.sampleRate * duration)
+        const buffer = context.createBuffer(1, length, context.sampleRate)
+        const data = buffer.getChannelData(0)
+        for (let index = 0; index < length; index++) data[index] = Math.random() * 2 - 1
+        const source = context.createBufferSource()
+        const filter = context.createBiquadFilter()
+        const gain = context.createGain()
+        source.buffer = buffer
+        filter.type = 'bandpass'
+        filter.frequency.setValueAtTime(from, at)
+        filter.frequency.exponentialRampToValueAtTime(to, at + duration)
+        gain.gain.setValueAtTime(volume, at)
+        gain.gain.exponentialRampToValueAtTime(0.001, at + duration)
+        source.connect(filter).connect(gain).connect(output)
+        source.start(at)
+        source.stop(at + duration + 0.02)
+      }
+      if (type === 'lance') { oscillator('square', 920, 170, 0.15, 0.07); oscillator('sawtooth', 170, 70, 0.22, 0.04) }
+      else if (type === 'missile') { noise(0.46, 0.11, 760, 130); oscillator('triangle', 110, 60, 0.32, 0.05) }
+      else if (type === 'ion') { oscillator('sine', 620, 260, 0.25, 0.09); oscillator('sine', 940, 420, 0.2, 0.045) }
+      else if (type === 'impact') { noise(0.2, 0.14, 980, 180); oscillator('sine', 130, 42, 0.25, 0.14) }
+      else { oscillator('sine', 1500, 920, 0.18, 0.08); oscillator('sine', 2200, 1300, 0.13, 0.04) }
+    } catch {
+      // Audio remains a progressive enhancement when browser policy blocks it.
+    }
+  }
+
+  const launchEffect = (
+    kind: WeaponId,
+    incoming: boolean,
+    shielded: boolean,
+    floater: string,
+    onImpact: () => void,
+  ) => {
+    const id = Date.now() + Math.floor(Math.random() * 1000)
+    const duration = WEAPONS[kind].duration
+    setEffects((current) => [...current, { id, kind, incoming, duration }])
+    sfx(kind)
+    later(() => {
+      setEffects((current) => current.filter((effect) => effect.id !== id))
+      setImpacts((current) => [...current, { id, kind, incoming, shielded }])
+      setFloaters((current) => [...current, { id, incoming, text: floater, color: shielded ? '#7de7ff' : incoming ? '#ff826d' : kind === 'ion' ? '#7de7ff' : '#ffd28d' }])
+      sfx(shielded ? 'shield' : 'impact')
+      onImpact()
+      later(() => setImpacts((current) => current.filter((impact) => impact.id !== id)), 720)
+      later(() => setFloaters((current) => current.filter((item) => item.id !== id)), 1250)
+    }, duration)
+  }
 
   useEffect(() => {
     const recharge = window.setInterval(() => {
@@ -97,65 +184,84 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   useEffect(() => {
     const incoming = window.setInterval(() => {
       if (pausedRef.current || phaseRef.current !== 'playing') return
-      playTone(58, 0.24)
-      setBeam({ id: Date.now(), incoming: true })
-      setLog(config.incomingLabel)
-      if (shieldRef.current > 0) {
-        const damage = 18
-        shieldRef.current = Math.max(0, shieldRef.current - damage)
-        setShield(shieldRef.current)
-      } else {
-        const damage = 9
-        hullRef.current = Math.max(0, hullRef.current - damage)
-        setHull(hullRef.current)
-        if (hullRef.current <= 0) {
-          phaseRef.current = 'defeat'
-          setPhase('defeat')
+      const roll = Math.random()
+      const kind: WeaponId = roll < 0.22 ? 'missile' : roll < 0.42 ? 'ion' : 'lance'
+      const shielded = shieldRef.current > 0
+      setLog(`${config.incomingLabel} ${kind === 'missile' ? 'Kinetic track inbound.' : kind === 'ion' ? 'Ion bloom detected.' : 'Energy spike detected.'}`)
+      launchEffect(kind, true, shielded, shielded ? 'ABSORBED' : '-9 HULL', () => {
+        if (phaseRef.current !== 'playing') return
+        if (shieldRef.current > 0) {
+          const damage = kind === 'ion' ? 27 : kind === 'missile' ? 22 : 18
+          shieldRef.current = Math.max(0, shieldRef.current - damage)
+          setShield(shieldRef.current)
+        } else {
+          const damage = kind === 'missile' ? 13 : 9
+          hullRef.current = Math.max(0, hullRef.current - damage)
+          setHull(hullRef.current)
+          if (hullRef.current <= 0) {
+            phaseRef.current = 'defeat'
+            setPhase('defeat')
+          }
         }
-      }
-      window.setTimeout(() => setBeam(null), 320)
+      })
     }, config.enemyInterval ?? 2700)
     return () => window.clearInterval(incoming)
   }, [config.enemyInterval, config.incomingLabel])
+
+  useEffect(() => () => {
+    for (const timer of timersRef.current) window.clearTimeout(timer)
+    timersRef.current.clear()
+    if (audioRef.current) void audioRef.current.close()
+  }, [])
 
   const fire = (weaponId: WeaponId) => {
     const weapon = WEAPONS[weaponId]
     if (phase !== 'playing' || paused || charge < weapon.cost || (weaponId === 'missile' && missiles <= 0)) return
     const target = targets.find((item) => item.id === selected && item.currentHp > 0) ?? survivingTargets[0]
     if (!target) return
-    playTone(weapon.tone)
     setCharge((value) => value - weapon.cost)
     if (weaponId === 'missile') setMissiles((value) => value - 1)
-    setBeam({ id: Date.now(), incoming: false })
-    setLog(`${weapon.name} impacts ${target.name}.`)
-    setTargets((current) => {
-      const next = current.map((item) => item.id === target.id ? { ...item, currentHp: Math.max(0, item.currentHp - weapon.damage) } : item)
-      const remaining = next.filter((item) => item.currentHp > 0)
-      if (!remaining.some((item) => item.id === selected) && remaining[0]) setSelected(remaining[0].id)
-      if (remaining.length === 0) {
-        phaseRef.current = 'victory'
-        window.setTimeout(() => setPhase('victory'), 260)
-      }
-      return next
+    setLog(`${weapon.name} away. Tracking ${target.name}.`)
+    launchEffect(weaponId, false, false, `-${weapon.damage} ${target.name.toUpperCase()}`, () => {
+      setLog(`${weapon.name} impacts ${target.name}.`)
+      setTargets((current) => {
+        const next = current.map((item) => item.id === target.id ? { ...item, currentHp: Math.max(0, item.currentHp - weapon.damage) } : item)
+        const remaining = next.filter((item) => item.currentHp > 0)
+        if (!remaining.some((item) => item.id === selected) && remaining[0]) setSelected(remaining[0].id)
+        if (remaining.length === 0) {
+          phaseRef.current = 'victory'
+          later(() => setPhase('victory'), 300)
+        }
+        return next
+      })
     })
-    window.setTimeout(() => setBeam(null), 280)
   }
 
   const retry = () => {
+    for (const timer of timersRef.current) window.clearTimeout(timer)
+    timersRef.current.clear()
     const resetTargets = freshTargets()
     setTargets(resetTargets)
     setSelected(resetTargets[0]?.id ?? '')
     setCharge(70)
     setShield(100)
     setHull(config.playerHull)
+    shieldRef.current = 100
+    hullRef.current = config.playerHull
     setMissiles(3)
+    setEffects([])
+    setImpacts([])
+    setFloaters([])
     setPaused(false)
+    phaseRef.current = 'playing'
     setPhase('playing')
     setLog('Weapons hot. Select a subsystem and fire.')
   }
 
+  const takingFire = effects.some((effect) => effect.incoming) || impacts.some((impact) => impact.incoming && !impact.shielded)
+
   return (
-    <section className={`combat-screen ${beam?.incoming ? 'taking-fire' : ''}`} style={{ '--combat-bg': `url(${config.background})` } as React.CSSProperties}>
+    <section className={`combat-screen ${takingFire ? 'taking-fire' : ''} ${paused ? 'is-paused' : ''}`} style={{ '--combat-bg': `url(${config.background})` } as React.CSSProperties}>
       <header className="combat-header">
         <div><span>{config.beat}</span><strong>{config.title}</strong></div>
         <button onClick={() => setPaused((value) => !value)}>{paused ? 'RESUME' : 'PAUSE'} <kbd>SPACE</kbd></button>
@@ -163,10 +269,17 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
       <div className="combat-space">
         <div className="battle-objective"><span>OBJECTIVE</span><strong>{config.objective}</strong><i style={{ width: `${objectiveProgress}%` }} /></div>
+        <div className={`ship-shield player ${shield > 0 ? 'active' : ''}`}><i /><i /></div>
+        <div className="ship-shield enemy active"><i /><i /></div>
+        <div className="targeting-reticle enemy"><i /><i /><i /></div>
         <img className="combat-ship player" src={config.playerShip} alt="CSV Ithaca" />
         <img className="combat-ship enemy" src={config.enemyShip} alt={config.enemyName} />
-        {beam && <div key={beam.id} className={`weapon-beam ${beam.incoming ? 'incoming' : 'outgoing'}`} />}
-        <div className="combat-log">{log}</div>
+
+        {effects.map((effect) => <WeaponFx key={effect.id} effect={effect} />)}
+        {impacts.map((impact) => <ImpactFx key={impact.id} impact={impact} />)}
+        {floaters.map((floater) => <div key={floater.id} className={`combat-floater ${floater.incoming ? 'incoming' : 'outgoing'}`} style={{ color: floater.color }}>{floater.text}</div>)}
+
+        <div className="combat-log"><i className="log-pulse" />{log}</div>
       </div>
 
       <div className="combat-controls">
@@ -193,7 +306,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
             {(Object.keys(WEAPONS) as WeaponId[]).map((weaponId) => {
               const weapon = WEAPONS[weaponId]
               const unavailable = charge < weapon.cost || (weaponId === 'missile' && missiles <= 0)
-              return <button key={weaponId} disabled={unavailable || phase !== 'playing'} onClick={() => fire(weaponId)}><strong>{weapon.name}</strong><small>{weapon.cost}% {weaponId === 'missile' ? `· ${missiles} LEFT` : ''}</small></button>
+              return <button key={weaponId} className={`weapon-${weaponId}`} disabled={unavailable || phase !== 'playing'} onClick={() => fire(weaponId)}><i /><strong>{weapon.name}</strong><small>{weapon.cost}% {weaponId === 'missile' ? `· ${missiles} LEFT` : ''}</small></button>
             })}
           </div>
         </div>
@@ -209,6 +322,22 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         </div>
       )}
     </section>
+  )
+}
+
+function WeaponFx({ effect }: { effect: WeaponEffect }) {
+  return (
+    <div className={`weapon-fx fx-${effect.kind} ${effect.incoming ? 'incoming' : 'outgoing'}`} style={{ '--fx-duration': `${effect.duration}ms` } as React.CSSProperties}>
+      <i /><i /><i />
+    </div>
+  )
+}
+
+function ImpactFx({ impact }: { impact: ImpactEffect }) {
+  return (
+    <div className={`impact-fx fx-${impact.kind} ${impact.incoming ? 'incoming' : 'outgoing'} ${impact.shielded ? 'shielded' : ''}`}>
+      <i /><i /><i /><i /><i />
+    </div>
   )
 }
 
