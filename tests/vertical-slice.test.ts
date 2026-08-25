@@ -1,6 +1,7 @@
 import { existsSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import type { DialogueLine } from '../src/slice/content.js'
 import { ASSETS, DIALOGUE_SCENES, INTERLUDES, SLICE_ASSET_PATHS } from '../src/slice/content.js'
 import { SLICE_SCREEN_IDS, VERTICAL_SLICE_BEATS } from '../src/slice/SliceGame.js'
 import { createInitialState } from '../src/state/initial.js'
@@ -46,6 +47,29 @@ describe('playable vertical slice', () => {
         expect(line.speaker === 'narrator' || line.speaker in ASSETS.portraits).toBe(true)
       }
     }
+  })
+
+  it('paces each story scene with developed exchanges and visual reveals', () => {
+    let lineCount = 0
+    let cueCount = 0
+    let cutawayCount = 0
+
+    for (const scene of Object.values(DIALOGUE_SCENES)) {
+      expect(scene.lines.length, `${scene.title} should unfold over several exchanges`).toBeGreaterThanOrEqual(5)
+      for (const line of scene.lines as readonly DialogueLine[]) {
+        lineCount += 1
+        if (line.cue) cueCount += 1
+        if (line.cutaway) {
+          cutawayCount += 1
+          expect(SLICE_ASSET_PATHS).toContain(line.cutaway.image)
+          expect(line.cutaway.caption.length).toBeGreaterThan(20)
+        }
+      }
+    }
+
+    expect(lineCount).toBeGreaterThanOrEqual(50)
+    expect(cueCount).toBeGreaterThanOrEqual(10)
+    expect(cutawayCount).toBeGreaterThanOrEqual(8)
   })
 
   it('can complete every mandatory activity in beats one through four', () => {

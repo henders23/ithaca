@@ -18,6 +18,21 @@ The first four campaign beats form one continuous playable episode. Dialogue, mi
 - Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls.
 - All other minigames use pointer or keyboard focus.
 
+## Cinematic scene language
+
+Dialogue scenes are paced as exchanges rather than briefings. The vertical slice now establishes a personal want, introduces an anomaly, lets the crew disagree about its meaning, escalates an external clock, and only then asks for a decision. Short stage cues and framed visual cutaways reveal tactical information without turning character speech into exposition.
+
+Future beats should follow the same dramatic rhythm where appropriate:
+
+1. Let the player inhabit a quiet objective or human relationship.
+2. Introduce one incomplete or apparently harmless detail.
+3. Allow different characters to interpret that detail differently.
+4. Add time pressure only after the disagreement is understood.
+5. Make the player decide before the full truth is available.
+6. Give the consequence its own aftermath scene before the next activity.
+
+The interface responds to both width and height. Laptop-height layouts reduce portrait scale, dialogue padding, minigame instrumentation and combat HUD density while keeping all decisions visible; smaller screens collapse image cutaways before sacrificing playable controls.
+
 ## Visual asset direction
 
 The vertical slice uses original generated imagery rather than assets copied from `starship-explorer`. The art direction is photorealistic prestige science fiction: grounded military-NASA human engineering, steel-and-amber bridge lighting, and increasingly unfamiliar alien geometry. Cinematic backgrounds are 16:9 WebP files; recurring-character portraits are consistently framed 4:5 WebP files; combat ships are transparent PNGs.
