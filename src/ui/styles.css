@@ -19,7 +19,7 @@
 html, body, #root { margin: 0; min-width: 320px; min-height: 100%; background: #03070b; }
 button { font: inherit; }
 button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3px; }
-.game-shell { min-height: 100vh; overflow: hidden; background: #03070b; }
+.game-shell { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; background: #03070b; }
 .eyebrow { margin: 0 0 14px; color: var(--amber); font: 700 0.7rem/1 'Inter', sans-serif; letter-spacing: 0.2em; }
 
 .primary-action,
@@ -100,6 +100,7 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .dialogue-scene {
   --scene-bg: none;
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow: hidden;
   background: #050a0e var(--scene-bg) center / cover no-repeat;
@@ -119,28 +120,42 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .scene-heading span { color: var(--amber); font-weight: 700; }
 .scene-heading strong { font-size: 0.64rem; font-weight: 500; }
 .scene-heading small { color: #60717b; }
-.dialogue-stage { min-height: 100vh; position: relative; display: flex; align-items: end; padding: 0 clamp(22px, 4vw, 66px) clamp(55px, 8vh, 96px); }
+.dialogue-stage { min-height: 100vh; min-height: 100dvh; position: relative; display: flex; align-items: end; padding: 0 clamp(22px, 4vw, 66px) clamp(48px, 6vh, 78px); }
 .speaker-portrait {
   position: absolute;
   z-index: 1;
-  left: clamp(-20px, 1vw, 40px);
-  bottom: 0;
-  width: min(42vw, 610px);
-  height: min(82vh, 850px);
+  left: clamp(6px, 2vw, 34px);
+  bottom: clamp(22px, 3vh, 40px);
+  width: min(31vw, 440px);
+  height: min(68vh, 650px);
+  height: min(68dvh, 650px);
   object-fit: cover;
   object-position: top center;
   filter: saturate(0.88) contrast(1.05);
-  -webkit-mask-image: linear-gradient(90deg, #000 72%, transparent 100%);
-  mask-image: linear-gradient(90deg, #000 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 65%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 65%, transparent 100%);
   animation: portrait-in 600ms ease-out both;
 }
-.dialogue-panel { position: relative; z-index: 3; width: min(760px, 58vw); margin-left: max(35vw, 400px); padding: clamp(22px, 3vw, 38px); border-left: 2px solid var(--amber); background: linear-gradient(110deg, rgba(4, 11, 16, 0.95), rgba(5, 13, 18, 0.84)); box-shadow: 0 25px 70px rgba(0, 0, 0, 0.52); backdrop-filter: blur(18px); animation: panel-in 450ms ease-out both; }
-.dialogue-panel.narration { width: min(720px, 80vw); margin-left: 0; }
+.dialogue-panel { position: relative; z-index: 3; width: min(820px, 62vw); max-height: calc(100dvh - 145px); overflow-y: auto; margin-left: clamp(300px, 32vw, 455px); padding: clamp(20px, 2.5vw, 32px); border-left: 2px solid var(--amber); background: linear-gradient(110deg, rgba(4, 11, 16, 0.95), rgba(5, 13, 18, 0.84)); box-shadow: 0 25px 70px rgba(0, 0, 0, 0.52); backdrop-filter: blur(18px); animation: panel-in 450ms ease-out both; scrollbar-width: thin; scrollbar-color: var(--amber) transparent; }
+.dialogue-panel.narration { width: min(880px, 82vw); margin-left: 0; }
+.scene-progress { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(255,255,255,.06); }
+.scene-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-bright)); box-shadow: 0 0 8px rgba(239,178,85,.6); transition: width 260ms ease-out; }
 .dialogue-title { margin: 0 0 19px; color: #6f848f; font: 500 0.72rem 'Inter'; letter-spacing: 0.14em; text-transform: uppercase; }
+.dialogue-body { display: block; }
+.dialogue-panel.with-cutaway .dialogue-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, 235px); gap: clamp(18px, 2.2vw, 28px); align-items: stretch; }
+.dialogue-line { min-width: 0; align-self: center; }
+.stage-cue { margin: 0 0 9px; color: #66808b; font: 700 .5rem/1.3 'Inter'; letter-spacing: .15em; text-transform: uppercase; }
 .speaker-label { display: flex; align-items: baseline; gap: 13px; margin-bottom: 15px; }
 .speaker-label strong { color: var(--amber-bright); font: 600 clamp(1.35rem, 2.3vw, 2rem)/1 'Barlow Condensed'; letter-spacing: 0.03em; }
 .speaker-label span { color: #718893; font-size: 0.55rem; letter-spacing: 0.12em; }
 .dialogue-copy { min-height: 74px; margin: 0; color: #edf4f6; font: 400 clamp(1rem, 1.45vw, 1.22rem)/1.6 'Inter'; text-wrap: balance; }
+.story-cutaway { position: relative; min-height: 138px; margin: 0; overflow: hidden; border: 1px solid rgba(178,210,224,.24); background: #02070a; box-shadow: inset 0 0 35px rgba(0,0,0,.65); }
+.story-cutaway::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, rgba(1,5,8,.96), transparent 70%), repeating-linear-gradient(0deg, transparent 0 3px, rgba(180,220,235,.035) 4px); }
+.story-cutaway img { width: 100%; height: 100%; min-height: 138px; position: absolute; inset: 0; object-fit: cover; filter: saturate(.72) contrast(1.1) brightness(.8); }
+.story-cutaway.fit-contain img { object-fit: contain; padding: 9px; }
+.story-cutaway figcaption { position: absolute; z-index: 2; left: 12px; right: 12px; bottom: 10px; }
+.story-cutaway figcaption span { color: var(--amber); font: 700 .45rem 'Inter'; letter-spacing: .15em; }
+.story-cutaway figcaption p { margin: 4px 0 0; color: #a7b7bf; font-size: .53rem; line-height: 1.4; }
 .advance-button { float: right; margin-top: 21px; }
 .dialogue-choices { display: grid; gap: 8px; margin-top: 24px; }
 .choice-button { min-height: 72px; display: grid; grid-template-columns: 38px minmax(150px, 0.52fr) 1fr; gap: 12px; align-items: center; padding: 12px 18px; border: 1px solid var(--line); color: #d7e4e9; text-align: left; background: rgba(11, 23, 30, 0.88); cursor: pointer; transition: border-color 130ms, background 130ms, transform 130ms; }
@@ -150,14 +165,14 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .choice-button small { color: #81949e; font-size: 0.65rem; line-height: 1.45; }
 
 /* Minigames */
-.minigame-screen { min-height: 100vh; padding: 76px clamp(18px, 5vw, 76px) 52px; background: radial-gradient(circle at 75% 12%, rgba(39, 91, 117, 0.2), transparent 34rem), linear-gradient(135deg, #08131b, #020507 65%); }
+.minigame-screen { min-height: 100vh; min-height: 100dvh; padding: 76px clamp(18px, 5vw, 76px) 52px; background: radial-gradient(circle at 75% 12%, rgba(39, 91, 117, 0.2), transparent 34rem), linear-gradient(135deg, #08131b, #020507 65%); }
 .minigame-screen::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: 0.23; background-image: linear-gradient(rgba(190, 220, 233, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(190, 220, 233, 0.06) 1px, transparent 1px); background-size: 44px 44px; }
 .minigame-heading { position: relative; width: min(1100px, 100%); margin: 0 auto 28px; display: flex; justify-content: space-between; align-items: end; }
 .minigame-heading div { display: grid; gap: 5px; }
 .minigame-heading span { color: var(--amber); font-size: 0.58rem; letter-spacing: 0.16em; }
 .minigame-heading strong { color: #9eb0ba; font: 500 0.78rem 'Barlow Condensed'; letter-spacing: 0.16em; }
 .minigame-heading small { color: #58707d; font-size: 0.54rem; letter-spacing: 0.18em; }
-.minigame-card { position: relative; width: min(1100px, 100%); min-height: calc(100vh - 165px); margin: 0 auto; padding: clamp(24px, 4vw, 52px); border: 1px solid rgba(163, 204, 222, 0.2); background: rgba(5, 13, 18, 0.89); box-shadow: 0 35px 90px rgba(0, 0, 0, 0.42); }
+.minigame-card { position: relative; width: min(1100px, 100%); min-height: calc(100vh - 165px); min-height: calc(100dvh - 165px); margin: 0 auto; padding: clamp(24px, 4vw, 52px); border: 1px solid rgba(163, 204, 222, 0.2); background: rgba(5, 13, 18, 0.89); box-shadow: 0 35px 90px rgba(0, 0, 0, 0.42); }
 .minigame-card > h1 { max-width: 760px; margin: 0; color: #edf4f7; font: 600 clamp(2.8rem, 6vw, 5.1rem)/0.94 'Barlow Condensed'; letter-spacing: -0.02em; }
 .minigame-instruction { max-width: 740px; margin: 20px 0 32px; color: #8fa3ae; font-size: 0.82rem; line-height: 1.65; }
 .minigame-card > .primary-action { float: right; margin-top: 24px; }
@@ -234,7 +249,7 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .phase-rings small { color: #705f61; font-size: 0.52rem; letter-spacing: 0.09em; }
 
 /* Combat */
-.combat-screen { --combat-bg: none; min-height: 100vh; position: relative; overflow: hidden; padding: 72px 20px 18px; background: #020407 var(--combat-bg) center / cover no-repeat; isolation: isolate; }
+.combat-screen { --combat-bg: none; min-height: 100vh; min-height: 100dvh; position: relative; overflow: hidden; padding: 72px 20px 18px; background: #020407 var(--combat-bg) center / cover no-repeat; isolation: isolate; }
 .combat-screen::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle at 50% 45%, transparent, rgba(0, 0, 0, 0.52) 80%), linear-gradient(0deg, rgba(0, 0, 0, 0.92), transparent 58%); }
 .combat-screen.taking-fire { animation: hit 220ms linear; }
 .combat-header { position: relative; z-index: 5; display: flex; justify-content: space-between; width: min(1320px, 100%); margin: 0 auto 8px; }
@@ -290,7 +305,7 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .combat-modal .primary-action { margin-top: 18px; }
 
 /* Completion */
-.completion-screen { --complete-bg: none; min-height: 100vh; display: grid; place-items: center; padding: 65px 24px; background: #030609 var(--complete-bg) center / cover no-repeat; isolation: isolate; position: relative; }
+.completion-screen { --complete-bg: none; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 65px 24px; background: #030609 var(--complete-bg) center / cover no-repeat; isolation: isolate; position: relative; }
 .completion-screen::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(1, 5, 8, 0.95), rgba(1, 5, 8, 0.48)), linear-gradient(0deg, #020507, transparent); }
 .completion-card { width: min(850px, 100%); padding: clamp(28px, 5vw, 62px); border-left: 2px solid var(--amber); background: rgba(3, 10, 14, 0.9); box-shadow: 0 30px 90px #000; backdrop-filter: blur(18px); }
 .completion-card h1 { max-width: 650px; margin: 0; color: #edf3f5; font: 600 clamp(3.5rem, 8vw, 6.8rem)/0.87 'Barlow Condensed'; }
@@ -305,7 +320,7 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .choice-recap span { padding: 7px 10px; color: #82959e; font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid var(--line); }
 
 /* Beat-to-beat narrative briefing */
-.beat-interlude { --interlude-bg: none; min-height: 100vh; position: relative; overflow: hidden; padding: 74px clamp(22px, 5vw, 78px) 50px; background: #03070a var(--interlude-bg) center / cover no-repeat; isolation: isolate; }
+.beat-interlude { --interlude-bg: none; min-height: 100vh; min-height: 100dvh; position: relative; overflow: hidden; padding: 74px clamp(22px, 5vw, 78px) 50px; background: #03070a var(--interlude-bg) center / cover no-repeat; isolation: isolate; }
 .beat-interlude::before { content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(90deg, rgba(2, 7, 10, .97) 0%, rgba(2, 7, 10, .82) 48%, rgba(2, 7, 10, .28) 100%), linear-gradient(0deg, #020609 0%, transparent 52%); }
 .beat-interlude::after { content: ''; position: absolute; inset: 0; z-index: -1; box-shadow: inset 0 0 160px 28px #000; }
 .interlude-scan { position: absolute; inset: 0; pointer-events: none; opacity: .2; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(170, 211, 226, .06) 4px); }
@@ -425,6 +440,114 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 @keyframes beam { from { scale: 0 1; opacity: 1; } to { scale: 1 1; opacity: 0.28; } }
 @keyframes hit { 25% { transform: translateX(-4px); filter: saturate(1.5); } 75% { transform: translateX(4px); } }
 
+@media (max-width: 1100px) and (min-width: 801px) {
+  .speaker-portrait { width: min(29vw, 340px); height: min(61dvh, 540px); }
+  .dialogue-panel { width: min(760px, 68vw); margin-left: 27vw; }
+  .dialogue-panel.with-cutaway .dialogue-body { grid-template-columns: minmax(0, 1fr) 180px; }
+  .story-cutaway { min-height: 125px; }
+  .story-cutaway img { min-height: 125px; }
+}
+
+/* Laptop viewports need a height breakpoint as well as a width breakpoint. */
+@media (max-height: 850px) and (min-width: 801px) {
+  .voyage-hud { top: 8px; right: 10px; min-height: 38px; }
+  .voyage-hud div { min-width: 61px; padding: 5px 10px; }
+  .voyage-hud div:first-child { min-width: 78px; }
+  .voyage-hud small { padding: 0 9px; }
+  .title-screen { padding: clamp(28px, 4vw, 56px); }
+  .title-copy { padding-bottom: 18px; }
+  .title-copy h1 { font-size: clamp(5.8rem, 13vw, 9rem); }
+  .title-copy h2 { margin-top: 13px; }
+  .title-rule { margin: 19px 0; }
+  .title-actions { margin-top: 20px; }
+  .title-screen footer { right: 42px; bottom: 35px; }
+  .cinematic-bars::before, .cinematic-bars::after { height: 13px; }
+  .scene-heading { top: 28px; left: 34px; right: 34px; }
+  .dialogue-stage { padding: 0 34px 34px; }
+  .speaker-portrait { left: 12px; bottom: 17px; width: min(26vw, 330px); height: min(57dvh, 465px); }
+  .dialogue-panel { width: min(800px, 68vw); max-height: calc(100dvh - 96px); margin-left: max(25vw, 275px); padding: 18px 22px; }
+  .dialogue-panel.narration { width: min(820px, 78vw); margin-left: 0; }
+  .dialogue-title { margin-bottom: 10px; font-size: .6rem; }
+  .stage-cue { margin-bottom: 6px; font-size: .44rem; }
+  .speaker-label { margin-bottom: 9px; }
+  .speaker-label strong { font-size: clamp(1.18rem, 1.8vw, 1.55rem); }
+  .speaker-label span { font-size: .48rem; }
+  .dialogue-copy { min-height: 45px; font-size: clamp(.88rem, 1.15vw, 1rem); line-height: 1.48; }
+  .dialogue-panel.with-cutaway .dialogue-body { grid-template-columns: minmax(0, 1fr) minmax(165px, 205px); gap: 18px; }
+  .story-cutaway, .story-cutaway img { min-height: 112px; }
+  .story-cutaway figcaption { left: 9px; right: 9px; bottom: 7px; }
+  .dialogue-choices { gap: 6px; margin-top: 14px; }
+  .choice-button { min-height: 56px; grid-template-columns: 28px minmax(135px, .48fr) 1fr; padding: 8px 13px; }
+  .choice-button strong { font-size: .94rem; }
+  .choice-button small { font-size: .57rem; }
+  .advance-button { min-height: 43px; margin-top: 12px; }
+
+  .beat-interlude { overflow-y: auto; padding: 52px 38px 22px; }
+  .interlude-content { min-height: calc(100dvh - 78px); grid-template-columns: minmax(0, 1fr) 220px; gap: 40px; }
+  .interlude-copy { padding: 22px 0; }
+  .interlude-copy h1 { font-size: clamp(3.25rem, 6vw, 5rem); }
+  .interlude-location { margin: 12px 0; }
+  .interlude-recap { margin-bottom: 15px; font-size: .78rem; line-height: 1.52; }
+  .interlude-briefing > div { min-height: 112px; padding: 12px 15px; }
+  .interlude-briefing ul { gap: 5px; margin-top: 9px; }
+  .interlude-briefing li { font-size: .6rem; line-height: 1.4; }
+  .captain-record p { font-size: .6rem; line-height: 1.45; }
+  .interlude-objective { margin: 8px 0 12px; padding: 10px 14px; }
+  .interlude-objective strong { font-size: .86rem; }
+  .interlude-telemetry { padding: 13px; }
+  .telemetry-orbit { width: 112px; height: 112px; margin-bottom: 5px; }
+
+  .minigame-screen { overflow-y: auto; padding: 53px 28px 18px; }
+  .minigame-heading { margin-bottom: 11px; }
+  .minigame-card { min-height: calc(100dvh - 108px); padding: 20px 25px; }
+  .minigame-titlebar { margin-bottom: 15px; padding-bottom: 13px; }
+  .minigame-titlebar h1 { font-size: clamp(2.45rem, 4.5vw, 3.65rem); }
+  .minigame-instruction { margin: 9px 0 16px; font-size: .72rem; line-height: 1.48; }
+  .procedure-seal { width: 86px; height: 86px; }
+  .procedure-seal::before { width: 72px; height: 72px; }
+  .power-grid { min-height: 290px; }
+  .reactor-core { width: 145px; margin-left: 16px; }
+  .reactor-core::before { width: 169px; }
+  .reactor-core strong { font-size: 3.7rem; }
+  .system-node { min-height: 70px; padding: 10px 12px; }
+  .triage-grid { gap: 7px; }
+  .patient-card { min-height: 118px; padding: 14px; }
+  .patient-card p { margin-top: 10px; }
+  .patient-vitals { height: 20px; margin-top: 7px; }
+  .memory-pool button { min-height: 82px; }
+  .neural-head { width: 82px; height: 94px; }
+  .chase-view { height: min(38dvh, 290px); }
+  .eye-display { min-height: 225px; }
+  .phase-rings button { min-height: 145px; }
+  .phase-rings i { width: 56px; height: 56px; }
+  .minigame-card > .primary-action { min-height: 43px; margin-top: 13px; }
+
+  .combat-screen { padding: 50px 14px 10px; }
+  .combat-header { margin-bottom: 4px; }
+  .combat-space { height: clamp(260px, 39dvh, 315px); }
+  .combat-controls { min-height: 165px; }
+  .ship-status, .target-bank, .weapon-bank { padding: 10px 12px; }
+  .ship-status > strong { margin-bottom: 8px; }
+  .meter { margin: 8px 0; }
+  .target-bank > div { margin-top: 6px; }
+  .target-bank button { min-height: 50px; }
+  .charge-track { margin: 6px 0 9px; }
+  .weapon-buttons button { min-height: 31px; padding: 5px 8px; }
+  .completion-screen { padding: 42px 22px; }
+  .completion-card { padding: 30px 40px; }
+  .completion-card h1 { font-size: clamp(3.2rem, 6vw, 5rem); }
+  .completion-card > p:not(.eyebrow) { margin: 15px 0; }
+}
+
+@media (max-height: 700px) and (min-width: 801px) {
+  .speaker-portrait { width: min(23vw, 280px); height: min(50dvh, 350px); opacity: .72; }
+  .dialogue-panel { width: min(840px, 72vw); margin-left: max(22vw, 240px); }
+  .story-cutaway { display: none; }
+  .dialogue-panel.with-cutaway .dialogue-body { display: block; }
+  .interlude-telemetry { display: none; }
+  .interlude-content { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 800px) {
   .voyage-hud { top: 7px; right: 7px; }
   .voyage-hud div { min-width: 54px; padding: 6px 8px; }
@@ -435,8 +558,10 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
   .scene-heading { top: 44px; grid-template-columns: auto 1fr; }
   .scene-heading small { display: none; }
   .dialogue-stage { padding: 0 14px 45px; }
-  .speaker-portrait { left: 0; width: 70vw; height: 65vh; opacity: 0.5; }
-  .dialogue-panel, .dialogue-panel.narration { width: 100%; margin-left: 0; padding: 20px; }
+  .speaker-portrait { left: 0; bottom: 28px; width: min(46vw, 260px); height: 48dvh; opacity: 0.38; }
+  .dialogue-panel, .dialogue-panel.narration { width: 100%; max-height: calc(100dvh - 110px); margin-left: 0; padding: 18px; }
+  .dialogue-panel.with-cutaway .dialogue-body { display: block; }
+  .story-cutaway { display: none; }
   .dialogue-copy { min-height: 62px; font-size: 0.92rem; }
   .choice-button { grid-template-columns: 28px 1fr; }
   .choice-button small { grid-column: 2; }

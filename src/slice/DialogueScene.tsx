@@ -12,6 +12,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
   const [lineIndex, setLineIndex] = useState(0)
   const line = scene.lines[lineIndex]
   const atEnd = lineIndex === scene.lines.length - 1
+  const progress = ((lineIndex + 1) / scene.lines.length) * 100
   const portrait = line.speaker !== 'narrator' && line.speaker in ASSETS.portraits
     ? ASSETS.portraits[line.speaker as PortraitId]
     : null
@@ -33,14 +34,26 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
       </header>
 
       <div className="dialogue-stage">
-        {portrait && <img className="speaker-portrait" src={portrait} alt={line.name} />}
-        <div className={`dialogue-panel ${portrait ? '' : 'narration'}`}>
+        {portrait && <img key={`${line.speaker}-${lineIndex}`} className="speaker-portrait" src={portrait} alt={line.name} />}
+        <div key={lineIndex} className={`dialogue-panel ${portrait ? '' : 'narration'} ${line.cutaway ? 'with-cutaway' : ''}`} aria-live="polite">
+          <div className="scene-progress" aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
           <p className="dialogue-title">{scene.title}</p>
-          <div className="speaker-label">
-            <strong>{line.name}</strong>
-            {line.station && <span>{line.station}</span>}
+          <div className="dialogue-body">
+            <div className="dialogue-line">
+              {line.cue && <p className="stage-cue">{line.cue}</p>}
+              <div className="speaker-label">
+                <strong>{line.name}</strong>
+                {line.station && <span>{line.station}</span>}
+              </div>
+              <p className="dialogue-copy">{line.text}</p>
+            </div>
+            {line.cutaway && (
+              <figure className={`story-cutaway fit-${line.cutaway.fit ?? 'cover'}`}>
+                <img src={line.cutaway.image} alt="" />
+                <figcaption><span>{line.cutaway.label}</span><p>{line.cutaway.caption}</p></figcaption>
+              </figure>
+            )}
           </div>
-          <p className="dialogue-copy">{line.text}</p>
 
           {atEnd && scene.choices ? (
             <div className="dialogue-choices">

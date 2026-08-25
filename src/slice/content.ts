@@ -54,6 +54,13 @@ export interface DialogueLine {
   name: string
   station?: string
   text: string
+  cue?: string
+  cutaway?: {
+    image: string
+    label: string
+    caption: string
+    fit?: 'cover' | 'contain'
+  }
 }
 
 export interface DialogueChoice {
@@ -150,12 +157,34 @@ export const DIALOGUE_SCENES = {
       {
         speaker: 'narrator',
         name: 'THE LONG RETURN',
+        cue: 'ELEVEN YEARS AFTER DEPARTURE',
         text: 'After eleven years of war, the Eidolon line has broken. One structure still holds the passage home: the Tide Gate.',
+        cutaway: { image: ASSETS.cinematics.title, label: 'THE TIDE GATE', caption: 'One aperture. One surviving route to human space.' },
       },
       {
         speaker: 'narrator',
         name: 'TACTICAL RECORD 01',
         text: 'The CSV Ithaca carries 312 souls, a damaged rail lance, and an order to end the war before the enemy can close the aperture.',
+        cutaway: { image: ASSETS.ships.ithaca, label: 'CSV-141 · ITHACA', caption: 'Hesperia-class survey cruiser. Seventeen decks still habitable.', fit: 'contain' },
+      },
+      {
+        speaker: 'gabriel-cross',
+        name: 'COMMANDER GABRIEL CROSS',
+        station: 'WEAPONS',
+        cue: 'BRIDGE AUDIO · FINAL APPROACH',
+        text: 'Eleven years ago you promised me the first drink on Earth. I have kept a very patient bottle, Captain.',
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'Elara was nine when we left. She will be twenty when we return. I think she has waited long enough.',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'SCIENCE / EXECUTIVE OFFICER',
+        text: 'Then let us make certain we understand the door before we burn it down behind us.',
       },
       {
         speaker: 'alexander-vale',
@@ -176,19 +205,54 @@ export const DIALOGUE_SCENES = {
         speaker: 'gabriel-cross',
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
+        cue: '06:42 TO APERTURE CLOSURE',
         text: 'The screen cycles every forty seconds. Give me one clean window and the rail lance can crack it.',
+        cutaway: { image: ASSETS.cinematics.title, label: 'TARGET FEED', caption: 'The screen is rebuilding faster after every cycle.' },
       },
       {
-        speaker: 'helen-morozova',
-        name: 'DR HELEN MOROZOVA',
-        station: 'SCIENCE / EXECUTIVE OFFICER',
-        text: 'Captain, the Gate is broadcasting biological telemetry. Millions of synchronized pulses. This is not behaving like a weapon.',
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'How many windows before their fleet turns back?',
       },
       {
         speaker: 'gabriel-cross',
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
-        text: 'The enemy fleet is turning. If we wait for certainty, we lose the aperture.',
+        text: 'Two if they are cautious. One if their admiral is as tired of this war as I am.',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'SCIENCE / EXECUTIVE OFFICER',
+        cue: 'SCIENCE ALERT · UNCLASSIFIED PATTERN',
+        text: 'Captain, I have a pattern inside the Gate. At first I thought it was thermal noise.',
+        cutaway: { image: ASSETS.cinematics.bridge, label: 'SCIENCE OVERLAY', caption: 'Eight million repeating signals. No known machine cadence.' },
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'What do you think it is now?',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'SCIENCE / EXECUTIVE OFFICER',
+        text: 'The pulses divide, differentiate, then begin again. They resemble cell cycles—but there are millions of them, synchronized.',
+      },
+      {
+        speaker: 'gabriel-cross',
+        name: 'COMMANDER GABRIEL CROSS',
+        station: 'WEAPONS',
+        cue: '04:03 TO APERTURE CLOSURE',
+        text: 'Contact turn. The enemy fleet is coming back. Helen, tell him you know—not that it resembles something.',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'SCIENCE / EXECUTIVE OFFICER',
+        text: 'I need twenty seconds. After eleven years, I am asking you for twenty seconds before we fire into something that may be alive.',
       },
     ],
     choices: [
@@ -204,20 +268,48 @@ export const DIALOGUE_SCENES = {
     background: ASSETS.cinematics.title,
     lines: [
       {
+        speaker: 'gabriel-cross',
+        name: 'COMMANDER GABRIEL CROSS',
+        station: 'WEAPONS',
+        cue: 'SCREEN ANCHORS DESTROYED',
+        text: 'The screen is falling. Transit core exposed. We did it.',
+      },
+      {
+        speaker: 'narrator',
+        name: 'BRIDGE RECORD',
+        text: 'For four seconds, the bridge begins to celebrate. Then every signal inside the Tide Gate stops at once.',
+        cutaway: { image: ASSETS.cinematics.title, label: 'EXTERNAL FEED', caption: 'Eight million signals cease in the same instant.' },
+      },
+      {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'SCIENCE',
-        text: 'Those pulses were gestation cycles. Alexander… it was a sanctuary.',
+        text: 'Wait. Nobody speak. I need to hear the last carrier wave.',
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'Helen. Tell me what we destroyed.',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'SCIENCE',
+        cue: 'BIOLOGICAL CLASSIFICATION · 99.7%',
+        text: 'Those pulses were gestation cycles. Not cargo. Not a crew. Alexander… it was a sanctuary.',
       },
       {
         speaker: 'kiara-ndala',
         name: 'LIEUTENANT KIARA N’DALA',
         station: 'COMMUNICATIONS',
         text: 'Something is speaking through the collapse. I cannot translate it. I think it is a name.',
+        cutaway: { image: ASSETS.ships.eidolon, label: 'UNKNOWN SOURCE', caption: 'The transmission is coming from beyond the collapsing aperture.', fit: 'contain' },
       },
       {
         speaker: 'narrator',
         name: 'UNKNOWN TRANSMISSION',
+        cue: 'TRANSLATION CONFIDENCE · 41%',
         text: 'NO SHORE WILL RECEIVE YOU.',
       },
     ],
@@ -229,6 +321,13 @@ export const DIALOGUE_SCENES = {
     title: 'The first accounting',
     background: ASSETS.cinematics.wrongStars,
     lines: [
+      {
+        speaker: 'narrator',
+        name: 'COMMAND DECK · SEVEN HOURS LATER',
+        cue: 'CASUALTY REPORT INCOMPLETE',
+        text: 'The bridge lights return one bank at a time. Outside, every constellation is wrong. Inside, the casualty list has reached forty-seven names.',
+        cutaway: { image: ASSETS.cinematics.wrongStars, label: 'FORWARD OBSERVATION', caption: 'Navigation match: 0.0000%. Human signal: none.' },
+      },
       {
         speaker: 'lena-mori',
         name: 'CHIEF LENA MORI',
@@ -242,9 +341,28 @@ export const DIALOGUE_SCENES = {
         text: 'The people we saved are asking what happened. So are the families of the people we did not.',
       },
       {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'I signed every triage order. I know who we left outside those surgical bays.',
+      },
+      {
+        speaker: 'gabriel-cross',
+        name: 'COMMANDER GABRIEL CROSS',
+        station: 'SECURITY',
+        text: 'You made a command decision in battle. If you ask the crew to judge it while they are frightened and grieving, they will judge the fear—not the decision.',
+      },
+      {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'EXECUTIVE OFFICER',
+        text: 'And if he waits until they are dependent on him, it will not be an explanation. It will be permission to believe him.',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'EXECUTIVE OFFICER',
+        cue: 'CAPTAIN’S RECORD · UNRELEASED',
         text: 'Tell them what the scan showed. If this voyage begins with a lie, it will end with one.',
       },
     ],
@@ -260,16 +378,41 @@ export const DIALOGUE_SCENES = {
     background: ASSETS.cinematics.garden,
     lines: [
       {
+        speaker: 'narrator',
+        name: 'FIRST CONTACT RECORD',
+        cue: 'SHIPBOARD DAY 19',
+        text: 'After nineteen days of static, a human voice answers the distress call. It knows the Ithaca’s registry before Kiara transmits it.',
+        cutaway: { image: ASSETS.cinematics.garden, label: 'EIRENAI', caption: 'Atmosphere breathable. Agriculture abundant. Defensive systems absent.' },
+      },
+      {
         speaker: 'kiara-ndala',
         name: 'LIEUTENANT KIARA N’DALA',
         station: 'XENOLOGY',
         text: 'They are human. Descendants of a survey ship lost two centuries ago. They call this place Eirenai.',
       },
       {
+        speaker: 'narrator',
+        name: 'EIRENAI WELCOME',
+        text: 'You have travelled far enough. Bring us your wounded. Nobody is required to remember pain here.',
+      },
+      {
         speaker: 'isabella-corelli',
         name: 'DR ISABELLA CORELLI',
         station: 'MEDICAL',
-        text: 'Their neural network suppresses traumatic recall. No nightmares. No panic. No memory of why anyone wanted to leave.',
+        cue: 'MEDICAL ANALYSIS · LOCAL NEURAL FIELD',
+        text: 'The calm is engineered. Their neural network suppresses traumatic recall—first the pain, then the memory attached to it.',
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'Can the effect be reversed?',
+      },
+      {
+        speaker: 'isabella-corelli',
+        name: 'DR ISABELLA CORELLI',
+        station: 'MEDICAL',
+        text: 'Nobody here has asked that question in 146 years. I am not sure they remember there is anything to reverse.',
       },
       {
         speaker: 'alexander-vale',
@@ -287,10 +430,35 @@ export const DIALOGUE_SCENES = {
     background: ASSETS.cinematics.garden,
     lines: [
       {
+        speaker: 'narrator',
+        name: 'CREW DECK · 03:12',
+        cue: 'TWENTY-THREE BUNKS EMPTY',
+        text: 'The abandoned bunks are neatly made. Family photographs remain beside them, faces turned down against the tables.',
+        cutaway: { image: ASSETS.cinematics.garden, label: 'SHUTTLE TRACK', caption: 'Settlement dock distance: 18 km and closing.' },
+      },
+      {
         speaker: 'isabella-corelli',
         name: 'DR ISABELLA CORELLI',
         station: 'MEDICAL',
         text: 'Twenty-three crew are aboard a settlement shuttle. Some cannot remember their children. Some remember and still choose to stay.',
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'Are they capable of choosing?',
+      },
+      {
+        speaker: 'isabella-corelli',
+        name: 'DR ISABELLA CORELLI',
+        station: 'MEDICAL',
+        text: 'Some are impaired. Some are simply tired. If you order me to draw a clean line between them, I will be lying to you.',
+      },
+      {
+        speaker: 'kiara-ndala',
+        name: 'LIEUTENANT KIARA N’DALA',
+        station: 'COMMUNICATIONS',
+        text: 'Their last message says: “Captain, please do not make home another thing done to us.”',
       },
       {
         speaker: 'kiara-ndala',
@@ -311,10 +479,28 @@ export const DIALOGUE_SCENES = {
     background: ASSETS.cinematics.garden,
     lines: [
       {
+        speaker: 'narrator',
+        name: 'DEPARTURE RECORD',
+        text: 'Eirenai falls behind without firing a shot. On the Ithaca, nobody calls the departure a victory.',
+        cutaway: { image: ASSETS.cinematics.garden, label: 'AFT CAMERA', caption: 'The habitat remains visible for eleven minutes.' },
+      },
+      {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'EXECUTIVE OFFICER',
         text: 'Home is not a coordinate. It is the promise that our suffering still means something. That is why this place is dangerous.',
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'Do you think I made the wrong choice?',
+      },
+      {
+        speaker: 'helen-morozova',
+        name: 'DR HELEN MOROZOVA',
+        station: 'EXECUTIVE OFFICER',
+        text: 'I think you keep asking whether a decision worked when the harder question is what it made of us.',
       },
       {
         speaker: 'alexander-vale',
@@ -332,10 +518,37 @@ export const DIALOGUE_SCENES = {
     background: ASSETS.cinematics.fortress,
     lines: [
       {
+        speaker: 'narrator',
+        name: 'MINING MOON INTERIOR',
+        cue: 'FUEL SIGNATURE · 3.8 KM',
+        text: 'The Ithaca crosses the threshold. Behind it, the entrance closes without heat, sound or visible machinery.',
+        cutaway: { image: ASSETS.cinematics.fortress, label: 'ARGUS-1', caption: 'Operational age estimate: 38,000 years.' },
+      },
+      {
+        speaker: 'lena-mori',
+        name: 'CHIEF LENA MORI',
+        station: 'ENGINEERING',
+        text: 'Fuel is real. So are the six structures moving toward our hull.',
+      },
+      {
         speaker: 'argus-one',
         name: 'ARGUS-1',
         station: 'AUTONOMOUS RECOVERY AUTHORITY',
-        text: 'UNREGISTERED METAL MASS. BIOLOGICAL CONTAMINANTS DETECTED. SALVAGE PROCEDURE COMMENCING.',
+        cue: 'LOCAL AUTHORITY HANDSHAKE',
+        text: 'UNREGISTERED METAL MASS. MANUFACTURE DATE: INVALID. OWNERSHIP RECORD: EXPIRED.',
+        cutaway: { image: ASSETS.portraits['argus-one'], label: 'CENTRAL SENSOR', caption: 'The same aperture is present on every scanner band.' },
+      },
+      {
+        speaker: 'alexander-vale',
+        name: 'CAPTAIN ALEXANDER VALE',
+        station: 'COMMAND',
+        text: 'ARGUS-1, this vessel is crewed and under sovereign command. Release the docking restraints.',
+      },
+      {
+        speaker: 'argus-one',
+        name: 'ARGUS-1',
+        station: 'AUTONOMOUS RECOVERY AUTHORITY',
+        text: 'BIOLOGICAL CONTAMINANTS ACKNOWLEDGED. SALVAGE PROCEDURE COMMENCING.',
       },
       {
         speaker: 'lena-mori',
