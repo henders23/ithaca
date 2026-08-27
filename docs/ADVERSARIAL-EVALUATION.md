@@ -19,12 +19,12 @@ Score every category from 1–10 using the observable evidence below. A build fa
 | Category | Weight | Hostile questions | Passing evidence |
 | --- | ---: | --- | --- |
 | Story clarity | 20% | Why are we here? What just changed? What is Vale trying to achieve? What remains uncertain? | Each beat has an interlude, gradual reveal ladder, explicit objective, competing interpretations and an aftermath. |
-| Character connection | 20% | Can the player distinguish the cast without reading job titles? Does each person want something beyond explaining the plot? Does the game remember how Vale treated them? | Seven core companions have four-stage Act I arcs; choices alter trust; dialogue, private conversations and later lines reflect earlier decisions. |
+| Character connection | 20% | Can the player distinguish the cast without reading job titles? Does each person want something beyond explaining the plot? Does the game remember how Vale treated them? | Seven core companions have four-stage arcs in each playable act; choices alter trust; dialogue, private conversations and later lines reflect earlier decisions. |
 | Minigame clarity | 15% | Is the goal visible? Are inputs obvious? Can the player understand progress and failure before committing? | Every minigame declares goal, input, stakes, three feedback modes and a concrete state consequence. Hidden arbitrary targets are prohibited. |
-| Minigame engagement | 15% | Is this a meaningful decision or merely busywork? Does the fiction change the way the mechanic feels? Is failure interesting? | Ten mechanically distinct activities mix deduction, allocation, ethical choice, navigation and combat; failure changes difficulty or state instead of erasing story choices. |
+| Minigame engagement | 15% | Is this a meaningful decision or merely busywork? Does the fiction change the way the mechanic feels? Is failure interesting? | Fourteen mechanically distinct activities mix deduction, allocation, ethical choice, navigation and combat; failure changes difficulty or state instead of erasing story choices. |
 | Cinematic impact | 15% | Does the sequence create anticipation, contrast, escalation and release? Are still images doing dramatic work rather than decorating text? | Purpose-made widescreen locations, recurring portraits, cutaways, quiet pre-action scenes, weapon effects, survival spectacle and consequence scenes. |
 | Visual usability | 10% | What is the first thing the eye sees? Can a laptop player see the decision and context together? Are status, feedback and danger differentiated? | Height-aware portrait scaling, compact laptop rules, mobile collapse, consistent amber/cyan/red semantics and task-specific interfaces. |
-| Campaign momentum | 5% | Does every payoff generate the next problem? Is there a compelling reason to continue? | Pride → wrath → fragile hope → betrayal completes Act I and points directly at the Devouring Harbour. |
+| Campaign momentum | 5% | Does every payoff generate the next problem? Is there a compelling reason to continue? | Pride → wrath → fragile hope → betrayal becomes predation → uncertain identity → temptation → costly recovery, leading directly to the Archive of the dead. |
 
 ## Minigame interrogation
 
@@ -63,6 +63,13 @@ If the answer requires external lore, the beat fails. If every character agrees,
 | Identity, rumour and sacrifice choices existed in state but could feel invisible. | High | Tidefather’s greeting, the near-home crew record, interludes and aftermath dialogue now branch on those choices. |
 | The pursuer could become another destroy-all boss. | High | The Tidefather encounter is a timed survival objective with regenerating living subsystems; victory language explicitly says the enemy was not defeated. |
 | The four-beat slice ended before its thematic promise paid off. | Medium | Beats 05–08 now complete Act I with wrath, refuge, hope, betrayal and the first mutiny. |
+| The neural lock initially labelled the accountable answer as the “difficult detail,” making a supposed identity struggle a transparent morality quiz. | High | Replaced evaluative answer labels with neutral memory concepts; the rewrite result now appears only after commitment through the anchor rail and meter. |
+| Identity forensics risked implying that a body classification could settle personhood. | High | The game now classifies continuity evidence only; the following scene explicitly separates biological origin, Cirene’s deception and each claimant’s worth. |
+| Cirene could have become a conventional deceptive scientist whose offer no sensible player would accept. | High | Her treatment works, the refuge saves lives, boundaries can be honoured, and each companion names something real they would lose by leaving. |
+| The harbour route risked being a cosmetic path picker before a fixed battle. | High | Every corridor carries visible hull risk and convoy capacity; route quality changes target health and firing rate, while convoy survival changes the aftermath. |
+| A long refuge sequence could stall the campaign in exposition. | Medium | The explorable hub gives each companion a distinct private want, then the external clock turns rest into an irreversible thirteen-month consequence. |
+| A refit after Act I could erase the meaning of the player’s accumulated damage. | High | Only three of six capabilities can be restored; unselected weaknesses remain and every repair installs a persistent Cirene-derived module. |
+| Escaping Cirene through combat could falsely frame killing her as victory. | Medium | The optional battle targets capture ribbons, sensors and a docking seal; result text records that custodians were disabled and Cirene remains alive. |
 
 ## Required evaluation artifacts
 
@@ -89,3 +96,17 @@ The rubric should become stricter as the game grows. Passing once does not exemp
 | Campaign momentum | 9.3 | Every apparent solution creates the next danger; Act I closes on lost home, damaged trust and a concrete Act II threat. | The Act II opener must repay the Devouring Harbour promise immediately. |
 
 **Weighted score: 8.86 / 10 — pass.** There are no categories below 8 and all automated release gates pass. This is an internal expert score, not a substitute for observation of first-time players; the unresolved telemetry and screenshot-regression items stay on the rubric rather than being treated as completed.
+
+## Act II Slice I release-candidate scorecard
+
+| Category | Score | Evidence | Remaining pressure |
+| --- | ---: | --- | --- |
+| Story clarity | 9.2 | Four full interludes connect the broken sphere to the harbour, the survivors to Cirene, the continuity audit to the bargain, and the refuge to the lost year. | Recall must still be measured with first-time players rather than inferred from text coverage. |
+| Character connection | 9.0 | Seven continuing four-stage arcs, a second private-conversation hub, Cirene’s own coherent philosophy, and state-aware callbacks to mutiny, convoy, copies and alliance. | Named secondary survivors need portraits or recurring visual identifiers if they return later. |
+| Minigame clarity | 8.9 | Four new goals declare inputs and stakes; route risk, convoy capacity, evidence layers, rewrite percentage and growth cycles remain visible throughout play. | Real completion-time telemetry is needed to tune clue density and route reading time. |
+| Minigame engagement | 8.8 | Planning changes combat, forensics precedes moral judgment, the neural game attacks Vale’s actual arc, and refit choices preserve earlier damage. | Neural choices remain authored dilemmas rather than a systemic puzzle with emergent solutions. |
+| Cinematic impact | 9.2 | Six purpose-built widescreen environments, Cirene’s recurring portrait, two combat silhouettes, strong palette contrast and quiet domestic refuge imagery. | Still-image staging cannot provide performance nuance equivalent to animation or voiced delivery. |
+| Visual usability | 8.4 | New interfaces have explicit laptop-height compression, mobile collapse, scroll-safe cards and the established cyan/amber/red semantics. | The cloud preview could not reach the local development server; screenshot regression remains an explicit unresolved gate. |
+| Campaign momentum | 9.3 | Each sanctuary solves the previous threat while creating a more intimate danger; the lost year converts comfort into urgency and points directly to the Mourning Archive. | Beat 13 must repay the promised descent with a mechanically distinct opening. |
+
+**Weighted score: 8.98 / 10 — pass.** This matches or exceeds the internal Act I baseline. Twenty-eight automated tests cover campaign flow, asset delivery, server rendering, state-aware callbacks, narrative ladders, character arcs and minigame contracts. The score remains provisional until first-time player observation and rendered screenshot regression are available.

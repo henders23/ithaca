@@ -13,6 +13,12 @@ export const ASSETS = {
     aeolianCity: '/assets/cinematics/aeolian-city.webp',
     sphereChamber: '/assets/cinematics/sphere-chamber.webp',
     sphereRupture: '/assets/cinematics/sphere-rupture.webp',
+    devouringHarbour: '/assets/cinematics/devouring-harbour.webp',
+    devouringHarbourEscape: '/assets/cinematics/devouring-harbour-escape.webp',
+    cireneArk: '/assets/cinematics/cirene-ark.webp',
+    cireneIdentityLab: '/assets/cinematics/cirene-identity-lab.webp',
+    cireneMindTheatre: '/assets/cinematics/cirene-mind-theatre.webp',
+    cireneRefitYear: '/assets/cinematics/cirene-refit-year.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -25,12 +31,15 @@ export const ASSETS = {
     elias: '/assets/portraits/elias.webp',
     tidefather: '/assets/portraits/tidefather.webp',
     'keeper-aeolia': '/assets/portraits/keeper-aeolia.webp',
+    'doctor-cirene': '/assets/portraits/doctor-cirene.webp',
   },
   ships: {
     ithaca: '/assets/ships/ithaca-combat.png',
     eidolon: '/assets/ships/eidolon-interceptor.png',
     argus: '/assets/ships/argus-cutter.png',
     tidefather: '/assets/ships/tidefather-capital-ui.webp',
+    salvageTug: '/assets/ships/salvage-tug.webp',
+    cireneCustodian: '/assets/ships/cirene-custodian.webp',
   },
 } as const
 
@@ -81,6 +90,28 @@ export type SliceScreenId =
   | 'b8-log'
   | 'b8-judgment'
   | 'act-one-complete'
+  | 'interlude-09'
+  | 'b9-approach'
+  | 'b9-course'
+  | 'b9-combat'
+  | 'b9-aftermath'
+  | 'interlude-10'
+  | 'b10-arrival'
+  | 'b10-forensics'
+  | 'b10-restoration'
+  | 'b10-aftermath'
+  | 'interlude-11'
+  | 'b11-confrontation'
+  | 'b11-neural'
+  | 'b11-bargain'
+  | 'b11-combat'
+  | 'b11-aftermath'
+  | 'interlude-12'
+  | 'b12-refuge'
+  | 'b12-time-reveal'
+  | 'b12-refit'
+  | 'b12-departure'
+  | 'act-two-slice-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'
@@ -113,7 +144,7 @@ export interface DialogueSceneData {
 }
 
 export interface InterludeData {
-  id: `interlude-0${2 | 3 | 4 | 5 | 6 | 7 | 8}`
+  id: `interlude-${string}`
   incomingBeat: number
   chapter: string
   headline: string
