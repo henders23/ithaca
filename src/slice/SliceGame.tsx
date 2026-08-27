@@ -10,6 +10,9 @@ import { DialogueScene } from './DialogueScene.js'
 import { CircuitGame, MemoryGame, PowerGridGame, ShuttleChaseGame, TriageGame } from './MiniGames.js'
 import { AccessLogGame, PhaseCurrentGame, StormFlightGame, SystemSacrificeGame, TransponderCipherGame } from './SliceTwoGames.js'
 import { nameConsequenceScene, nearHomeScene, sacrificeAftermathScene, SLICE_TWO_INTERLUDES, SLICE_TWO_SCENES, tidefatherSignalScene } from './sliceTwoContent.js'
+import { DebrisCourseGame, IdentityForensicsGame, NeuralLockGame, RefitAllocationGame } from './ActTwoGames.js'
+import { RefugeHub } from './RefugeHub.js'
+import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES, cireneAftermathScene, cireneBargainScene, departureScene, harbourAftermathScene } from './actTwoContent.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
@@ -23,6 +26,11 @@ export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
   'interlude-07', 'b7-arrival', 'b7-negotiation', 'b7-current', 'b7-flight', 'b7-departure',
   'interlude-08', 'b8-rumours', 'b8-near-home', 'b8-rupture', 'b8-log', 'b8-judgment',
   'act-one-complete',
+  'interlude-09', 'b9-approach', 'b9-course', 'b9-combat', 'b9-aftermath',
+  'interlude-10', 'b10-arrival', 'b10-forensics', 'b10-restoration', 'b10-aftermath',
+  'interlude-11', 'b11-confrontation', 'b11-neural', 'b11-bargain', 'b11-combat', 'b11-aftermath',
+  'interlude-12', 'b12-refuge', 'b12-time-reveal', 'b12-refit', 'b12-departure',
+  'act-two-slice-complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -34,6 +42,10 @@ export const VERTICAL_SLICE_BEATS = [
   '06-first-wrath',
   '07-keeper-of-winds',
   '08-forbidden-sphere',
+  '09-devouring-harbour',
+  '10-palace-new-flesh',
+  '11-captains-bargain',
+  '12-year-outside-time',
 ] as const
 
 interface SliceSave {
@@ -54,9 +66,15 @@ function loadSave(): SliceSave | null {
   }
 }
 
+function loadPreviewScreen(): SliceScreenId | null {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return null
+  const requested = new URLSearchParams(window.location.search).get('screen') as SliceScreenId | null
+  return requested && SLICE_SCREEN_IDS.includes(requested) ? requested : null
+}
+
 export function SliceGame() {
   const [savedGame, setSavedGame] = useState<SliceSave | null>(() => loadSave())
-  const [screen, setScreen] = useState<SliceScreenId>('title')
+  const [screen, setScreen] = useState<SliceScreenId>(() => loadPreviewScreen() ?? 'title')
   const [game, setGame] = useState<GameState>(() => savedGame?.game ?? createInitialState('ithaca-vertical-slice'))
 
   useEffect(() => {
@@ -150,6 +168,55 @@ export function SliceGame() {
     completeActivity('08-forbidden-sphere', 'mutiny-judgment', 'act-one-complete', choice.id, effects, true)
   }
 
+  const answerHarbour = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'warn-the-convoy'
+      ? [{ kind: 'set-flag', flag: 'harbour-convoy-warned' }, { kind: 'relationship', character: 'kiara-ndala', delta: 2 }, { kind: 'pursuit', delta: 4 }]
+      : choice.id === 'feign-compliance'
+        ? [{ kind: 'add-evidence', evidenceId: 'harbour-tow-geometry' }, { kind: 'relationship', character: 'lena-mori', delta: 1 }, { kind: 'damage-hull', amount: 4 }]
+        : [{ kind: 'set-flag', flag: 'harbour-convoy-abandoned' }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }, { kind: 'relationship', character: 'kiara-ndala', delta: -2 }]
+    completeActivity('09-devouring-harbour', 'false-hospitality', 'b9-course', choice.id, effects)
+  }
+
+  const chooseTreatment = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'accept-full-treatment'
+      ? [{ kind: 'set-flag', flag: 'cirene-treatment-accepted' }, { kind: 'relationship', character: 'isabella-corelli', delta: 2 }]
+      : choice.id === 'limit-to-diagnostics'
+        ? [{ kind: 'relationship', character: 'helen-morozova', delta: 1 }, { kind: 'relationship', character: 'isabella-corelli', delta: -1 }]
+        : [{ kind: 'relationship', character: 'isabella-corelli', delta: 2 }, { kind: 'relationship', character: 'helen-morozova', delta: 1 }]
+    completeActivity('10-palace-new-flesh', 'offer-new-flesh', 'b10-forensics', choice.id, effects)
+  }
+
+  const chooseRestoration = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'recognize-both'
+      ? [{ kind: 'set-flag', flag: 'cirene-copies-recognized' }, { kind: 'relationship', character: 'isabella-corelli', delta: 2 }, { kind: 'relationship', character: 'helen-morozova', delta: 1 }]
+      : choice.id === 'let-each-pair-decide'
+        ? [{ kind: 'set-flag', flag: 'cirene-copies-recognized' }, { kind: 'relationship', character: 'isabella-corelli', delta: 2 }]
+        : choice.id === 'destroy-illegal-copies'
+          ? [{ kind: 'set-flag', flag: 'cirene-copies-destroyed' }, { kind: 'relationship', character: 'isabella-corelli', delta: -3 }, { kind: 'relationship', character: 'helen-morozova', delta: -2 }]
+          : [{ kind: 'relationship', character: 'isabella-corelli', delta: -1 }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }]
+    completeActivity('10-palace-new-flesh', 'restoration-choice', 'b10-aftermath', choice.id, effects, true)
+  }
+
+  const chooseCireneBargain = (choice: DialogueChoice) => {
+    if (choice.id === 'steal-the-gate-map') {
+      completeActivity('11-captains-bargain', 'cirene-bargain', 'b11-combat', choice.id, [{ kind: 'set-flag', flag: 'cirene-betrayed' }, { kind: 'add-module', moduleId: 'stolen-gate-map' }, { kind: 'relationship', character: 'helen-morozova', delta: -2 }])
+      return
+    }
+    const effects: CampaignEffect[] = choice.id === 'ally-with-cirene'
+      ? [{ kind: 'set-flag', flag: 'cirene-allied' }, { kind: 'add-module', moduleId: 'cirene-gate-map' }, { kind: 'relationship', character: 'helen-morozova', delta: 1 }, { kind: 'relationship', character: 'lena-mori', delta: 1 }]
+      : [{ kind: 'repair-hull', amount: 6 }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }]
+    completeActivity('11-captains-bargain', 'cirene-bargain', 'b11-aftermath', choice.id, effects, true)
+  }
+
+  const chooseDeparture = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'hold-crew-vote'
+      ? [{ kind: 'set-flag', flag: 'refuge-vote-honoured' }, { kind: 'relationship', character: 'helen-morozova', delta: 1 }, { kind: 'relationship', character: 'isabella-corelli', delta: 2 }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }]
+      : choice.id === 'persuade-the-crew'
+        ? [{ kind: 'relationship', character: 'helen-morozova', delta: 2 }, { kind: 'relationship', character: 'elias', delta: 1 }]
+        : [{ kind: 'relationship', character: 'gabriel-cross', delta: 2 }, { kind: 'relationship', character: 'isabella-corelli', delta: -2 }, { kind: 'relationship', character: 'helen-morozova', delta: -1 }]
+    completeActivity('12-year-outside-time', 'resume-voyage', 'act-two-slice-complete', choice.id, effects, true)
+  }
+
   const gateCombat = useMemo<CombatConfig>(() => ({
     beat: 'BEAT 01 · COMBAT',
     title: 'BREAK THE SANCTUARY SCREEN',
@@ -213,6 +280,52 @@ export function SliceGame() {
     ],
     playerHull: game.ship.hull,
     enemyInterval: 2550,
+  }), [game.ship.hull])
+
+  const harbourCombat = useMemo<CombatConfig>(() => {
+    const safeRoute = game.evidence.includes('harbour-route-safe')
+    const warnedConvoy = game.flags.includes('harbour-convoy-warned')
+    return {
+      beat: 'BEAT 09 · ESCAPE COMBAT',
+      title: 'RUN THE DEVOURING HARBOUR',
+      objective: warnedConvoy ? 'Break the tractor locks and hold the convoy corridor' : 'Break the tractor locks and clear the escape mouth',
+      background: ASSETS.cinematics.devouringHarbourEscape,
+      playerShip: ASSETS.ships.ithaca,
+      enemyShip: ASSETS.ships.salvageTug,
+      enemyName: 'Port Mercy salvage tug',
+      incomingLabel: 'Industrial cutter burns through the plotted corridor.',
+      targets: [
+        { id: 'tractor-a', name: 'Tractor Lock A', role: 'HOLDS ESCAPE VECTOR', hp: safeRoute ? 2 : 3 },
+        { id: 'tractor-b', name: 'Tractor Lock B', role: warnedConvoy ? 'HOLDS CONVOY' : 'CLOSING', hp: 2 },
+        { id: 'jaw-control', name: 'Jaw Control', role: 'PRIMARY EXIT', hp: 3 },
+        ...(!safeRoute ? [{ id: 'cutting-tug', name: 'Cutting Tug', role: 'ACTIVE THREAT', hp: 2 }] : []),
+      ],
+      playerHull: game.ship.hull,
+      enemyInterval: safeRoute ? 2500 : 1850,
+      victoryTitle: warnedConvoy ? 'The corridor is holding.' : 'The escape mouth is open.',
+      victoryText: warnedConvoy ? 'The Ithaca clears the jaws with surviving convoy vessels in her wake.' : 'The Ithaca clears the jaws. Behind her, Port Mercy closes around the vessels that could not follow.',
+    }
+  }, [game.evidence, game.flags, game.ship.hull])
+
+  const cireneCombat = useMemo<CombatConfig>(() => ({
+    beat: 'BEAT 11 · OPTIONAL ESCAPE',
+    title: 'BREAK FROM THE PALACE',
+    objective: 'Disable the capture ribbons without rupturing the ark',
+    background: ASSETS.cinematics.cireneArk,
+    playerShip: ASSETS.ships.ithaca,
+    enemyShip: ASSETS.ships.cireneCustodian,
+    enemyName: 'Palace custodian',
+    incomingLabel: 'A continuity tether wraps the Ithaca and drains weapon charge.',
+    targets: [
+      { id: 'ribbon-a', name: 'Capture Ribbon A', role: 'RESTRAINT', hp: 2 },
+      { id: 'ribbon-b', name: 'Capture Ribbon B', role: 'RESTRAINT', hp: 2 },
+      { id: 'sensor', name: 'Custodian Sensor', role: 'PREDICTS THRUST', hp: 2 },
+      { id: 'docking-seal', name: 'Ark Docking Seal', role: 'ESCAPE ROUTE', hp: 3 },
+    ],
+    playerHull: game.ship.hull,
+    enemyInterval: 2350,
+    victoryTitle: 'The Palace releases its grip.',
+    victoryText: 'The custodian is disabled, not destroyed. Cirene allows the Ithaca to clear the shield—and records exactly what Vale stole.',
   }), [game.ship.hull])
 
   const renderScreen = () => {
@@ -333,7 +446,60 @@ export function SliceGame() {
       case 'b8-judgment':
         return <DialogueScene key={screen} scene={SLICE_TWO_SCENES['b8-judgment']} onChoice={judgeMutiny} />
       case 'act-one-complete':
-        return <ActOneCompletionScreen game={game} onRestart={startNew} />
+        return <ActOneCompletionScreen game={game} onRestart={startNew} onContinue={() => setScreen('interlude-09')} />
+      case 'interlude-09':
+        return <BeatInterlude data={ACT_TWO_INTERLUDES['interlude-09']} game={game} onContinue={() => setScreen('b9-approach')} />
+      case 'b9-approach':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b9-approach']} onChoice={answerHarbour} />
+      case 'b9-course':
+        return <DebrisCourseGame convoyWarned={game.flags.includes('harbour-convoy-warned')} onComplete={(result) => completeActivity('09-devouring-harbour', 'debris-course', 'b9-combat', result.choiceId, [
+          { kind: 'add-evidence', evidenceId: result.risk <= 64 ? 'harbour-route-safe' : 'harbour-route-exposed' },
+          { kind: 'add-evidence', evidenceId: result.rescue >= 4 ? 'harbour-route-convoy' : 'harbour-route-ithaca-only' },
+        ])} />
+      case 'b9-combat':
+        return <CinematicCombat config={harbourCombat} onComplete={(result) => completeActivity('09-devouring-harbour', 'harbour-escape', 'b9-aftermath', 'harbour-mouth-cleared', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 5 }], true)} />
+      case 'b9-aftermath':
+        return <DialogueScene key={screen} scene={harbourAftermathScene(game)} onContinue={() => setScreen('interlude-10')} />
+      case 'interlude-10':
+        return <BeatInterlude data={ACT_TWO_INTERLUDES['interlude-10']} game={game} onContinue={() => setScreen('b10-arrival')} />
+      case 'b10-arrival':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b10-arrival']} onChoice={chooseTreatment} />
+      case 'b10-forensics':
+        return <IdentityForensicsGame onComplete={(result) => completeActivity('10-palace-new-flesh', 'identity-forensics', 'b10-restoration', result.choiceId, [{ kind: 'add-evidence', evidenceId: result.success ? 'cirene-continuity-audit' : 'cirene-continuity-audit-partial' }])} />
+      case 'b10-restoration':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b10-restoration']} onChoice={chooseRestoration} />
+      case 'b10-aftermath':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b10-aftermath']} onContinue={() => setScreen('interlude-11')} />
+      case 'interlude-11':
+        return <BeatInterlude data={ACT_TWO_INTERLUDES['interlude-11']} game={game} onContinue={() => setScreen('b11-confrontation')} />
+      case 'b11-confrontation':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b11-confrontation']} onContinue={() => setScreen('b11-neural')} />
+      case 'b11-neural':
+        return <NeuralLockGame onComplete={(result) => completeActivity('11-captains-bargain', 'neural-lock', 'b11-bargain', result.choiceId, result.success ? [{ kind: 'relationship', character: 'helen-morozova', delta: 2 }] : [{ kind: 'add-evidence', evidenceId: 'cirene-rewrite-residue' }])} />
+      case 'b11-bargain':
+        return <DialogueScene key={screen} scene={cireneBargainScene(game)} onChoice={chooseCireneBargain} />
+      case 'b11-combat':
+        return <CinematicCombat config={cireneCombat} onComplete={(result) => completeActivity('11-captains-bargain', 'break-from-ark', 'b11-aftermath', 'custodians-disabled', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 8 }], true)} />
+      case 'b11-aftermath':
+        return <DialogueScene key={screen} scene={cireneAftermathScene(game)} onContinue={() => setScreen('interlude-12')} />
+      case 'interlude-12':
+        return <BeatInterlude data={ACT_TWO_INTERLUDES['interlude-12']} game={game} onContinue={() => setScreen('b12-refuge')} />
+      case 'b12-refuge':
+        return <RefugeHub game={game} onComplete={(result) => completeActivity('12-year-outside-time', 'life-in-shelter', 'b12-time-reveal', result.choiceId, [{ kind: 'relationship', character: 'helen-morozova', delta: 1 }])} />
+      case 'b12-time-reveal':
+        return <DialogueScene key={screen} scene={ACT_TWO_SCENES['b12-time-reveal']} onContinue={() => setScreen('b12-refit')} />
+      case 'b12-refit':
+        return <RefitAllocationGame game={game} onComplete={(result) => {
+          const effects: CampaignEffect[] = result.selected.flatMap((option) => {
+            if (option.id === 'restore-hull') return [{ kind: 'repair-hull', amount: 24 } as CampaignEffect, { kind: 'add-module', moduleId: 'cirene-living-armor' } as CampaignEffect]
+            return option.system ? [{ kind: 'repair-system', system: option.system, amount: option.system === 'engines' ? 35 : 45 } as CampaignEffect, { kind: 'add-module', moduleId: `cirene-${option.system}` } as CampaignEffect] : []
+          })
+          completeActivity('12-year-outside-time', 'refit-allocation', 'b12-departure', result.choiceId, effects)
+        }} />
+      case 'b12-departure':
+        return <DialogueScene key={screen} scene={departureScene(game)} onChoice={chooseDeparture} />
+      case 'act-two-slice-complete':
+        return <ActTwoSliceCompletionScreen game={game} onRestart={startNew} />
     }
   }
 
@@ -360,19 +526,21 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACT I · PLAYABLE CAMPAIGN</span><strong>BEATS 01—08</strong></footer>
+      <footer><span>ACTS I—II · PLAYABLE CAMPAIGN</span><strong>BEATS 01—12</strong></footer>
     </section>
   )
 }
 
 function VoyageHud({ game }: { game: GameState }) {
   const completed = game.campaign.completedBeatIds.filter((id) => VERTICAL_SLICE_BEATS.includes(id as typeof VERTICAL_SLICE_BEATS[number])).length
+  const act = completed >= 8 ? 'ACT II' : 'ACT I'
+  const withinAct = completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
   return (
     <aside className="voyage-hud" aria-label="Voyage status">
       <div><span>CSV</span><strong>ITHACA</strong></div>
       <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
       <div><span>PURSUIT</span><strong>{game.pursuit}</strong></div>
-      <div><span>ACT I</span><strong>{Math.min(8, completed + 1)} / 8</strong></div>
+      <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : 9}</strong></div>
       <small>AUTOSAVED</small>
     </aside>
   )
@@ -404,7 +572,7 @@ function CompletionScreen({ game, onRestart, onContinue }: { game: GameState; on
   )
 }
 
-function ActOneCompletionScreen({ game, onRestart }: { game: GameState; onRestart: () => void }) {
+function ActOneCompletionScreen({ game, onRestart, onContinue }: { game: GameState; onRestart: () => void; onContinue: () => void }) {
   const sacrifice = game.decisions.find((decision) => decision.activityId === 'sacrifice-system')?.choiceId.replaceAll('-', ' ') ?? 'a ship system'
   const judgment = game.decisions.find((decision) => decision.activityId === 'mutiny-judgment')?.choiceId.replaceAll('-', ' ') ?? 'judgment pending'
   return (
@@ -424,7 +592,33 @@ function ActOneCompletionScreen({ game, onRestart }: { game: GameState; onRestar
           <strong>THE DEVOURING HARBOUR</strong>
           <p>A settlement has answered the distress call. Its docks are already closing behind the ships that entered first.</p>
         </div>
-        <button className="secondary-action" onClick={onRestart}>Replay Act I</button>
+        <div className="completion-actions">
+          <button className="primary-action" onClick={onContinue}>Begin Act II <span>→</span></button>
+          <button className="secondary-action" onClick={onRestart}>Replay Act I</button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ActTwoSliceCompletionScreen({ game, onRestart }: { game: GameState; onRestart: () => void }) {
+  const bargain = game.decisions.find((decision) => decision.activityId === 'cirene-bargain')?.choiceId.replaceAll('-', ' ') ?? 'terms unresolved'
+  const refit = game.decisions.find((decision) => decision.activityId === 'refit-allocation')?.choiceId.replaceAll('+', ' · ').toUpperCase() ?? 'no refit recorded'
+  const departure = game.decisions.find((decision) => decision.activityId === 'resume-voyage')?.choiceId.replaceAll('-', ' ') ?? 'departure unresolved'
+  return (
+    <section className="completion-screen act-two-finale" style={{ '--complete-bg': `url(${ASSETS.cinematics.cireneMindTheatre})` } as React.CSSProperties}>
+      <div className="completion-card">
+        <p className="eyebrow">ACT II · SLICE I COMPLETE · STRANGE SHORES</p>
+        <h1>The living could not answer. Now ask the dead.</h1>
+        <p>The Ithaca has escaped a harbour that consumed ships and a refuge that could have consumed the voyage. A year has passed beyond Cirene’s shield. The next route leads through a black-hole archive where the dead remember who falsified the Tide Gate intelligence.</p>
+        <div className="completion-stats">
+          <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
+          <div><span>CIRENE</span><strong>{bargain.toUpperCase()}</strong></div>
+          <div><span>REFIT</span><strong>{refit}</strong></div>
+          <div><span>DEPARTURE</span><strong>{departure.toUpperCase()}</strong></div>
+        </div>
+        <div className="act-coda"><span>NEXT · ACT II, SLICE II</span><strong>THE ROAD THROUGH THE DEAD</strong><p>To enter the Mourning Archive, the Ithaca must extinguish every sign that anybody aboard is alive.</p></div>
+        <button className="secondary-action" onClick={onRestart}>Replay the voyage</button>
       </div>
     </section>
   )

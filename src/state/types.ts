@@ -12,8 +12,14 @@ export const STORY_FLAGS = [
   'tidefather-memories-witnessed',
   'mutiny-leader-forgiven',
   'mutiny-leader-punished',
+  'harbour-convoy-warned',
+  'harbour-convoy-abandoned',
+  'cirene-treatment-accepted',
+  'cirene-copies-recognized',
+  'cirene-copies-destroyed',
   'cirene-allied',
   'cirene-betrayed',
+  'refuge-vote-honoured',
   'archive-entered-violently',
   'archive-truth-recovered',
   'unburied-signal-freed',
@@ -134,4 +140,3 @@ export interface Transition {
   events: GameEvent[]
   accepted: boolean
 }
-

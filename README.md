@@ -4,20 +4,22 @@ An authored, dialogue-led science-fiction odyssey about bringing a damaged ship 
 
 This repository is a clean rebuild. It does not inherit the procedural galaxy or random-campaign assumptions of `starship-explorer`.
 
-## Playable vertical slice
+## Playable campaign
 
-The browser opens directly into a cinematic Act I covering the first eight sequential set pieces:
+The browser opens directly into a cinematic campaign covering the first twelve sequential set pieces—complete Act I and the first half of Act II:
 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
-- three real-time-with-pause ship combat encounters, including a timed survival battle against an unbeatable pursuer;
+- four mandatory real-time-with-pause ship combat encounters, one conditional escape battle, and a timed survival battle against an unbeatable pursuer;
 - weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
-- ten visually distinct puzzles and action minigames, plus an explorable crew-rumour hub;
+- fourteen visually distinct puzzles and action minigames, plus two explorable character hubs;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
-- twenty-five original, optimized backgrounds, portraits and combat assets.
+- thirty-four original, optimized backgrounds, portraits and combat assets.
 
 The second playable slice completes Act I across Beats 05–08: Vale chooses the identity sent into the dark, survives the Tidefather’s first wrath, bargains for a spatial current in the Aeolian cloud cities, and judges the conspiracy that destroys the apparent route home.
+
+The first Act II slice covers Beats 09–12: the Ithaca runs a harbour that consumes its guests, confronts duplicate personhood in Doctor Cirene’s Palace of New Flesh, defends Vale’s memory from a compassionate rewrite, and spends forty-seven days in a refuge while thirteen months pass outside.
 
 ## Run locally
 
