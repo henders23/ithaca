@@ -110,3 +110,17 @@ The rubric should become stricter as the game grows. Passing once does not exemp
 | Campaign momentum | 9.3 | Each sanctuary solves the previous threat while creating a more intimate danger; the lost year converts comfort into urgency and points directly to the Mourning Archive. | Beat 13 must repay the promised descent with a mechanically distinct opening. |
 
 **Weighted score: 8.98 / 10 — pass.** This matches or exceeds the internal Act I baseline. Twenty-eight automated tests cover campaign flow, asset delivery, server rendering, state-aware callbacks, narrative ladders, character arcs and minigame contracts. The score remains provisional until first-time player observation and rendered screenshot regression are available.
+
+## Act II complete release-candidate scorecard
+
+| Category | Score | Evidence | Remaining pressure |
+| --- | ---: | --- | --- |
+| Story clarity | 9.3 | Five additional state-setting interludes connect Cirene’s lost year to the Archive, the Gate record, Rao, Elara and TIRESIAS without requiring external lore. | Cold-player recall still needs observation rather than content counting. |
+| Character connection | 9.2 | Elara gains her own voice and doubt; Rao makes one casualty personal; Vale and Morozova’s disagreement advances from guilt into command legitimacy. | Rao currently appears in one concentrated episode and needs later callback if preserved aboard. |
+| Minigame clarity | 9.0 | Five new games expose goal, input, stakes and three live feedback channels; every task is explained by a character before interaction. | Completion times remain estimated until telemetry is available. |
+| Minigame engagement | 8.9 | Shutdown ordering, causal evidence, memory recovery, honest signal reconstruction and constraint logic each perform different narrative work. | Message assembly is intentionally contemplative and should be tested for excessive simplicity. |
+| Cinematic impact | 9.3 | Four new widescreen environments and two portraits move from black-hole scale to one intimate Earth carrier, then open into the probability observatory. | Still-image performance remains the production limitation. |
+| Visual usability | 8.7 | New interfaces include short-height compression, responsive grids, explicit status panels and no hidden essential control. | Screenshot regression at target hardware remains unresolved. |
+| Campaign momentum | 9.5 | Each recovered truth creates the next personal question, and TIRESIAS converts the investigation into an unavoidable Act III route. | Act III must immediately repay the Choir promise. |
+
+**Weighted score: 9.15 / 10 — pass.** The complete Act II now contains nine beats, nine transition briefings and nine distinct playable frameworks, with the same executable quality contract used for Act I.

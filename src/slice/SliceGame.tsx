@@ -13,6 +13,8 @@ import { nameConsequenceScene, nearHomeScene, sacrificeAftermathScene, SLICE_TWO
 import { DebrisCourseGame, IdentityForensicsGame, NeuralLockGame, RefitAllocationGame } from './ActTwoGames.js'
 import { RefugeHub } from './RefugeHub.js'
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES, cireneAftermathScene, cireneBargainScene, departureScene, harbourAftermathScene } from './actTwoContent.js'
+import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from './actTwoFinalContent.js'
+import { DroneMemoryGame, GateEvidenceGame, MessageAssemblyGame, ProbabilityGame, RunDarkGame } from './ActTwoFinalGames.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
@@ -31,6 +33,11 @@ export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
   'interlude-11', 'b11-confrontation', 'b11-neural', 'b11-bargain', 'b11-combat', 'b11-aftermath',
   'interlude-12', 'b12-refuge', 'b12-time-reveal', 'b12-refit', 'b12-departure',
   'act-two-slice-complete',
+  'interlude-13', 'b13-protocol', 'b13-run-dark', 'b13-wardens',
+  'interlude-14', 'b14-evidence', 'b14-testimony',
+  'interlude-15', 'b15-memory', 'b15-request',
+  'interlude-16', 'b16-message', 'b16-aftermath',
+  'interlude-17', 'b17-futures', 'b17-prophecy', 'act-two-complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -46,6 +53,11 @@ export const VERTICAL_SLICE_BEATS = [
   '10-palace-new-flesh',
   '11-captains-bargain',
   '12-year-outside-time',
+  '13-road-through-dead',
+  '14-voices-archive',
+  '15-unburied-signal',
+  '16-mothers-message',
+  '17-prophet-probability',
 ] as const
 
 interface SliceSave {
@@ -215,6 +227,33 @@ export function SliceGame() {
         ? [{ kind: 'relationship', character: 'helen-morozova', delta: 2 }, { kind: 'relationship', character: 'elias', delta: 1 }]
         : [{ kind: 'relationship', character: 'gabriel-cross', delta: 2 }, { kind: 'relationship', character: 'isabella-corelli', delta: -2 }, { kind: 'relationship', character: 'helen-morozova', delta: -1 }]
     completeActivity('12-year-outside-time', 'resume-voyage', 'act-two-slice-complete', choice.id, effects, true)
+  }
+
+  const chooseTestimony = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'preserve-complete-testimony'
+      ? [{ kind: 'add-evidence', evidenceId: 'complete-gate-testimony' }, { kind: 'relationship', character: 'helen-morozova', delta: 2 }]
+      : choice.id === 'publish-admiral-deception'
+        ? [{ kind: 'add-evidence', evidenceId: 'sorren-confession' }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }]
+        : [{ kind: 'add-evidence', evidenceId: 'archive-testimony-sealed' }, { kind: 'relationship', character: 'helen-morozova', delta: -2 }]
+    completeActivity('14-voices-archive', 'admirals-testimony', 'interlude-15', choice.id, effects, true)
+  }
+
+  const answerRao = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'free-rao-to-archive'
+      ? [{ kind: 'set-flag', flag: 'unburied-signal-freed' }, { kind: 'relationship', character: 'elias', delta: 2 }]
+      : choice.id === 'preserve-rao-aboard'
+        ? [{ kind: 'add-evidence', evidenceId: 'rao-witness-survives' }]
+        : [{ kind: 'set-flag', flag: 'unburied-signal-erased' }, { kind: 'relationship', character: 'isabella-corelli', delta: 2 }]
+    completeActivity('15-unburied-signal', 'final-request', 'interlude-16', choice.id, effects, true)
+  }
+
+  const answerElaraMessage = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'share-elara-message'
+      ? [{ kind: 'add-evidence', evidenceId: 'elara-message-shared' }, { kind: 'relationship', character: 'helen-morozova', delta: 2 }, { kind: 'relationship', character: 'kiara-ndala', delta: 2 }]
+      : choice.id === 'share-only-route-context'
+        ? [{ kind: 'relationship', character: 'kiara-ndala', delta: 1 }]
+        : [{ kind: 'add-evidence', evidenceId: 'elara-message-private' }, { kind: 'relationship', character: 'helen-morozova', delta: -1 }]
+    completeActivity('16-mothers-message', 'home-has-changed', 'interlude-17', choice.id, effects, true)
   }
 
   const gateCombat = useMemo<CombatConfig>(() => ({
@@ -499,7 +538,41 @@ export function SliceGame() {
       case 'b12-departure':
         return <DialogueScene key={screen} scene={departureScene(game)} onChoice={chooseDeparture} />
       case 'act-two-slice-complete':
-        return <ActTwoSliceCompletionScreen game={game} onRestart={startNew} />
+        return <ActTwoSliceCompletionScreen game={game} onRestart={startNew} onContinue={() => setScreen('interlude-13')} />
+      case 'interlude-13':
+        return <BeatInterlude data={ACT_TWO_FINAL_INTERLUDES['interlude-13']} game={game} onContinue={() => setScreen('b13-protocol')} />
+      case 'b13-protocol':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b13-protocol']} onContinue={() => completeActivity('13-road-through-dead', 'death-protocol', 'b13-run-dark', 'crew-prepared')} />
+      case 'b13-run-dark':
+        return <RunDarkGame onComplete={(result) => completeActivity('13-road-through-dead', 'run-dark', 'b13-wardens', result.choiceId, result.success ? [{ kind: 'add-evidence', evidenceId: 'archive-clean-entry' }] : [{ kind: 'damage-hull', amount: 7 }, { kind: 'add-evidence', evidenceId: 'archive-wardens-alerted' }])} />
+      case 'b13-wardens':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b13-wardens']} onContinue={() => completeActivity('13-road-through-dead', 'archive-wardens', 'interlude-14', 'crossed-exclusion-zone', [], true)} />
+      case 'interlude-14':
+        return <BeatInterlude data={ACT_TWO_FINAL_INTERLUDES['interlude-14']} game={game} onContinue={() => setScreen('b14-evidence')} />
+      case 'b14-evidence':
+        return <GateEvidenceGame onComplete={(result) => completeActivity('14-voices-archive', 'attack-timeline', 'b14-testimony', result.choiceId, [{ kind: 'add-evidence', evidenceId: 'tide-gate-intelligence-falsified' }])} />
+      case 'b14-testimony':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b14-testimony']} onChoice={chooseTestimony} />
+      case 'interlude-15':
+        return <BeatInterlude data={ACT_TWO_FINAL_INTERLUDES['interlude-15']} game={game} onContinue={() => setScreen('b15-memory')} />
+      case 'b15-memory':
+        return <DroneMemoryGame onComplete={(result) => completeActivity('15-unburied-signal', 'recover-consciousness', 'b15-request', result.choiceId, [{ kind: 'add-evidence', evidenceId: 'rao-consciousness-recovered' }])} />
+      case 'b15-request':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b15-request']} onChoice={answerRao} />
+      case 'interlude-16':
+        return <BeatInterlude data={ACT_TWO_FINAL_INTERLUDES['interlude-16']} game={game} onContinue={() => setScreen('b16-message')} />
+      case 'b16-message':
+        return <MessageAssemblyGame onComplete={(result) => completeActivity('16-mothers-message', 'message-fragments', 'b16-aftermath', result.choiceId, [{ kind: 'add-evidence', evidenceId: 'elara-message-restored' }])} />
+      case 'b16-aftermath':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b16-aftermath']} onChoice={answerElaraMessage} />
+      case 'interlude-17':
+        return <BeatInterlude data={ACT_TWO_FINAL_INTERLUDES['interlude-17']} game={game} onContinue={() => setScreen('b17-futures')} />
+      case 'b17-futures':
+        return <ProbabilityGame onComplete={(result) => completeActivity('17-prophet-probability', 'future-constraints', 'b17-prophecy', result.choiceId, [{ kind: 'add-evidence', evidenceId: 'tiresias-route' }, { kind: 'set-flag', flag: 'helios-warning-understood' }])} />
+      case 'b17-prophecy':
+        return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b17-prophecy']} onContinue={() => completeActivity('17-prophet-probability', 'prophecy', 'act-two-complete', 'prophecy-heard', [{ kind: 'set-flag', flag: 'tiresias-warning-understood' }], true)} />
+      case 'act-two-complete':
+        return <ActTwoCompletionScreen game={game} onRestart={startNew} />
     }
   }
 
@@ -526,7 +599,7 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACTS I—II · PLAYABLE CAMPAIGN</span><strong>BEATS 01—12</strong></footer>
+      <footer><span>ACTS I—II · PLAYABLE CAMPAIGN</span><strong>BEATS 01—17</strong></footer>
     </section>
   )
 }
@@ -601,7 +674,7 @@ function ActOneCompletionScreen({ game, onRestart, onContinue }: { game: GameSta
   )
 }
 
-function ActTwoSliceCompletionScreen({ game, onRestart }: { game: GameState; onRestart: () => void }) {
+function ActTwoSliceCompletionScreen({ game, onRestart, onContinue }: { game: GameState; onRestart: () => void; onContinue: () => void }) {
   const bargain = game.decisions.find((decision) => decision.activityId === 'cirene-bargain')?.choiceId.replaceAll('-', ' ') ?? 'terms unresolved'
   const refit = game.decisions.find((decision) => decision.activityId === 'refit-allocation')?.choiceId.replaceAll('+', ' · ').toUpperCase() ?? 'no refit recorded'
   const departure = game.decisions.find((decision) => decision.activityId === 'resume-voyage')?.choiceId.replaceAll('-', ' ') ?? 'departure unresolved'
@@ -618,8 +691,21 @@ function ActTwoSliceCompletionScreen({ game, onRestart }: { game: GameState; onR
           <div><span>DEPARTURE</span><strong>{departure.toUpperCase()}</strong></div>
         </div>
         <div className="act-coda"><span>NEXT · ACT II, SLICE II</span><strong>THE ROAD THROUGH THE DEAD</strong><p>To enter the Mourning Archive, the Ithaca must extinguish every sign that anybody aboard is alive.</p></div>
-        <button className="secondary-action" onClick={onRestart}>Replay the voyage</button>
+        <div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter the Archive <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div>
       </div>
     </section>
   )
+}
+
+function ActTwoCompletionScreen({ game, onRestart }: { game: GameState; onRestart: () => void }) {
+  const truth = game.evidence.includes('complete-gate-testimony') ? 'COMPLETE RECORD' : game.evidence.includes('sorren-confession') ? 'SORREN CONFESSION' : 'SEALED'
+  const raoChoice = game.decisions.find((decision) => decision.activityId === 'final-request')?.choiceId
+  const rao = raoChoice === 'preserve-rao-aboard' ? 'ABOARD' : raoChoice === 'free-rao-to-archive' ? 'FREE IN ARCHIVE' : 'FINAL REQUEST GRANTED'
+  return <section className="completion-screen act-two-finale" style={{ '--complete-bg': `url(${ASSETS.cinematics.tiresiasObservatory})` } as React.CSSProperties}>
+    <div className="completion-card"><p className="eyebrow">ACT II COMPLETE · STRANGE SHORES</p><h1>The road home has become a prophecy.</h1><p>The Ithaca leaves the dead with the true Gate record, Elara’s uncertain invitation and a route through the Choir, the Twin Terrors and the living sun. TIRESIAS has named the cost hidden inside every future: Vale’s command may be the danger the crew cannot survive.</p>
+      <div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>GATE TRUTH</span><strong>{truth}</strong></div><div><span>RAO</span><strong>{rao}</strong></div><div><span>NEXT</span><strong>THE CHOIR</strong></div></div>
+      <div className="act-coda"><span>NEXT · ACT III</span><strong>THE SEA TAKES ITS PRICE</strong><p>The first voice in the dark already knows what every member of the crew wants most.</p></div>
+      <button className="secondary-action" onClick={onRestart}>Replay the voyage</button>
+    </div>
+  </section>
 }

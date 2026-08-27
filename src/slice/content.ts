@@ -19,6 +19,10 @@ export const ASSETS = {
     cireneIdentityLab: '/assets/cinematics/cirene-identity-lab.webp',
     cireneMindTheatre: '/assets/cinematics/cirene-mind-theatre.webp',
     cireneRefitYear: '/assets/cinematics/cirene-refit-year.webp',
+    mourningArchiveApproach: '/assets/cinematics/mourning-archive-approach.webp',
+    mourningArchiveInterior: '/assets/cinematics/mourning-archive-interior.webp',
+    elaraFragmentedMessage: '/assets/cinematics/elara-fragmented-message.webp',
+    tiresiasObservatory: '/assets/cinematics/tiresias-observatory.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -32,6 +36,8 @@ export const ASSETS = {
     tidefather: '/assets/portraits/tidefather.webp',
     'keeper-aeolia': '/assets/portraits/keeper-aeolia.webp',
     'doctor-cirene': '/assets/portraits/doctor-cirene.webp',
+    'elara-vale': '/assets/portraits/elara-vale.webp',
+    tiresias: '/assets/portraits/tiresias.webp',
   },
   ships: {
     ithaca: '/assets/ships/ithaca-combat.png',
@@ -112,6 +118,23 @@ export type SliceScreenId =
   | 'b12-refit'
   | 'b12-departure'
   | 'act-two-slice-complete'
+  | 'interlude-13'
+  | 'b13-protocol'
+  | 'b13-run-dark'
+  | 'b13-wardens'
+  | 'interlude-14'
+  | 'b14-evidence'
+  | 'b14-testimony'
+  | 'interlude-15'
+  | 'b15-memory'
+  | 'b15-request'
+  | 'interlude-16'
+  | 'b16-message'
+  | 'b16-aftermath'
+  | 'interlude-17'
+  | 'b17-futures'
+  | 'b17-prophecy'
+  | 'act-two-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'

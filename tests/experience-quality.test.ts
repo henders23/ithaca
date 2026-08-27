@@ -4,11 +4,12 @@ import { DIALOGUE_SCENES, INTERLUDES, type DialogueSceneData } from '../src/slic
 import { ACT_TWO_CHARACTER_ARCS, CHARACTER_ARCS, EXPERIENCE_BEATS, EXPERIENCE_MINIGAMES } from '../src/slice/experienceManifest.js'
 import { SLICE_TWO_INTERLUDES, SLICE_TWO_SCENES } from '../src/slice/sliceTwoContent.js'
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES, cireneBargainScene, departureScene } from '../src/slice/actTwoContent.js'
+import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from '../src/slice/actTwoFinalContent.js'
 import { createInitialState } from '../src/state/initial.js'
 
 describe('adversarial experience contract', () => {
   it('requires every playable beat to pass a context → complication → interpretation → payoff ladder', () => {
-    expect(EXPERIENCE_BEATS).toHaveLength(12)
+    expect(EXPERIENCE_BEATS).toHaveLength(17)
     for (const [index, beat] of EXPERIENCE_BEATS.entries()) {
       expect(beat.beat).toBe(index + 1)
       expect(beat.playerQuestion.length).toBeGreaterThan(45)
@@ -19,7 +20,7 @@ describe('adversarial experience contract', () => {
   })
 
   it('rejects minigames without explicit goal, stakes, readable feedback and narrative consequence', () => {
-    expect(EXPERIENCE_MINIGAMES).toHaveLength(14)
+    expect(EXPERIENCE_MINIGAMES).toHaveLength(19)
     expect(new Set(EXPERIENCE_MINIGAMES.map((game) => game.id)).size).toBe(EXPERIENCE_MINIGAMES.length)
     for (const game of EXPERIENCE_MINIGAMES) {
       expect(game.goal.length, `${game.id} goal`).toBeGreaterThan(45)
@@ -35,7 +36,7 @@ describe('adversarial experience contract', () => {
   })
 
   it('keeps the quality manifest aligned with the playable campaign registry', () => {
-    const registered = CAMPAIGN_BEATS.slice(0, 12).flatMap((beat) => beat.activities.filter((activity) => activity.kind === 'minigame').map((activity) => activity.id))
+    const registered = CAMPAIGN_BEATS.slice(0, 17).flatMap((beat) => beat.activities.filter((activity) => activity.kind === 'minigame').map((activity) => activity.id))
     expect(EXPERIENCE_MINIGAMES.map((game) => game.id)).toEqual(registered)
   })
 
@@ -57,7 +58,7 @@ describe('adversarial experience contract', () => {
 
   it('paces decisions only after developed exchanges with legible consequences', () => {
     const blankGame = createInitialState('quality-test')
-    const scenes: DialogueSceneData[] = [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), cireneBargainScene(blankGame), departureScene(blankGame)]
+    const scenes: DialogueSceneData[] = [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), cireneBargainScene(blankGame), departureScene(blankGame)]
     for (const scene of scenes) {
       expect(scene.lines.length, `${scene.title} is moving too quickly`).toBeGreaterThanOrEqual(5)
       expect(scene.lines.length, `${scene.title} is overlong`).toBeLessThanOrEqual(8)
@@ -69,8 +70,8 @@ describe('adversarial experience contract', () => {
   })
 
   it('briefs every transition after Beat 1 with state, danger and a concrete objective', () => {
-    const interludes = [...Object.values(INTERLUDES), ...Object.values(SLICE_TWO_INTERLUDES), ...Object.values(ACT_TWO_INTERLUDES)]
-    expect(interludes).toHaveLength(11)
+    const interludes = [...Object.values(INTERLUDES), ...Object.values(SLICE_TWO_INTERLUDES), ...Object.values(ACT_TWO_INTERLUDES), ...Object.values(ACT_TWO_FINAL_INTERLUDES)]
+    expect(interludes).toHaveLength(16)
     for (const interlude of interludes) {
       expect(interlude.recap.length).toBeGreaterThan(120)
       expect(interlude.situation).toHaveLength(3)

@@ -5,16 +5,17 @@ import type { DialogueLine } from '../src/slice/content.js'
 import { ASSETS, DIALOGUE_SCENES, INTERLUDES, SLICE_ASSET_PATHS } from '../src/slice/content.js'
 import { SLICE_TWO_INTERLUDES, SLICE_TWO_SCENES } from '../src/slice/sliceTwoContent.js'
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES } from '../src/slice/actTwoContent.js'
+import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from '../src/slice/actTwoFinalContent.js'
 import { SLICE_SCREEN_IDS, VERTICAL_SLICE_BEATS } from '../src/slice/SliceGame.js'
 import { createInitialState } from '../src/state/initial.js'
 import { reduceGame } from '../src/state/reducer.js'
 
 describe('playable vertical slice', () => {
   it('registers one continuous and unique screen sequence', () => {
-    expect(SLICE_SCREEN_IDS).toHaveLength(66)
+    expect(SLICE_SCREEN_IDS).toHaveLength(83)
     expect(new Set(SLICE_SCREEN_IDS).size).toBe(SLICE_SCREEN_IDS.length)
     expect(SLICE_SCREEN_IDS[0]).toBe('title')
-    expect(SLICE_SCREEN_IDS.at(-1)).toBe('act-two-slice-complete')
+    expect(SLICE_SCREEN_IDS.at(-1)).toBe('act-two-complete')
     expect(VERTICAL_SLICE_BEATS).toEqual([
       '01-burning-tide-gate',
       '02-wrong-stars',
@@ -28,12 +29,17 @@ describe('playable vertical slice', () => {
       '10-palace-new-flesh',
       '11-captains-bargain',
       '12-year-outside-time',
+      '13-road-through-dead',
+      '14-voices-archive',
+      '15-unburied-signal',
+      '16-mothers-message',
+      '17-prophet-probability',
     ])
   })
 
   it('briefs the player between every completed beat in the slice', () => {
-    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES }
-    expect(Object.keys(interludes)).toEqual(['interlude-02', 'interlude-03', 'interlude-04', 'interlude-05', 'interlude-06', 'interlude-07', 'interlude-08', 'interlude-09', 'interlude-10', 'interlude-11', 'interlude-12'])
+    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES, ...ACT_TWO_FINAL_INTERLUDES }
+    expect(Object.keys(interludes)).toHaveLength(16)
     for (const interlude of Object.values(interludes)) {
       expect(interlude.recap.length).toBeGreaterThan(100)
       expect(interlude.situation).toHaveLength(3)
@@ -42,7 +48,7 @@ describe('playable vertical slice', () => {
   })
 
   it('ships every cinematic, portrait and combat asset used by the slice', () => {
-    expect(SLICE_ASSET_PATHS.length).toBe(34)
+    expect(SLICE_ASSET_PATHS.length).toBe(40)
     for (const asset of SLICE_ASSET_PATHS) {
       const file = join(process.cwd(), 'public', asset.slice(1))
       expect(existsSync(file), `${asset} should exist`).toBe(true)
@@ -55,7 +61,7 @@ describe('playable vertical slice', () => {
   })
 
   it('only uses narrators or characters with a vertical-slice portrait', () => {
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES)]) {
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES)]) {
       expect(scene.lines.length).toBeGreaterThan(0)
       for (const line of scene.lines) {
         expect(line.speaker === 'narrator' || line.speaker in ASSETS.portraits).toBe(true)
@@ -68,7 +74,7 @@ describe('playable vertical slice', () => {
     let cueCount = 0
     let cutawayCount = 0
 
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES)]) {
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES)]) {
       expect(scene.lines.length, `${scene.title} should unfold over several exchanges`).toBeGreaterThanOrEqual(5)
       for (const line of scene.lines as readonly DialogueLine[]) {
         lineCount += 1
@@ -86,7 +92,7 @@ describe('playable vertical slice', () => {
     expect(cutawayCount).toBeGreaterThanOrEqual(18)
   })
 
-  it('can complete every mandatory activity in beats one through twelve', () => {
+  it('can complete every mandatory activity through Act II', () => {
     let state = reduceGame(createInitialState('slice-test'), { type: 'campaign/started' }).state
     const activities = [
       ['01-burning-tide-gate', 'incomplete-intelligence'],
@@ -123,6 +129,16 @@ describe('playable vertical slice', () => {
       ['12-year-outside-time', 'life-in-shelter'],
       ['12-year-outside-time', 'refit-allocation'],
       ['12-year-outside-time', 'resume-voyage'],
+      ['13-road-through-dead', 'death-protocol'],
+      ['13-road-through-dead', 'run-dark'],
+      ['14-voices-archive', 'attack-timeline'],
+      ['14-voices-archive', 'admirals-testimony'],
+      ['15-unburied-signal', 'recover-consciousness'],
+      ['15-unburied-signal', 'final-request'],
+      ['16-mothers-message', 'message-fragments'],
+      ['16-mothers-message', 'home-has-changed'],
+      ['17-prophet-probability', 'future-constraints'],
+      ['17-prophet-probability', 'prophecy'],
     ] as const
 
     for (const beatId of VERTICAL_SLICE_BEATS) {
@@ -137,6 +153,6 @@ describe('playable vertical slice', () => {
     }
 
     expect(state.campaign.completedBeatIds).toEqual(VERTICAL_SLICE_BEATS)
-    expect(state.campaign.currentBeatId).toBe('13-road-through-dead')
+    expect(state.campaign.currentBeatId).toBe('18-choir-dark')
   })
 })
