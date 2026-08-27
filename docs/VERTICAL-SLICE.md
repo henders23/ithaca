@@ -1,6 +1,6 @@
 # Playable vertical slice
 
-The first four campaign beats form one continuous playable episode. Dialogue, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
+The first eight campaign beats form one continuous playable Act I. Dialogue, hubs, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
 
 ## Sequence
 
@@ -10,12 +10,19 @@ The first four campaign beats form one continuous playable episode. Dialogue, mi
 | 02 · The Wrong Stars | The crippled Ithaca emerges beyond every known chart. | Eight-unit power-routing puzzle, limited-slot medical triage and the first crew reckoning. | Restored or lost systems, named survivors and whether Vale releases the Gate record. |
 | 03 · The Garden of Forgetting | A human refuge offers peace by dissolving traumatic memory. | Memory-sequence reconstruction and an optional arcade shuttle pursuit. | Crew desertion, Corelli trust and chase damage. |
 | 04 · The One-Eyed Fortress | ARGUS-1 begins dismantling the ship as salvage. | Dialogue exploit, waveform circuit puzzle and breakout combat against recovery cutters. | Puzzle failure adds an alerted combat phase; escape yields the ARGUS exhaust key. |
+| 05 · The Captain Gives His Name | ARGUS broadcasts the identity of the ship that escaped. | Transponder-cipher puzzle and a four-way identity decision. | Vale may reveal his name, forge one, name only the ship, or transmit a confession; each changes trust and pursuit. |
+| 06 · The First Wrath | The Tidefather forces the crew to experience the sanctuary’s final memories. | Dialogue response, timed survival combat and an irreversible system-sacrifice procedure. | A chosen ship system is destroyed; the crew remembers both Vale’s answer and the human cost of escape. |
+| 07 · The Keeper of Winds | A civilisation of cloud cities offers a captured spatial current. | Trust negotiation, four-vane containment puzzle and a real-time storm flight. | Honesty changes crew trust; the Ithaca gains the Aeolian sphere and may take hull/engine damage during its test. |
+| 08 · The Forbidden Sphere | Rumour becomes conspiracy as familiar stars appear within reach. | Four-character crew hub, gradual home revelation, rupture cutscene, causal-log puzzle and mutiny judgment. | The route home is lost, pursuit intensifies, and Vale chooses punishment, forgiveness or shared responsibility. |
 
 ## Controls
 
 - Dialogue and choices: pointer or keyboard focus.
 - Combat: select a subsystem, then fire a charged rail lance, kinetic salvo or ion shear. Each weapon has its own projectile, travel timing, impact, shield response and synthesized sound. Pause is available from the tactical header or the spacebar.
 - Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls.
+- Storm flight: the same movement controls, but the player must align with luminous current gates rather than dodge obstacles.
+- Survival combat: suppress living-ship subsystems to reduce incoming pressure and endure until the jump countdown reaches zero; the Tidefather cannot be destroyed.
+- Crew hub: hear at least three private perspectives before deciding how Vale answers the rumour.
 - All other minigames use pointer or keyboard focus.
 
 ## Cinematic scene language
@@ -37,4 +44,4 @@ The interface responds to both width and height. Laptop-height layouts reduce po
 
 The vertical slice uses original generated imagery rather than assets copied from `starship-explorer`. The art direction is photorealistic prestige science fiction: grounded military-NASA human engineering, steel-and-amber bridge lighting, and increasingly unfamiliar alien geometry. Cinematic backgrounds are 16:9 WebP files; recurring-character portraits are consistently framed 4:5 WebP files; combat ships are transparent PNGs.
 
-Assets live under `public/assets/` and are compressed to keep the first load practical. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation: animated reactor routing, patient vitals, a neural reconstruction display, a cinematic chase HUD and ARGUS targeting optics.
+Assets live under `public/assets/` and are compressed to keep the first load practical. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation: animated reactor routing, patient vitals, neural reconstruction, cinematic flight HUDs, ARGUS optics, transponder masking, ship-system severance, spatial-current containment and a causal evidence board.

@@ -19,6 +19,10 @@ export interface CombatConfig {
   targets: readonly CombatTarget[]
   playerHull: number
   enemyInterval?: number
+  mode?: 'destroy' | 'survive'
+  survivalSeconds?: number
+  victoryTitle?: string
+  victoryText?: string
 }
 
 interface CombatResult {
@@ -66,6 +70,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const [missiles, setMissiles] = useState(3)
   const [paused, setPaused] = useState(false)
   const [phase, setPhase] = useState<'playing' | 'victory' | 'defeat'>('playing')
+  const [survivalRemaining, setSurvivalRemaining] = useState(config.survivalSeconds ?? 30)
   const [effects, setEffects] = useState<WeaponEffect[]>([])
   const [impacts, setImpacts] = useState<ImpactEffect[]>([])
   const [floaters, setFloaters] = useState<CombatFloater[]>([])
@@ -82,7 +87,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   phaseRef.current = phase
 
   const survivingTargets = useMemo(() => targets.filter((target) => target.currentHp > 0), [targets])
-  const objectiveProgress = Math.round((1 - targets.reduce((sum, target) => sum + target.currentHp, 0) / targets.reduce((sum, target) => sum + target.hp, 0)) * 100)
+  const objectiveProgress = config.mode === 'survive'
+    ? Math.round((1 - survivalRemaining / (config.survivalSeconds ?? 30)) * 100)
+    : Math.round((1 - targets.reduce((sum, target) => sum + target.currentHp, 0) / targets.reduce((sum, target) => sum + target.hp, 0)) * 100)
 
   const later = (callback: () => void, delay: number) => {
     const timer = window.setTimeout(() => {
@@ -172,6 +179,22 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   }, [])
 
   useEffect(() => {
+    if (config.mode !== 'survive' || phase !== 'playing') return
+    const countdown = window.setInterval(() => {
+      if (pausedRef.current || phaseRef.current !== 'playing') return
+      setSurvivalRemaining((current) => {
+        const next = Math.max(0, current - 1)
+        if (next === 0) {
+          phaseRef.current = 'victory'
+          setPhase('victory')
+        }
+        return next
+      })
+    }, 1000)
+    return () => window.clearInterval(countdown)
+  }, [config.mode, phase])
+
+  useEffect(() => {
     const togglePause = (event: KeyboardEvent) => {
       if (event.code !== 'Space' || phaseRef.current !== 'playing') return
       event.preventDefault()
@@ -228,9 +251,16 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         const next = current.map((item) => item.id === target.id ? { ...item, currentHp: Math.max(0, item.currentHp - weapon.damage) } : item)
         const remaining = next.filter((item) => item.currentHp > 0)
         if (!remaining.some((item) => item.id === selected) && remaining[0]) setSelected(remaining[0].id)
-        if (remaining.length === 0) {
+        if (remaining.length === 0 && config.mode !== 'survive') {
           phaseRef.current = 'victory'
           later(() => setPhase('victory'), 300)
+        }
+        if (config.mode === 'survive' && next.find((item) => item.id === target.id)?.currentHp === 0) {
+          setLog(`${target.name} suppressed. The living hull is regenerating.`)
+          later(() => {
+            if (phaseRef.current !== 'playing') return
+            setTargets((latest) => latest.map((item) => item.id === target.id ? { ...item, currentHp: item.hp } : item))
+          }, 3800)
         }
         return next
       })
@@ -255,6 +285,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     setPaused(false)
     phaseRef.current = 'playing'
     setPhase('playing')
+    setSurvivalRemaining(config.survivalSeconds ?? 30)
     setLog('Weapons hot. Select a subsystem and fire.')
   }
 
@@ -268,7 +299,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
       </header>
 
       <div className="combat-space">
-        <div className="battle-objective"><span>OBJECTIVE</span><strong>{config.objective}</strong><i style={{ width: `${objectiveProgress}%` }} /></div>
+        <div className="battle-objective"><span>OBJECTIVE</span><strong>{config.objective}</strong>{config.mode === 'survive' && <b>{String(survivalRemaining).padStart(2, '0')} SEC</b>}<i style={{ width: `${objectiveProgress}%` }} /></div>
         <div className={`ship-shield player ${shield > 0 ? 'active' : ''}`}><i /><i /></div>
         <div className="ship-shield enemy active"><i /><i /></div>
         <div className="targeting-reticle enemy"><i /><i /><i /></div>
@@ -316,8 +347,8 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
       {phase !== 'playing' && (
         <div className="combat-modal result">
           <p className="eyebrow">{phase === 'victory' ? 'OBJECTIVE COMPLETE' : 'THE ITHACA IS LOST'}</p>
-          <h2>{phase === 'victory' ? 'The way is open.' : 'Return to the last firing solution.'}</h2>
-          <p>{phase === 'victory' ? `Hull integrity ${hull}%. Combat consequences will follow the ship.` : 'Defeat never erases a story choice. Retry the encounter.'}</p>
+          <h2>{phase === 'victory' ? config.victoryTitle ?? 'The way is open.' : 'Return to the last firing solution.'}</h2>
+          <p>{phase === 'victory' ? config.victoryText ?? `Hull integrity ${hull}%. Combat consequences will follow the ship.` : 'Defeat never erases a story choice. Retry the encounter.'}</p>
           <button className="primary-action" onClick={phase === 'victory' ? () => onComplete({ hull, score: hull + shield }) : retry}>{phase === 'victory' ? 'Resume the story' : 'Retry battle'} <span>→</span></button>
         </div>
       )}

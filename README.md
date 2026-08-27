@@ -6,16 +6,18 @@ This repository is a clean rebuild. It does not inherit the procedural galaxy or
 
 ## Playable vertical slice
 
-The browser opens directly into a cinematic episode covering the first four sequential set pieces:
+The browser opens directly into a cinematic Act I covering the first eight sequential set pieces:
 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
-- two real-time-with-pause ship combat encounters;
+- three real-time-with-pause ship combat encounters, including a timed survival battle against an unbeatable pursuer;
 - weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
-- visually distinct power routing, medical triage, memory reconstruction, navigation and circuit minigames;
+- ten visually distinct puzzles and action minigames, plus an explorable crew-rumour hub;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
-- sixteen original, optimized backgrounds, portraits and combat assets.
+- twenty-five original, optimized backgrounds, portraits and combat assets.
+
+The second playable slice completes Act I across Beats 05–08: Vale chooses the identity sent into the dark, survives the Tidefather’s first wrath, bargains for a spatial current in the Aeolian cloud cities, and judges the conspiracy that destroys the apparent route home.
 
 ## Run locally
 
@@ -48,6 +50,7 @@ The underlying typed foundation defines:
 - [`docs/VERTICAL-SLICE.md`](docs/VERTICAL-SLICE.md) — the playable sequence, controls and visual direction
 - [`docs/CANON.md`](docs/CANON.md) — names, characters and terminology that must remain consistent
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — boundaries between campaign content, rules, UI and assets
+- [`docs/ADVERSARIAL-EVALUATION.md`](docs/ADVERSARIAL-EVALUATION.md) — hostile release rubric and executable experience-quality gates
 - [`docs/PART-1.md`](docs/PART-1.md) — foundation scope and acceptance criteria
 
 ## Stack

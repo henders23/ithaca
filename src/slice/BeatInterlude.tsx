@@ -43,8 +43,8 @@ export function BeatInterlude({ data, game, onContinue }: { data: InterludeData;
           <Metric label="HULL INTEGRITY" value={`${game.ship.hull}%`} tone={game.ship.hull < 60 ? 'danger' : 'stable'} />
           <Metric label="DRIVE" value={game.ship.systems.engines.status.toUpperCase()} tone={game.ship.systems.engines.status === 'online' ? 'stable' : 'danger'} />
           <Metric label="PURSUIT TRACE" value={game.pursuit === 0 ? 'NONE' : String(game.pursuit).padStart(2, '0')} tone={game.pursuit > 8 ? 'danger' : 'stable'} />
-          <div className="beat-route" aria-label="Vertical slice progress">
-            {[1, 2, 3, 4].map((beat) => <span key={beat} className={beat < data.incomingBeat ? 'done' : beat === data.incomingBeat ? 'current' : ''}>{String(beat).padStart(2, '0')}</span>)}
+          <div className="beat-route" aria-label="Act one progress">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((beat) => <span key={beat} className={beat < data.incomingBeat ? 'done' : beat === data.incomingBeat ? 'current' : ''}>{String(beat).padStart(2, '0')}</span>)}
           </div>
         </aside>
       </div>
@@ -66,6 +66,32 @@ function captainRecord(id: InterludeData['id'], game: GameState): string {
     if (game.flags.includes('vale-questioned-orders')) return 'The complete Gate record is now public aboard ship. Vale’s authority survived the truth, but command will no longer be mistaken for innocence.'
     return 'The Gate record remains sealed. Order is holding—for now—but Morozova knows exactly which truth the captain has asked her to carry alone.'
   }
-  if (game.flags.includes('deserters-forced-back')) return 'The departing shuttle was recovered. Twenty-three crew are aboard again; not all of them consider themselves rescued.'
-  return 'Twenty-three crew remained in Eirenai. The Ithaca is lighter, and nobody agrees whether Vale granted freedom or abandoned the people being brought home.'
+  if (id === 'interlude-04') {
+    if (game.flags.includes('deserters-forced-back')) return 'The departing shuttle was recovered. Twenty-three crew are aboard again; not all of them consider themselves rescued.'
+    return 'Twenty-three crew remained in Eirenai. The Ithaca is lighter, and nobody agrees whether Vale granted freedom or abandoned the people being brought home.'
+  }
+  if (id === 'interlude-05') {
+    if (game.flags.includes('argus-awakened')) return 'ARGUS saw the Ithaca clearly before the escape. The broadcast carries a complete combat silhouette and every weapon frequency Cross used.'
+    return 'The stolen null harmonic kept ARGUS half-blind. Its broadcast is incomplete, but the question at its center remains: identify the intruder.'
+  }
+  if (id === 'interlude-06') {
+    if (game.flags.includes('vale-revealed-name')) return 'Vale’s name is travelling on the ARGUS carrier. Pride, confession, or calculation has given the pursuer a person to answer.'
+    if (game.flags.includes('vale-used-false-identity')) return 'A false captain travels on the carrier. ELIAS warns that lies slow a determined search; they do not end it.'
+    return 'Vale named the Ithaca but not himself. The entire crew now shares the identity sent into the dark.'
+  }
+  if (id === 'interlude-07') {
+    const loss = choiceFor(game, 'sacrifice-system')?.replaceAll('-', ' ') ?? 'a ship system'
+    return `The Ithaca escaped by severing ${loss}. Mori has recorded the choice as a casualty, not a repair.`
+  }
+  const keeperChoice = choiceFor(game, 'keeper-negotiation')
+  if (keeperChoice === 'tell-keeper-truth') return 'Vale gave Aeolia the unvarnished Gate record. The sphere was entrusted to the crew on the condition that truth would travel with it.'
+  if (keeperChoice === 'conceal-sanctuary') return 'Vale secured the sphere with another omission. Morozova knows home is now riding inside a bargain founded on the same kind of silence.'
+  return 'Aeolia heard the military account and offered the current with reservations. Hospitality has bought time, not absolution.'
+}
+
+function choiceFor(game: GameState, activityId: string): string | undefined {
+  for (let index = game.decisions.length - 1; index >= 0; index--) {
+    if (game.decisions[index].activityId === activityId) return game.decisions[index].choiceId
+  }
+  return undefined
 }

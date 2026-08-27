@@ -128,10 +128,10 @@ export function TriageGame({ onComplete }: { onComplete: (result: MiniGameResult
 }
 
 const MEMORY_FRAGMENTS = [
-  { id: 'alarm', index: 'I', text: 'The launch alarm. A promise made to a daughter.' },
-  { id: 'gate', index: 'II', text: 'The Gate burning. A command that cannot be recalled.' },
-  { id: 'garden', index: 'III', text: 'Warm rain in Eirenai. Grief beginning to loosen.' },
-  { id: 'empty', index: 'IV', text: 'A face remains. The name behind it is already gone.' },
+  { id: 'alarm', index: 'K7', text: 'The launch alarm. A promise made to a daughter.' },
+  { id: 'gate', index: 'Θ2', text: 'The Gate burning. A command that cannot be recalled.' },
+  { id: 'garden', index: 'M4', text: 'Warm rain in Eirenai. Grief beginning to loosen.' },
+  { id: 'empty', index: 'Ø9', text: 'A face remains. The name behind it is already gone.' },
 ] as const
 
 export function MemoryGame({ onComplete }: { onComplete: (result: MiniGameResult) => void }) {
@@ -249,6 +249,10 @@ export function CircuitGame({ onComplete }: { onComplete: (result: MiniGameResul
   const [phases, setPhases] = useState([0, 0, 0, 0])
   const [attempts, setAttempts] = useState(0)
   const [message, setMessage] = useState('Align all four waveforms with the sensor harmonic.')
+  const resonance = (index: number) => {
+    const distance = Math.abs(CIRCUIT_TARGET[index] - phases[index])
+    return distance === 0 ? 100 : Math.min(distance, 4 - distance) === 1 ? 55 : 10
+  }
   const turn = (index: number) => setPhases((current) => current.map((phase, i) => i === index ? (phase + 1) % 4 : phase))
   const test = () => {
     const success = CIRCUIT_TARGET.every((target, index) => phases[index] === target)
@@ -272,7 +276,7 @@ export function CircuitGame({ onComplete }: { onComplete: (result: MiniGameResul
         <div className="phase-rings">
           {phases.map((phase, index) => (
             <button key={index} onClick={() => turn(index)} style={{ '--phase': `${phase * 90}deg` } as React.CSSProperties}>
-              <i /><strong>{String.fromCharCode(65 + index)}</strong><small>PHASE {phase}</small>
+              <i /><strong>{String.fromCharCode(65 + index)}</strong><small>PHASE {phase} · ECHO {resonance(index)}%</small>
             </button>
           ))}
         </div>
