@@ -5,6 +5,7 @@ export interface CombatTarget {
   name: string
   role: string
   hp: number
+  protected?: boolean
 }
 
 export interface CombatConfig {
@@ -15,6 +16,7 @@ export interface CombatConfig {
   playerShip: string
   enemyShip: string
   enemyName: string
+  enemyClassName?: string
   incomingLabel: string
   targets: readonly CombatTarget[]
   playerHull: number
@@ -28,6 +30,26 @@ export interface CombatConfig {
 interface CombatResult {
   hull: number
   score: number
+}
+
+export interface LiveCombatTarget extends CombatTarget {
+  currentHp: number
+}
+
+export function combatObjectiveTargets(targets: readonly LiveCombatTarget[]) {
+  return targets.filter((target) => !target.protected)
+}
+
+export function combatObjectiveComplete(targets: readonly LiveCombatTarget[], mode: CombatConfig['mode']) {
+  return mode !== 'survive' && combatObjectiveTargets(targets).every((target) => target.currentHp <= 0)
+}
+
+export function combatObjectiveProgress(targets: readonly LiveCombatTarget[], mode: CombatConfig['mode'], survivalRemaining = 0, survivalSeconds = 30) {
+  if (mode === 'survive') return Math.round((1 - survivalRemaining / survivalSeconds) * 100)
+  const objectives = combatObjectiveTargets(targets)
+  const total = objectives.reduce((sum, target) => sum + target.hp, 0)
+  const remaining = objectives.reduce((sum, target) => sum + target.currentHp, 0)
+  return total === 0 ? 100 : Math.round((1 - remaining / total) * 100)
 }
 
 type WeaponId = 'lance' | 'missile' | 'ion'
@@ -63,7 +85,7 @@ const WEAPONS = {
 export function CinematicCombat({ config, onComplete }: { config: CombatConfig; onComplete: (result: CombatResult) => void }) {
   const freshTargets = () => config.targets.map((target) => ({ ...target, currentHp: target.hp }))
   const [targets, setTargets] = useState(freshTargets)
-  const [selected, setSelected] = useState(config.targets[0]?.id ?? '')
+  const [selected, setSelected] = useState(config.targets.find((target) => !target.protected)?.id ?? '')
   const [charge, setCharge] = useState(70)
   const [shield, setShield] = useState(100)
   const [hull, setHull] = useState(config.playerHull)
@@ -86,10 +108,8 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   pausedRef.current = paused
   phaseRef.current = phase
 
-  const survivingTargets = useMemo(() => targets.filter((target) => target.currentHp > 0), [targets])
-  const objectiveProgress = config.mode === 'survive'
-    ? Math.round((1 - survivalRemaining / (config.survivalSeconds ?? 30)) * 100)
-    : Math.round((1 - targets.reduce((sum, target) => sum + target.currentHp, 0) / targets.reduce((sum, target) => sum + target.hp, 0)) * 100)
+  const survivingTargets = useMemo(() => combatObjectiveTargets(targets).filter((target) => target.currentHp > 0), [targets])
+  const objectiveProgress = combatObjectiveProgress(targets, config.mode, survivalRemaining, config.survivalSeconds ?? 30)
 
   const later = (callback: () => void, delay: number) => {
     const timer = window.setTimeout(() => {
@@ -249,9 +269,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
       setLog(`${weapon.name} impacts ${target.name}.`)
       setTargets((current) => {
         const next = current.map((item) => item.id === target.id ? { ...item, currentHp: Math.max(0, item.currentHp - weapon.damage) } : item)
-        const remaining = next.filter((item) => item.currentHp > 0)
+        const remaining = combatObjectiveTargets(next).filter((item) => item.currentHp > 0)
         if (!remaining.some((item) => item.id === selected) && remaining[0]) setSelected(remaining[0].id)
-        if (remaining.length === 0 && config.mode !== 'survive') {
+        if (combatObjectiveComplete(next, config.mode)) {
           phaseRef.current = 'victory'
           later(() => setPhase('victory'), 300)
         }
@@ -272,7 +292,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     timersRef.current.clear()
     const resetTargets = freshTargets()
     setTargets(resetTargets)
-    setSelected(resetTargets[0]?.id ?? '')
+    setSelected(resetTargets.find((target) => !target.protected)?.id ?? '')
     setCharge(70)
     setShield(100)
     setHull(config.playerHull)
@@ -304,7 +324,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         <div className="ship-shield enemy active"><i /><i /></div>
         <div className="targeting-reticle enemy"><i /><i /><i /></div>
         <img className="combat-ship player" src={config.playerShip} alt="CSV Ithaca" />
-        <img className="combat-ship enemy" src={config.enemyShip} alt={config.enemyName} />
+        <img className={`combat-ship enemy ${config.enemyClassName ?? ''}`} src={config.enemyShip} alt={config.enemyName} />
 
         {effects.map((effect) => <WeaponFx key={effect.id} effect={effect} />)}
         {impacts.map((impact) => <ImpactFx key={impact.id} impact={impact} />)}
@@ -323,9 +343,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
           <span>TARGET SUBSYSTEM</span>
           <div>
             {targets.map((target) => (
-              <button key={target.id} disabled={target.currentHp <= 0} className={selected === target.id ? 'selected' : ''} onClick={() => setSelected(target.id)}>
+              <button key={target.id} disabled={target.currentHp <= 0 || target.protected} className={`${selected === target.id ? 'selected' : ''} ${target.protected ? 'protected' : ''}`} onClick={() => setSelected(target.id)}>
                 <strong>{target.name}</strong><small>{target.role}</small>
-                <i>{Array.from({ length: target.hp }, (_, index) => <b key={index} className={index < target.currentHp ? '' : 'lost'} />)}</i>
+                {target.protected ? <em>PROTECTED</em> : <i>{Array.from({ length: target.hp }, (_, index) => <b key={index} className={index < target.currentHp ? '' : 'lost'} />)}</i>}
               </button>
             ))}
           </div>

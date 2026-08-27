@@ -23,6 +23,10 @@ export const ASSETS = {
     mourningArchiveInterior: '/assets/cinematics/mourning-archive-interior.webp',
     elaraFragmentedMessage: '/assets/cinematics/elara-fragmented-message.webp',
     tiresiasObservatory: '/assets/cinematics/tiresias-observatory.webp',
+    choirInDark: '/assets/cinematics/choir-in-dark.webp',
+    silentPassage: '/assets/cinematics/silent-passage.webp',
+    twinTerrors: '/assets/cinematics/twin-terrors.webp',
+    scyllaRescue: '/assets/cinematics/scylla-rescue.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -44,6 +48,7 @@ export const ASSETS = {
     eidolon: '/assets/ships/eidolon-interceptor.png',
     argus: '/assets/ships/argus-cutter.png',
     tidefather: '/assets/ships/tidefather-capital-ui.webp',
+    scylla: '/assets/ships/scylla-combat.webp',
     salvageTug: '/assets/ships/salvage-tug.webp',
     cireneCustodian: '/assets/ships/cirene-custodian.webp',
   },
@@ -135,6 +140,10 @@ export type SliceScreenId =
   | 'b17-futures'
   | 'b17-prophecy'
   | 'act-two-complete'
+  | 'interlude-18' | 'b18-promises' | 'b18-filter' | 'b18-aftermath'
+  | 'interlude-19' | 'b19-navigation' | 'b19-extract' | 'b19-aftermath'
+  | 'interlude-20' | 'b20-choice' | 'b20-course' | 'b20-combat'
+  | 'interlude-21' | 'b21-voices' | 'b21-rescue' | 'b21-aftermath' | 'act-three-slice-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'

@@ -15,6 +15,8 @@ import { RefugeHub } from './RefugeHub.js'
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES, cireneAftermathScene, cireneBargainScene, departureScene, harbourAftermathScene } from './actTwoContent.js'
 import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from './actTwoFinalContent.js'
 import { DroneMemoryGame, GateEvidenceGame, MessageAssemblyGame, ProbabilityGame, RunDarkGame } from './ActTwoFinalGames.js'
+import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES, choirAftermathScene, rescueAftermathScene, scyllaRescueInterlude, silentPassageAftermathScene } from './actThreeContent.js'
+import { ChoirFilterGame, GravityCourseGame, HallucinatedNavigationGame, RouteExtractionGame, TetherRescueGame, choirCarrierForEvidence, type ActThreeResult, type PassageRoute } from './ActThreeGames.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
@@ -38,6 +40,10 @@ export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
   'interlude-15', 'b15-memory', 'b15-request',
   'interlude-16', 'b16-message', 'b16-aftermath',
   'interlude-17', 'b17-futures', 'b17-prophecy', 'act-two-complete',
+  'interlude-18', 'b18-promises', 'b18-filter', 'b18-aftermath',
+  'interlude-19', 'b19-navigation', 'b19-extract', 'b19-aftermath',
+  'interlude-20', 'b20-choice', 'b20-course', 'b20-combat',
+  'interlude-21', 'b21-voices', 'b21-rescue', 'b21-aftermath', 'act-three-slice-complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -58,7 +64,29 @@ export const VERTICAL_SLICE_BEATS = [
   '15-unburied-signal',
   '16-mothers-message',
   '17-prophet-probability',
+  '18-choir-dark', '19-silent-passage', '20-twin-terrors', '21-six-taken',
 ] as const
+
+export function scyllaCombatConfigForRoute(passageRoute: PassageRoute, playerHull: number): CombatConfig {
+  return {
+    beat:'BEAT 20 · BOSS PASSAGE',
+    title:passageRoute === 'scylla-close' ? 'BREAK SCYLLA’S GRASP' : 'SURVIVE THE WIDE CORRECTION',
+    objective:passageRoute === 'scylla-close' ? 'Sever three grasping limbs and preserve the gravity tether' : 'Repel the outer limbs while preserving the gravity tether',
+    background:ASSETS.cinematics.twinTerrors,
+    playerShip:ASSETS.ships.ithaca,
+    enemyShip:ASSETS.ships.scylla,
+    enemyClassName:'scylla',
+    enemyName:'Scylla grasp complex',
+    incomingLabel:'A living limb strikes the exposed compartments.',
+    targets:passageRoute === 'scylla-close'
+      ? [{id:'limb-a',name:'Grasp A',role:'PORT DECKS',hp:2},{id:'limb-b',name:'Grasp B',role:'ENGINEERING',hp:2},{id:'limb-c',name:'Grasp C',role:'HABITAT',hp:2},{id:'tether',name:'Gravity Tether',role:'PRESERVE FOR ESCAPE',hp:3,protected:true}]
+      : [{id:'limb-a',name:'Outer Grasp',role:'EVACUATION BLISTER',hp:3},{id:'limb-b',name:'Shear Tendril',role:'LATERAL THRUSTERS',hp:2},{id:'tether',name:'Gravity Tether',role:'PRESERVE FOR ESCAPE',hp:3,protected:true}],
+    playerHull,
+    enemyInterval:passageRoute === 'scylla-close' ? 2100 : 1750,
+    victoryTitle:'The Ithaca tears free.',
+    victoryText:passageRoute === 'scylla-close' ? 'The close course clears Charybdis, but six suit signals remain inside Scylla.' : 'The wide correction avoids Charybdis. A torn evacuation blister crosses Scylla’s reach with six signals still alive.',
+  }
+}
 
 interface SliceSave {
   screen: SliceScreenId
@@ -256,6 +284,66 @@ export function SliceGame() {
     completeActivity('16-mothers-message', 'home-has-changed', 'interlude-17', choice.id, effects, true)
   }
 
+  const chooseTwinPassage = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'scylla-close'
+      ? [{ kind: 'set-flag', flag: 'scylla-close-course' }, { kind: 'relationship', character: 'gabriel-cross', delta: 1 }]
+      : [{ kind: 'set-flag', flag: 'charybdis-wide-course' }, { kind: 'relationship', character: 'helen-morozova', delta: 1 }]
+    completeActivity('20-twin-terrors', 'choose-passage', 'b20-course', choice.id, effects)
+  }
+
+  const completeChoirFilter = (result: ActThreeResult) => {
+    const effects: CampaignEffect[] = [
+      { kind:'add-evidence', evidenceId:result.choiceId },
+      ...(result.success
+        ? [{ kind:'add-evidence', evidenceId:'choir-pilgrims-freed' } as CampaignEffect, { kind:'relationship', character:'kiara-ndala', delta:2 } as CampaignEffect]
+        : [{ kind:'set-flag', flag:'choir-filter-overexposed' } as CampaignEffect, { kind:'add-evidence', evidenceId:'choir-pilgrims-lost' } as CampaignEffect, { kind:'pursuit', delta:5 } as CampaignEffect]),
+    ]
+    completeActivity('18-choir-dark', 'filter-choir', 'b18-aftermath', result.choiceId, effects, true)
+  }
+
+  const completeSilentNavigation = (result: ActThreeResult) => {
+    const effects: CampaignEffect[] = result.success
+      ? [{ kind:'relationship', character:'helen-morozova', delta:1 }]
+      : [{ kind:'set-flag', flag:'choir-navigation-compromised' }, { kind:'damage-system', system:'sensors', amount:10 }, { kind:'pursuit', delta:5 }, { kind:'relationship', character:'helen-morozova', delta:-1 }]
+    completeActivity('19-silent-passage', 'hallucinated-navigation', 'b19-extract', result.choiceId, effects)
+  }
+
+  const completeRouteExtraction = (result: ActThreeResult) => {
+    const effects: CampaignEffect[] = [
+      { kind:'set-flag', flag:'choir-route-extracted' },
+      ...(result.success ? [] : [{ kind:'add-evidence', evidenceId:'choir-route-contaminated' } as CampaignEffect, { kind:'pursuit', delta:3 } as CampaignEffect]),
+    ]
+    completeActivity('19-silent-passage', 'extract-route', 'b19-aftermath', result.choiceId, effects, true)
+  }
+
+  const completeGravityCourse = (result: ActThreeResult) => {
+    const effects: CampaignEffect[] = [
+      { kind:'add-evidence', evidenceId:`twin-course-strikes:${result.strikes ?? 0}` },
+      ...(result.hullDamage ? [{ kind:'damage-hull', amount:result.hullDamage } as CampaignEffect] : []),
+      ...(result.success ? [{ kind:'relationship', character:'lena-mori', delta:1 } as CampaignEffect] : []),
+    ]
+    completeActivity('20-twin-terrors', 'gravity-course', 'b20-combat', result.choiceId, effects)
+  }
+
+  const completeScyllaRescue = (result: ActThreeResult) => {
+    const rescued = result.rescued ?? []
+    const abandoned = result.abandoned ?? []
+    const effects: CampaignEffect[] = [
+      { kind:'add-evidence', evidenceId:`scylla-rescued:${rescued.length ? rescued.join(',') : 'none'}` },
+      { kind:'add-evidence', evidenceId:`scylla-abandoned:${abandoned.length ? abandoned.join(',') : 'none'}` },
+      { kind:'pursuit', delta:(result.interceptSeconds ?? 0) < 10 ? 12 : (result.interceptSeconds ?? 0) < 24 ? 7 : 3 },
+      ...(result.hullDamage ? [{ kind:'damage-hull', amount:result.hullDamage } as CampaignEffect] : []),
+      ...(rescued.length === 6
+        ? [{ kind:'set-flag', flag:'all-six-rescued' } as CampaignEffect, { kind:'relationship', character:'isabella-corelli', delta:2 } as CampaignEffect, { kind:'relationship', character:'gabriel-cross', delta:1 } as CampaignEffect]
+        : rescued.length === 0
+          ? [{ kind:'set-flag', flag:'six-abandoned' } as CampaignEffect, { kind:'relationship', character:'isabella-corelli', delta:-3 } as CampaignEffect, { kind:'relationship', character:'gabriel-cross', delta:1 } as CampaignEffect]
+          : [{ kind:'set-flag', flag:'scylla-partial-rescue' } as CampaignEffect, { kind:'relationship', character:'isabella-corelli', delta:-1 } as CampaignEffect]),
+    ]
+    completeActivity('21-six-taken', 'tether-rescue', 'b21-aftermath', result.choiceId, effects, true)
+  }
+
+  const passageRoute: PassageRoute = game.flags.includes('charybdis-wide-course') ? 'charybdis-wide' : 'scylla-close'
+
   const gateCombat = useMemo<CombatConfig>(() => ({
     beat: 'BEAT 01 · COMBAT',
     title: 'BREAK THE SANCTUARY SCREEN',
@@ -366,6 +454,8 @@ export function SliceGame() {
     victoryTitle: 'The Palace releases its grip.',
     victoryText: 'The custodian is disabled, not destroyed. Cirene allows the Ithaca to clear the shield—and records exactly what Vale stole.',
   }), [game.ship.hull])
+
+  const scyllaCombat = useMemo<CombatConfig>(() => scyllaCombatConfigForRoute(passageRoute, game.ship.hull), [game.ship.hull, passageRoute])
 
   const renderScreen = () => {
     switch (screen) {
@@ -572,7 +662,24 @@ export function SliceGame() {
       case 'b17-prophecy':
         return <DialogueScene key={screen} scene={ACT_TWO_FINAL_SCENES['b17-prophecy']} onContinue={() => completeActivity('17-prophet-probability', 'prophecy', 'act-two-complete', 'prophecy-heard', [{ kind: 'set-flag', flag: 'tiresias-warning-understood' }], true)} />
       case 'act-two-complete':
-        return <ActTwoCompletionScreen game={game} onRestart={startNew} />
+        return <ActTwoCompletionScreen game={game} onRestart={startNew} onContinue={() => setScreen('interlude-18')} />
+      case 'interlude-18': return <BeatInterlude data={ACT_THREE_INTERLUDES['interlude-18']} game={game} onContinue={() => setScreen('b18-promises')} />
+      case 'b18-promises': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b18-promises']} onContinue={() => completeActivity('18-choir-dark','private-promises','b18-filter','promises-heard')} />
+      case 'b18-filter': return <ChoirFilterGame carrierId={choirCarrierForEvidence(game.evidence)} onComplete={completeChoirFilter} />
+      case 'b18-aftermath': return <DialogueScene key={screen} scene={choirAftermathScene(game)} onContinue={()=>setScreen('interlude-19')} />
+      case 'interlude-19': return <BeatInterlude data={ACT_THREE_INTERLUDES['interlude-19']} game={game} onContinue={() => setScreen('b19-navigation')} />
+      case 'b19-navigation': return <HallucinatedNavigationGame onComplete={completeSilentNavigation} />
+      case 'b19-extract': return <RouteExtractionGame onComplete={completeRouteExtraction} />
+      case 'b19-aftermath': return <DialogueScene key={screen} scene={silentPassageAftermathScene(game)} onContinue={()=>setScreen('interlude-20')} />
+      case 'interlude-20': return <BeatInterlude data={ACT_THREE_INTERLUDES['interlude-20']} game={game} onContinue={() => setScreen('b20-choice')} />
+      case 'b20-choice': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b20-choice']} onChoice={chooseTwinPassage} />
+      case 'b20-course': return <GravityCourseGame route={passageRoute} compromised={game.flags.includes('choir-navigation-compromised')} onComplete={completeGravityCourse} />
+      case 'b20-combat': return <CinematicCombat config={scyllaCombat} onComplete={(r)=>completeActivity('20-twin-terrors','scylla-passage','interlude-21','scylla-grasp-broken',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)}],true)} />
+      case 'interlude-21': return <BeatInterlude data={scyllaRescueInterlude(game)} game={game} onContinue={() => setScreen('b21-voices')} />
+      case 'b21-voices': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b21-voices']} onContinue={()=>completeActivity('21-six-taken','rescue-decision','b21-rescue','rescue-launched',[{kind:'set-flag',flag:'scylla-rescue-attempted'}])} />
+      case 'b21-rescue': return <TetherRescueGame route={passageRoute} onComplete={completeScyllaRescue} />
+      case 'b21-aftermath': return <DialogueScene key={screen} scene={rescueAftermathScene(game)} onContinue={()=>setScreen('act-three-slice-complete')} />
+      case 'act-three-slice-complete': return <ActThreeSliceCompletionScreen game={game} onRestart={startNew} />
     }
   }
 
@@ -599,21 +706,21 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACTS I—II · PLAYABLE CAMPAIGN</span><strong>BEATS 01—17</strong></footer>
+      <footer><span>ACTS I—III · PLAYABLE CAMPAIGN</span><strong>BEATS 01—21</strong></footer>
     </section>
   )
 }
 
 function VoyageHud({ game }: { game: GameState }) {
   const completed = game.campaign.completedBeatIds.filter((id) => VERTICAL_SLICE_BEATS.includes(id as typeof VERTICAL_SLICE_BEATS[number])).length
-  const act = completed >= 8 ? 'ACT II' : 'ACT I'
-  const withinAct = completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
+  const act = completed >= 17 ? 'ACT III' : completed >= 8 ? 'ACT II' : 'ACT I'
+  const withinAct = completed >= 17 ? Math.min(10, completed - 16) : completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
   return (
     <aside className="voyage-hud" aria-label="Voyage status">
       <div><span>CSV</span><strong>ITHACA</strong></div>
       <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
       <div><span>PURSUIT</span><strong>{game.pursuit}</strong></div>
-      <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : 9}</strong></div>
+      <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : act === 'ACT II' ? 9 : 10}</strong></div>
       <small>AUTOSAVED</small>
     </aside>
   )
@@ -697,7 +804,7 @@ function ActTwoSliceCompletionScreen({ game, onRestart, onContinue }: { game: Ga
   )
 }
 
-function ActTwoCompletionScreen({ game, onRestart }: { game: GameState; onRestart: () => void }) {
+function ActTwoCompletionScreen({ game, onRestart, onContinue }: { game: GameState; onRestart: () => void; onContinue: () => void }) {
   const truth = game.evidence.includes('complete-gate-testimony') ? 'COMPLETE RECORD' : game.evidence.includes('sorren-confession') ? 'SORREN CONFESSION' : 'SEALED'
   const raoChoice = game.decisions.find((decision) => decision.activityId === 'final-request')?.choiceId
   const rao = raoChoice === 'preserve-rao-aboard' ? 'ABOARD' : raoChoice === 'free-rao-to-archive' ? 'FREE IN ARCHIVE' : 'FINAL REQUEST GRANTED'
@@ -705,7 +812,14 @@ function ActTwoCompletionScreen({ game, onRestart }: { game: GameState; onRestar
     <div className="completion-card"><p className="eyebrow">ACT II COMPLETE · STRANGE SHORES</p><h1>The road home has become a prophecy.</h1><p>The Ithaca leaves the dead with the true Gate record, Elara’s uncertain invitation and a route through the Choir, the Twin Terrors and the living sun. TIRESIAS has named the cost hidden inside every future: Vale’s command may be the danger the crew cannot survive.</p>
       <div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>GATE TRUTH</span><strong>{truth}</strong></div><div><span>RAO</span><strong>{rao}</strong></div><div><span>NEXT</span><strong>THE CHOIR</strong></div></div>
       <div className="act-coda"><span>NEXT · ACT III</span><strong>THE SEA TAKES ITS PRICE</strong><p>The first voice in the dark already knows what every member of the crew wants most.</p></div>
-      <button className="secondary-action" onClick={onRestart}>Replay the voyage</button>
+      <div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Act III <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div>
     </div>
   </section>
+}
+
+function ActThreeSliceCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}) {
+ const rescuedRecord=game.evidence.find(item=>item.startsWith('scylla-rescued:'))?.slice('scylla-rescued:'.length)??'none'
+ const rescued=rescuedRecord==='none'?[]:rescuedRecord.split(',')
+ const rescueLabel=rescued.length===6?'ALL SIX':rescued.length===0?'NONE':`${rescued.length} OF SIX`
+ return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE I COMPLETE</p><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></section>
 }

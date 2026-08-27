@@ -124,3 +124,17 @@ The rubric should become stricter as the game grows. Passing once does not exemp
 | Campaign momentum | 9.5 | Each recovered truth creates the next personal question, and TIRESIAS converts the investigation into an unavoidable Act III route. | Act III must immediately repay the Choir promise. |
 
 **Weighted score: 9.15 / 10 — pass.** The complete Act II now contains nine beats, nine transition briefings and nine distinct playable frameworks, with the same executable quality contract used for Act I.
+
+## Act III Slice I release-candidate scorecard
+
+| Category | Score | Evidence | Remaining pressure |
+| --- | ---: | --- | --- |
+| Story clarity | 9.0 | Four interludes carry the Archive prophecy through temptation, isolation and the impossible passage; both route choices now receive a causally different rescue briefing and aftermath. | Cold-player recall still needs observation rather than content counting. |
+| Character connection | 9.1 | Every core officer names a distinct temptation, all six captives speak, and the bespoke aftermath preserves both the returned and abandoned name lists. | Later Helios dialogue must call back individual survivors instead of treating the ledger as a completed subplot. |
+| Minigame clarity | 8.7 | Choir telemetry has a three-field rule; navigation uses physical evidence with changing answer positions; route extraction mixes sourced facts and temptations; power transfer explicitly names donor and destination. | First-time completion time and clue interpretation cannot yet be measured. |
+| Minigame engagement | 8.6 | Failure is now fail-forward; the passage contains three finite-burn hazards; rescue order changes reachability through Sato, Amari and Vega, while delay damages hull and raises pursuit. | The intercept clock is operation-driven rather than real-time and should be compared with a timed variant during playtesting. |
+| Cinematic impact | 9.0 | Four purpose-made environments, a dedicated transparent Scylla creature, route-specific combat copy and a human aftermath replace the incorrect capital-ship silhouette and abrupt completion card. | Performance remains still-image led rather than voiced or animated. |
+| Visual usability | 8.1 | The Act III composition now enters compact mode at 850px, uses a three-by-two rescue grid at laptop width, scroll-safe game frames and a clearly styled protected combat target. | The cloud browser could not reach the local preview, so 1366×768 and mobile screenshot inspection remains a declared provisional limitation. |
+| Campaign momentum | 9.2 | TIRESIAS’s warning is repaid immediately; contamination worsens the passage; the route choice changes the crisis; the rescue ledger flows directly into Helios. | Beat 22 must give the living sun enough calm before hunger corrupts the prohibition. |
+
+**Weighted score: 8.84 / 10 — provisional pass.** This replaces the earlier 9.28 self-score, which the independent review found indefensible. Forty-two automated tests now include protected-objective logic, route divergence, rescue sequencing, exact aftermath callbacks, asset delivery and the short-laptop CSS contract. Publication still records rendered viewport inspection as an unresolved limitation rather than claiming it occurred.
