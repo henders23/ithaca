@@ -8,6 +8,11 @@ export const ASSETS = {
     garden: '/assets/cinematics/garden-of-forgetting.webp',
     fortress: '/assets/cinematics/argus-fortress.webp',
     fortressInterior: '/assets/cinematics/argus-interior.webp',
+    argusTransmitter: '/assets/cinematics/argus-transmitter.webp',
+    tidefatherIntercept: '/assets/cinematics/tidefather-intercept.webp',
+    aeolianCity: '/assets/cinematics/aeolian-city.webp',
+    sphereChamber: '/assets/cinematics/sphere-chamber.webp',
+    sphereRupture: '/assets/cinematics/sphere-rupture.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -17,11 +22,15 @@ export const ASSETS = {
     'isabella-corelli': '/assets/portraits/isabella-corelli.webp',
     'kiara-ndala': '/assets/portraits/kiara-ndala.webp',
     'argus-one': '/assets/portraits/argus-one.webp',
+    elias: '/assets/portraits/elias.webp',
+    tidefather: '/assets/portraits/tidefather.webp',
+    'keeper-aeolia': '/assets/portraits/keeper-aeolia.webp',
   },
   ships: {
     ithaca: '/assets/ships/ithaca-combat.png',
     eidolon: '/assets/ships/eidolon-interceptor.png',
     argus: '/assets/ships/argus-cutter.png',
+    tidefather: '/assets/ships/tidefather-capital-ui.webp',
   },
 } as const
 
@@ -48,6 +57,30 @@ export type SliceScreenId =
   | 'b4-circuit'
   | 'b4-combat'
   | 'complete'
+  | 'interlude-05'
+  | 'b5-aftermath'
+  | 'b5-cipher'
+  | 'b5-name'
+  | 'b5-consequence'
+  | 'interlude-06'
+  | 'b6-signal'
+  | 'b6-memories'
+  | 'b6-combat'
+  | 'b6-sacrifice'
+  | 'b6-aftermath'
+  | 'interlude-07'
+  | 'b7-arrival'
+  | 'b7-negotiation'
+  | 'b7-current'
+  | 'b7-flight'
+  | 'b7-departure'
+  | 'interlude-08'
+  | 'b8-rumours'
+  | 'b8-near-home'
+  | 'b8-rupture'
+  | 'b8-log'
+  | 'b8-judgment'
+  | 'act-one-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'
@@ -80,7 +113,7 @@ export interface DialogueSceneData {
 }
 
 export interface InterludeData {
-  id: 'interlude-02' | 'interlude-03' | 'interlude-04'
+  id: `interlude-0${2 | 3 | 4 | 5 | 6 | 7 | 8}`
   incomingBeat: number
   chapter: string
   headline: string
@@ -93,7 +126,7 @@ export interface InterludeData {
   continueLabel: string
 }
 
-export const INTERLUDES: Record<InterludeData['id'], InterludeData> = {
+export const INTERLUDES: Record<'interlude-02' | 'interlude-03' | 'interlude-04', InterludeData> = {
   'interlude-02': {
     id: 'interlude-02',
     incomingBeat: 2,
