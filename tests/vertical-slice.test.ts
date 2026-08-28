@@ -7,6 +7,7 @@ import { SLICE_TWO_INTERLUDES, SLICE_TWO_SCENES } from '../src/slice/sliceTwoCon
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES } from '../src/slice/actTwoContent.js'
 import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from '../src/slice/actTwoFinalContent.js'
 import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES, rescueAftermathScene } from '../src/slice/actThreeContent.js'
+import { ACT_THREE_FINAL_INTERLUDES, ACT_THREE_FINAL_SCENES } from '../src/slice/actThreeFinalContent.js'
 import { COURSE_PHASES, RESCUE_CREW, applyRescue, choirCarrierForEvidence, evaluateChoirFilter, evaluateRouteSelection, navigationChoiceIsReal, rescueHullDamage, rescueOffer, transferPower, vectorsMatch, type ChoirBandId, type RescueState } from '../src/slice/ActThreeGames.js'
 import { combatObjectiveComplete, combatObjectiveProgress, type LiveCombatTarget } from '../src/slice/CinematicCombat.js'
 import { SLICE_SCREEN_IDS, VERTICAL_SLICE_BEATS } from '../src/slice/SliceGame.js'
@@ -15,10 +16,10 @@ import { reduceGame } from '../src/state/reducer.js'
 
 describe('playable vertical slice', () => {
   it('registers one continuous and unique screen sequence', () => {
-    expect(SLICE_SCREEN_IDS).toHaveLength(100)
+    expect(SLICE_SCREEN_IDS).toHaveLength(120)
     expect(new Set(SLICE_SCREEN_IDS).size).toBe(SLICE_SCREEN_IDS.length)
     expect(SLICE_SCREEN_IDS[0]).toBe('title')
-    expect(SLICE_SCREEN_IDS.at(-1)).toBe('act-three-slice-complete')
+    expect(SLICE_SCREEN_IDS.at(-1)).toBe('act-three-complete')
     expect(VERTICAL_SLICE_BEATS).toEqual([
       '01-burning-tide-gate',
       '02-wrong-stars',
@@ -38,12 +39,13 @@ describe('playable vertical slice', () => {
       '16-mothers-message',
       '17-prophet-probability',
       '18-choir-dark', '19-silent-passage', '20-twin-terrors', '21-six-taken',
+      '22-living-sun', '23-hunger-mutiny', '24-judgment-star', '25-last-companion',
     ])
   })
 
   it('briefs the player between every completed beat in the slice', () => {
-    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES, ...ACT_TWO_FINAL_INTERLUDES, ...ACT_THREE_INTERLUDES }
-    expect(Object.keys(interludes)).toHaveLength(20)
+    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES, ...ACT_TWO_FINAL_INTERLUDES, ...ACT_THREE_INTERLUDES, ...ACT_THREE_FINAL_INTERLUDES }
+    expect(Object.keys(interludes)).toHaveLength(24)
     for (const interlude of Object.values(interludes)) {
       expect(interlude.recap.length).toBeGreaterThan(100)
       expect(interlude.situation).toHaveLength(3)
@@ -52,7 +54,7 @@ describe('playable vertical slice', () => {
   })
 
   it('ships every cinematic, portrait and combat asset used by the slice', () => {
-    expect(SLICE_ASSET_PATHS.length).toBe(45)
+    expect(SLICE_ASSET_PATHS.length).toBe(52)
     for (const asset of SLICE_ASSET_PATHS) {
       const file = join(process.cwd(), 'public', asset.slice(1))
       expect(existsSync(file), `${asset} should exist`).toBe(true)
@@ -65,7 +67,7 @@ describe('playable vertical slice', () => {
   })
 
   it('only uses narrators or characters with a vertical-slice portrait', () => {
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES)]) {
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES)]) {
       expect(scene.lines.length).toBeGreaterThan(0)
       for (const line of scene.lines) {
         expect(line.speaker === 'narrator' || line.speaker in ASSETS.portraits).toBe(true)
@@ -78,7 +80,7 @@ describe('playable vertical slice', () => {
     let cueCount = 0
     let cutawayCount = 0
 
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES)]) {
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES)]) {
       expect(scene.lines.length, `${scene.title} should unfold over several exchanges`).toBeGreaterThanOrEqual(5)
       for (const line of scene.lines as readonly DialogueLine[]) {
         lineCount += 1
@@ -147,6 +149,10 @@ describe('playable vertical slice', () => {
       ['19-silent-passage','hallucinated-navigation'],['19-silent-passage','extract-route'],
       ['20-twin-terrors','choose-passage'],['20-twin-terrors','gravity-course'],['20-twin-terrors','scylla-passage'],
       ['21-six-taken','rescue-decision'],['21-six-taken','tether-rescue'],
+      ['22-living-sun','map-plasma-life'],['22-living-sun','no-harvest-order'],
+      ['23-hunger-mutiny','recover-ship-control'],['23-hunger-mutiny','mutiny-confrontation'],['23-hunger-mutiny','helios-awakens'],
+      ['24-judgment-star','two-accusers'],['24-judgment-star','three-sided-escape'],['24-judgment-star','coronal-routing'],
+      ['25-last-companion','failing-drive'],['25-last-companion','last-words'],
     ] as const
 
     for (const beatId of VERTICAL_SLICE_BEATS) {
@@ -161,7 +167,7 @@ describe('playable vertical slice', () => {
     }
 
     expect(state.campaign.completedBeatIds).toEqual(VERTICAL_SLICE_BEATS)
-    expect(state.campaign.currentBeatId).toBe('22-living-sun')
+    expect(state.campaign.currentBeatId).toBe('26-island-end-time')
   })
 
   it('protects non-target objectives while allowing the Scylla battle to finish', () => {

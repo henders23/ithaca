@@ -27,6 +27,12 @@ export const ASSETS = {
     silentPassage: '/assets/cinematics/silent-passage.webp',
     twinTerrors: '/assets/cinematics/twin-terrors.webp',
     scyllaRescue: '/assets/cinematics/scylla-rescue.webp',
+    heliosArrival: '/assets/cinematics/helios-arrival.webp',
+    heliosEcology: '/assets/cinematics/helios-ecology.webp',
+    hungerMutiny: '/assets/cinematics/hunger-mutiny.webp',
+    heliosJudgment: '/assets/cinematics/helios-judgment.webp',
+    failingDrive: '/assets/cinematics/failing-drive.webp',
+    lastCompanionMemorial: '/assets/cinematics/last-companion-memorial.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -42,6 +48,7 @@ export const ASSETS = {
     'doctor-cirene': '/assets/portraits/doctor-cirene.webp',
     'elara-vale': '/assets/portraits/elara-vale.webp',
     tiresias: '/assets/portraits/tiresias.webp',
+    helios: '/assets/portraits/helios.webp',
   },
   ships: {
     ithaca: '/assets/ships/ithaca-combat.png',
@@ -144,6 +151,10 @@ export type SliceScreenId =
   | 'interlude-19' | 'b19-navigation' | 'b19-extract' | 'b19-aftermath'
   | 'interlude-20' | 'b20-choice' | 'b20-course' | 'b20-combat'
   | 'interlude-21' | 'b21-voices' | 'b21-rescue' | 'b21-aftermath' | 'act-three-slice-complete'
+  | 'interlude-22' | 'b22-arrival' | 'b22-ecology' | 'b22-prohibition'
+  | 'interlude-23' | 'b23-crisis' | 'b23-control' | 'b23-confrontation' | 'b23-awakens'
+  | 'interlude-24' | 'b24-two-accusers' | 'b24-combat' | 'b24-routing' | 'b24-aftermath'
+  | 'interlude-25' | 'b25-volunteers' | 'b25-drive' | 'b25-last-words' | 'b25-memorial' | 'act-three-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'

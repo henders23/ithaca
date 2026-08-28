@@ -1,6 +1,6 @@
 # Playable vertical slice
 
-The first twelve campaign beats form one continuous playable campaign: complete Act I and the first four beats of Act II. Dialogue, hubs, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
+The first twenty-five campaign beats form one continuous playable campaign: complete Acts I and II and the first eight beats of Act III. Dialogue, hubs, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
 
 ## Sequence
 
@@ -18,6 +18,19 @@ The first twelve campaign beats form one continuous playable campaign: complete 
 | 10 · The Palace of New Flesh | Cirene heals the harbour survivors while creating new bodies that remember being them. | Treatment decision, four-case identity forensics and a personhood judgment after the evidence. | Copies are recognised, left with Cirene or destroyed; Corelli, Morozova and Cirene remember the choice. |
 | 11 · The Captain’s Bargain | Cirene offers to remove the wounds inside Vale’s memories and asks for the Gate map embedded between them. | Four-round neural identity lock and an alliance/refusal/theft choice; theft launches an optional custodian escape battle. | Cirene becomes ally, uneasy host or betrayed adversary; Vale’s neural integrity and Gate research persist. |
 | 12 · A Year Outside Time | The crew recover inside the ark until an external carrier reveals that thirteen months passed in forty-seven local days. | Four-character refuge hub, time-reveal scene, selective living-technology refit and departure decision. | Three ship capabilities are restored, Cirene’s technology remains aboard, and the crew follows by vote, persuasion or order. |
+| 13 · The Road Through the Dead | The Mourning Archive admits no living visitor. | Ordered signature shutdown and a death-profile run past the Wardens. | Clean or detected entry changes damage and testimony integrity. |
+| 14 · Voices in the Archive | Dead witnesses contradict the official Gate chronology. | Causal evidence reconstruction and testimony choice. | Vale preserves a complete record, Sorren confession or sealed account. |
+| 15 · The Unburied Signal | Rao persists inside a combat drone that overwrites her refusal. | Consciousness reconstruction and a final-request decision. | Rao is freed, preserved aboard or allowed to end. |
+| 16 · The Mother’s Message | A damaged Earth carrier brings death, political change and Elara’s doubt. | Honest waveform reconstruction and disclosure choice. | The crew hears Elara’s challenge, a summary or silence. |
+| 17 · The Prophet of Probability | TIRESIAS offers one viable route whose unstable variable is Vale’s command. | Constraint-logic future selection. | The Choir route and Helios prohibition become explicit. |
+| 18 · The Choir in the Dark | A signal speaks in each listener’s true private need. | Evidence-driven filtration and a non-lethal counter-signal. | Pilgrims and route survive cleanly or contamination enters the ship. |
+| 19 · The Silent Passage | Vale navigates alone through interfaces designed to reassure him. | Physical-evidence navigation and sourced route extraction. | A clean or contaminated course changes the Twin Terrors. |
+| 20 · The Twin Terrors | The route lies between Scylla and a mobile singularity. | Consequential route choice, finite-burn power transfer and protected-target boss combat. | Route-specific damage exposes six named people to Scylla. |
+| 21 · The Six Taken | Six open channels remain inside the creature. | Ordered tether rescue with time, pulse and specialist dependencies. | Exact returned and abandoned name lists alter later play. |
+| 22 · The Living Sun | Helios appears to be limitless fuel until population changes reveal an ecology. | Causal food-chain mapping and forecast ethical recharge. | The player understands the life and cost before Vale’s prohibition. |
+| 23 · The Hunger Mutiny | Cold decks and clinic deaths drive forty-one people to kill one solar grazer. | Scarce override allocation and shared-responsibility judgment. | Human casualties, engine damage and solar-remnant survival persist. |
+| 24 · Judgment of the Star | Helios and the Tidefather trap the Ithaca between two justified claims. | Protected-nursery three-sided combat and evidence-based coronal routing. | Rescued specialists pay off; the Ithaca becomes a crippled core. |
+| 25 · The Last Companion | One person must hold the lethal drive interlock. | Transparent companion assignment and three previewed stability/record tradeoffs. | The selected core character dies; trust shapes final words and memorial. |
 
 ## Controls
 
@@ -32,6 +45,13 @@ The first twelve campaign beats form one continuous playable campaign: complete 
 - Neural lock: preserve one of two competing accounts across four memory anchors while the rewrite meter records convenient revisions.
 - Refuge hub: hear at least three crew perspectives—including Morozova—before opening the external clock.
 - Refit allocation: select exactly three living-technology growth cycles; current integrity and human consequences are visible before commitment.
+- Choir filter: use three telemetry fields to isolate the route carrier, then choose a non-lethal intervention.
+- Gravity course: transfer power from an explicit donor to a destination through three route-specific hazards.
+- Tether rescue: sequence named rescues; Sato saves time, Vega restores pulses and Amari can locate Noah.
+- Helios ecology: infer birth, feeding and protection from population telemetry, then compare energy with living-contact forecasts.
+- Hunger override: spend a finite charge budget on clinic, habitat, drive and cradle recovery; every omission is named.
+- Coronal routing: match one causal rule to three visible path telemetries; rescued specialists absorb specific errors.
+- Failing drive: choose the lethal assignment explicitly, then trade ship stability against preservation of the final voice.
 - All other minigames use pointer or keyboard focus.
 
 ## Cinematic scene language
@@ -53,4 +73,4 @@ The interface responds to both width and height. Laptop-height layouts reduce po
 
 The vertical slice uses original generated imagery rather than assets copied from `starship-explorer`. The art direction is photorealistic prestige science fiction: grounded military-NASA human engineering, steel-and-amber bridge lighting, and increasingly unfamiliar alien geometry. Cinematic backgrounds are 16:9 WebP files; recurring-character portraits are consistently framed 4:5 WebP files; combat ships are transparent PNGs.
 
-Assets live under `public/assets/` and are compressed to keep the first load practical. Act II adds a predatory industrial harbour, an ivory-and-cyan biotechnology ark, an identity laboratory, a memory theatre, the transformed Ithaca refit garden, Doctor Cirene and two distinct combat craft. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation: animated reactor routing, patient vitals, neural reconstruction, cinematic flight HUDs, ARGUS optics, transponder masking, ship-system severance, spatial-current containment, causal evidence, route planning, continuity forensics and selective living-ship restoration.
+Assets live under `public/assets/` and are compressed to keep the first load practical. Act II adds a predatory industrial harbour, an ivory-and-cyan biotechnology ark, the black-hole Archive and the probability observatory. Act III moves through purple signal-space, the black/red Twin Terrors and a gold/cyan Helios visual grammar before reducing the palette to the dark drive chamber and memorial. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation for each decision.

@@ -6,20 +6,24 @@ This repository is a clean rebuild. It does not inherit the procedural galaxy or
 
 ## Playable campaign
 
-The browser opens directly into a cinematic campaign covering the first twelve sequential set pieces—complete Act I and the first half of Act II:
+The browser opens directly into a cinematic campaign covering the first twenty-five sequential set pieces—complete Acts I and II and the first eight beats of Act III:
 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
-- four mandatory real-time-with-pause ship combat encounters, one conditional escape battle, and a timed survival battle against an unbeatable pursuer;
+- objective, survival, boss-passage and protected-target ship combat encounters with persistent damage;
 - weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
-- fourteen visually distinct puzzles and action minigames, plus two explorable character hubs;
+- twenty-eight registered puzzles and action minigames, plus explorable character hubs;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
-- thirty-four original, optimized backgrounds, portraits and combat assets.
+- fifty-two original, optimized backgrounds, portraits and combat assets.
 
 The second playable slice completes Act I across Beats 05–08: Vale chooses the identity sent into the dark, survives the Tidefather’s first wrath, bargains for a spatial current in the Aeolian cloud cities, and judges the conspiracy that destroys the apparent route home.
 
 The first Act II slice covers Beats 09–12: the Ithaca runs a harbour that consumes its guests, confronts duplicate personhood in Doctor Cirene’s Palace of New Flesh, defends Vale’s memory from a compassionate rewrite, and spends forty-seven days in a refuge while thirteen months pass outside.
+
+The second Act II slice covers Beats 13–17: the ship enters the Mourning Archive as a corpse, reconstructs the falsified Gate record, answers Rao’s unburied consciousness, receives Elara’s challenge from Earth and derives the Act III route from TIRESIAS.
+
+Act III currently covers Beats 18–25: the crew resists the Choir, crosses between Scylla and Charybdis, carries an exact rescue ledger into the living Helios system, breaks under hunger, survives two claims of vengeance and loses one relationship-defined companion keeping the final jump alive.
 
 ## Run locally
 

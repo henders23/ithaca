@@ -138,3 +138,31 @@ The rubric should become stricter as the game grows. Passing once does not exemp
 | Campaign momentum | 9.2 | TIRESIAS’s warning is repaid immediately; contamination worsens the passage; the route choice changes the crisis; the rescue ledger flows directly into Helios. | Beat 22 must give the living sun enough calm before hunger corrupts the prohibition. |
 
 **Weighted score: 8.84 / 10 — provisional pass.** This replaces the earlier 9.28 self-score, which the independent review found indefensible. Forty-two automated tests now include protected-objective logic, route divergence, rescue sequencing, exact aftermath callbacks, asset delivery and the short-laptop CSS contract. Publication still records rendered viewport inspection as an unresolved limitation rather than claiming it occurred.
+
+## Act III Slice II red-team findings and corrections
+
+| Finding | Severity | Correction |
+| --- | --- | --- |
+| The first ecology draft labelled observations as birth, feeder, consumer and protector, reducing inference to copying the labels. | High | Replaced the labels with population-change telemetry; the player must infer the causal order, while two non-living decoys remain plausible until the evidence is read. |
+| The first coronal hazard asked only for a path below 60 MK, but two paths satisfied that rule. | High | Added the second necessary constraint—outside a living migration—and exposed both temperature and population telemetry before commitment. |
+| A mutiny allocation could be misread as saving the captured organism. | High | The briefing, interface and confrontation all state that the first extraction already killed it; cradle isolation only stops the second cycle and preserves a remnant. |
+| The six-person Scylla ledger risked becoming an emotional callback with no mechanical force. | High | Sato, Rao and Amari reduce battle pressure; Vega absorbs one routing error; Tamsin changes clinic cost and the post-battle casualty scene. Exact rescue evidence drives every assist. |
+| Helios’s nursery could become another objective in a visually busy battle. | High | Added a protected, disabled nursery target, explicit preserve copy and an objective-completion test that ignores protected life. |
+| Relationship history could invisibly select the dying companion and make the player feel manipulated by an undisclosed formula. | High | Every qualified human volunteer appears with trust, skill and the exact human loss; the player confirms the lethal assignment explicitly before the first drive input. |
+| ELIAS initially appeared as a sacrifice candidate, breaking his established Argos function in the homecoming. | High | Removed him from the candidates and gave him an explicit line explaining why synthetic control cannot survive the Gate scar. |
+| The first memorial draft allowed Morozova or Corelli to speak after being selected as the dead companion. | Critical | Memorial witnesses now branch around the actual death; the selected character appears only in the recorded final transmission and is marked dead in state. |
+| The companion death could collapse directly into a completion card and convert grief into progression UI. | High | Added a separate five-line memorial scene, empty-place cutaway and forty-seven seconds of recorded silence before the Calypso hook. |
+
+## Act III Slice II release-candidate scorecard
+
+| Category | Score | Evidence | Remaining pressure |
+| --- | ---: | --- | --- |
+| Story clarity | 9.2 | Four full interludes establish rescue debt, the six-day recharge, the already-fatal extraction, two accusers and the mechanical cause of the final sacrifice. | Cold-player recall still needs observation rather than content inspection. |
+| Character connection | 9.3 | Five transparent companion outcomes, relationship-specific final words, state-aware memorial witnesses, and named lower-deck responsibility prevent the arc becoming abstract tragedy. | Future beats must adapt every scene to the selected death rather than quietly restoring the full cast. |
+| Minigame clarity | 9.0 | Causal telemetry, visible collection harm, override budgets, path requirements and drive tradeoffs expose goal, input, progress and cost before commitment. | Real first-attempt completion time remains unmeasured. |
+| Minigame engagement | 8.9 | Ecology inference becomes ethical extraction; rescue order changes mutiny and battle; the control grid has no cost-free route; the final game balances stability against testimony after a certain death. | The mutiny remains turn-based allocation and should be compared with a more spatial network presentation in player tests. |
+| Cinematic impact | 9.3 | Six purpose-built widescreen states and an astronomical Helios portrait create wonder, confinement, three-sided catastrophe, lethal distance and quiet mourning. | Performance is still portrait-and-still-image cinema rather than voiced or animated acting. |
+| Visual usability | 8.2 | Gold/red/cyan semantics, three-by-two short-laptop volunteer cards, 100dvh scrolling, mobile collapse and protected-target styling have executable CSS gates. | The cloud browser could not reach the local preview before publication, so rendered 1366×768 and 390×844 inspection remains provisional until the deployed build is available. |
+| Campaign momentum | 9.4 | Rescue debt materially changes Helios; understanding becomes prohibition, deprivation becomes mutiny, mutiny awakens judgment, and survival creates the personal death that opens directly onto Calypso’s impossible shore. | Beats 26–27 must allow grief to remain present inside paradise instead of treating Calypso as a reset. |
+
+**Weighted score: 9.07 / 10 — provisional pass.** Fifty-three automated tests cover all twenty-five playable beats, twenty-eight minigame contracts, server rendering of every new interaction, causal ecology, non-lethal recharge reachability, unavoidable mutiny cost, survivor payoffs, protected battle objectives, explicit sacrifice selection, relationship-specific last words, death-safe aftermath dialogue, asset delivery and short-laptop layout rules. The visual score remains deliberately constrained until a rendered deployed build can be inspected.

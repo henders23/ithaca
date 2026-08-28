@@ -3,6 +3,11 @@ import type { InterludeData } from './content.js'
 
 export function BeatInterlude({ data, game, onContinue }: { data: InterludeData; game: GameState; onContinue: () => void }) {
   const record = captainRecord(data.id, game)
+  const route = data.incomingBeat <= 8
+    ? Array.from({ length: 8 }, (_, index) => index + 1)
+    : data.incomingBeat <= 17
+      ? Array.from({ length: 9 }, (_, index) => index + 9)
+      : Array.from({ length: 10 }, (_, index) => index + 18)
 
   return (
     <section className="beat-interlude" style={{ '--interlude-bg': `url(${data.background})` } as React.CSSProperties}>
@@ -44,7 +49,7 @@ export function BeatInterlude({ data, game, onContinue }: { data: InterludeData;
           <Metric label="DRIVE" value={game.ship.systems.engines.status.toUpperCase()} tone={game.ship.systems.engines.status === 'online' ? 'stable' : 'danger'} />
           <Metric label="PURSUIT TRACE" value={game.pursuit === 0 ? 'NONE' : String(game.pursuit).padStart(2, '0')} tone={game.pursuit > 8 ? 'danger' : 'stable'} />
           <div className="beat-route" aria-label="Act one progress">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((beat) => <span key={beat} className={beat < data.incomingBeat ? 'done' : beat === data.incomingBeat ? 'current' : ''}>{String(beat).padStart(2, '0')}</span>)}
+            {route.map((beat) => <span key={beat} className={beat < data.incomingBeat ? 'done' : beat === data.incomingBeat ? 'current' : ''}>{String(beat).padStart(2, '0')}</span>)}
           </div>
         </aside>
       </div>
@@ -82,6 +87,23 @@ function captainRecord(id: InterludeData['id'], game: GameState): string {
   if (id === 'interlude-07') {
     const loss = choiceFor(game, 'sacrifice-system')?.replaceAll('-', ' ') ?? 'a ship system'
     return `The Ithaca escaped by severing ${loss}. Mori has recorded the choice as a casualty, not a repair.`
+  }
+  if (id === 'interlude-22') {
+    const rescued = game.evidence.find((item) => item.startsWith('scylla-rescued:'))?.slice('scylla-rescued:'.length) ?? 'none'
+    return rescued === 'none' ? 'No captive returned from Scylla. Helios receives a ship carrying six deliberate silences.' : `The rescue ledger carries ${rescued.replaceAll(',', ', ')} into Helios. Their skills—and the names left behind—remain active consequences.`
+  }
+  if (id === 'interlude-23') {
+    if (game.evidence.includes('helios-ban-ratified')) return 'The no-harvest rule was ratified by the crew. Shared consent did not make six days of cold equally bearable.'
+    if (game.evidence.includes('helios-ecology-published')) return 'Every deck received the proof that Helios is alive and the full ration cost of restraint. Nobody behind the pressure door can claim ignorance.'
+    return 'Vale protected Helios by direct command while withholding operational detail. The familiar shape of secrecy returned before the hunger did.'
+  }
+  if (id === 'interlude-24') {
+    if (game.flags.includes('helios-remnant-preserved')) return 'The first organism died, but the override stopped the second extraction and preserved a fading remnant. Helios can hear both the killing and its limit.'
+    return 'The cradle consumed the organism completely. Whatever judgment Vale passed on the mutiny, Helios receives no surviving fragment from the ship.'
+  }
+  if (id === 'interlude-25') {
+    const strikes = game.evidence.find((item) => item.startsWith('coronal-strikes:'))?.slice('coronal-strikes:'.length) ?? '0'
+    return `The nursery survived the firing corridor. The Ithaca carries ${strikes} unabsorbed routing strike${strikes === '1' ? '' : 's'} and a drive that now requires one visible human cost.`
   }
   const keeperChoice = choiceFor(game, 'keeper-negotiation')
   if (keeperChoice === 'tell-keeper-truth') return 'Vale gave Aeolia the unvarnished Gate record. The sphere was entrusted to the crew on the condition that truth would travel with it.'

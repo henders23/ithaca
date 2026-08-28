@@ -17,6 +17,8 @@ import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from './actTwoFinalCon
 import { DroneMemoryGame, GateEvidenceGame, MessageAssemblyGame, ProbabilityGame, RunDarkGame } from './ActTwoFinalGames.js'
 import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES, choirAftermathScene, rescueAftermathScene, scyllaRescueInterlude, silentPassageAftermathScene } from './actThreeContent.js'
 import { ChoirFilterGame, GravityCourseGame, HallucinatedNavigationGame, RouteExtractionGame, TetherRescueGame, choirCarrierForEvidence, type ActThreeResult, type PassageRoute } from './ActThreeGames.js'
+import { CoronalRoutingGame, FailingDriveGame, LivingSunEcologyGame, MutinyControlGame, companionDisplayName, rescuedCrew, type FinalActThreeResult } from './ActThreeFinalGames.js'
+import { ACT_THREE_FINAL_INTERLUDES, ACT_THREE_FINAL_SCENES, companionMemorialScene, heliosAwakensScene, judgmentAftermathScene, lastWordsScene, livingSunInterlude, mutinyConfrontationScene } from './actThreeFinalContent.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
@@ -44,6 +46,10 @@ export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
   'interlude-19', 'b19-navigation', 'b19-extract', 'b19-aftermath',
   'interlude-20', 'b20-choice', 'b20-course', 'b20-combat',
   'interlude-21', 'b21-voices', 'b21-rescue', 'b21-aftermath', 'act-three-slice-complete',
+  'interlude-22', 'b22-arrival', 'b22-ecology', 'b22-prohibition',
+  'interlude-23', 'b23-crisis', 'b23-control', 'b23-confrontation', 'b23-awakens',
+  'interlude-24', 'b24-two-accusers', 'b24-combat', 'b24-routing', 'b24-aftermath',
+  'interlude-25', 'b25-volunteers', 'b25-drive', 'b25-last-words', 'b25-memorial', 'act-three-complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -65,6 +71,7 @@ export const VERTICAL_SLICE_BEATS = [
   '16-mothers-message',
   '17-prophet-probability',
   '18-choir-dark', '19-silent-passage', '20-twin-terrors', '21-six-taken',
+  '22-living-sun', '23-hunger-mutiny', '24-judgment-star', '25-last-companion',
 ] as const
 
 export function scyllaCombatConfigForRoute(passageRoute: PassageRoute, playerHull: number): CombatConfig {
@@ -85,6 +92,32 @@ export function scyllaCombatConfigForRoute(passageRoute: PassageRoute, playerHul
     enemyInterval:passageRoute === 'scylla-close' ? 2100 : 1750,
     victoryTitle:'The Ithaca tears free.',
     victoryText:passageRoute === 'scylla-close' ? 'The close course clears Charybdis, but six suit signals remain inside Scylla.' : 'The wide correction avoids Charybdis. A torn evacuation blister crosses Scylla’s reach with six signals still alive.',
+  }
+}
+
+export function judgmentCombatConfig(game: GameState): CombatConfig {
+  const survivors = rescuedCrew(game.evidence)
+  const protectedRemnant = game.flags.includes('helios-remnant-preserved')
+  return {
+    beat:'BEAT 24 · THREE-SIDED BATTLE',
+    title:'ESCAPE THE JUDGMENT OF THE STAR',
+    objective:'Disable the Host anchors and phase-shift the coronal knot without striking the nursery',
+    background:ASSETS.cinematics.heliosJudgment,
+    playerShip:ASSETS.ships.ithaca,
+    enemyShip:ASSETS.ships.tidefather,
+    enemyClassName:'tidefather',
+    enemyName:'Tidefather and the awakened corona',
+    incomingLabel:'Eidolon memory fire and Helios coronal lances cross the Ithaca’s wake.',
+    targets:[
+      {id:'host-anchor',name:'Host pursuit anchor',role:'DISABLE · EIDOLON',hp:2},
+      {id:'memory-lance',name:'Memory lance',role:'DISABLE · EIDOLON',hp:survivors.includes('RAO')?1:2},
+      {id:'coronal-knot',name:'Coronal knot',role:'PHASE-SHIFT · HELIOS',hp:survivors.includes('SATO')?2:3},
+      {id:'nursery-shoal',name:protectedRemnant?'Returning remnant':'Solar nursery shoal',role:'PRESERVE · LIVING',hp:4,protected:true},
+    ],
+    playerHull:game.ship.hull,
+    enemyInterval:1650+(survivors.includes('AMARI')?350:0),
+    victoryTitle:'One corridor remains.',
+    victoryText:'The anchors are disabled and the coronal knot is displaced. The living nursery remains intact; the drive must still carry the ship through the fire.',
   }
 }
 
@@ -342,6 +375,73 @@ export function SliceGame() {
     completeActivity('21-six-taken', 'tether-rescue', 'b21-aftermath', result.choiceId, effects, true)
   }
 
+  const completeHeliosEcology = (result: FinalActThreeResult) => {
+    const ethical = (result.lifeHarm ?? 0) === 0
+    const effects: CampaignEffect[] = [
+      { kind:'set-flag', flag:'helios-ecology-mapped' },
+      { kind:'add-evidence', evidenceId:`helios-charge:${result.energy ?? 0}` },
+      ...(ethical
+        ? [{ kind:'set-flag', flag:'helios-ethical-recharge' } as CampaignEffect, { kind:'relationship', character:'helen-morozova', delta:1 } as CampaignEffect]
+        : [{ kind:'set-flag', flag:'helios-life-consumed' } as CampaignEffect, { kind:'relationship', character:'helen-morozova', delta:-2 } as CampaignEffect]),
+    ]
+    completeActivity('22-living-sun','map-plasma-life','b22-prohibition',result.choiceId,effects)
+  }
+
+  const chooseHeliosProhibition = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = [
+      { kind:'set-flag', flag:'helios-warning-understood' },
+      ...(choice.id==='publish-prohibition'
+        ? [{kind:'add-evidence',evidenceId:'helios-ecology-published'} as CampaignEffect,{kind:'relationship',character:'helen-morozova',delta:1} as CampaignEffect,{kind:'relationship',character:'isabella-corelli',delta:1} as CampaignEffect]
+        : choice.id==='ratify-prohibition'
+          ? [{kind:'add-evidence',evidenceId:'helios-ban-ratified'} as CampaignEffect,{kind:'relationship',character:'isabella-corelli',delta:2} as CampaignEffect,{kind:'relationship',character:'gabriel-cross',delta:1} as CampaignEffect]
+          : [{kind:'add-evidence',evidenceId:'helios-ban-command-only'} as CampaignEffect,{kind:'relationship',character:'gabriel-cross',delta:1} as CampaignEffect,{kind:'relationship',character:'helen-morozova',delta:-1} as CampaignEffect]),
+    ]
+    completeActivity('22-living-sun','no-harvest-order','interlude-23',choice.id,effects,true)
+  }
+
+  const completeHungerControl = (result: FinalActThreeResult) => {
+    const effects: CampaignEffect[] = [
+      {kind:'set-flag',flag:'helios-life-consumed'},
+      {kind:'add-evidence',evidenceId:`hunger-casualties:${result.casualties ?? 0}`},
+      {kind:'add-evidence',evidenceId:`hunger-recovered:${(result.selected ?? []).join(',')}`},
+      ...(result.remnantPreserved?[{kind:'set-flag',flag:'helios-remnant-preserved'} as CampaignEffect]:[]),
+      ...(result.hullDamage?[{kind:'damage-system',system:'engines',amount:result.hullDamage} as CampaignEffect]:[]),
+    ]
+    completeActivity('23-hunger-mutiny','recover-ship-control','b23-confrontation',result.choiceId,effects)
+  }
+
+  const judgeHungerMutiny = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id==='accept-command-failure'
+      ? [{kind:'set-flag',flag:'mutiny-forgiven'},{kind:'set-flag',flag:'vale-questioned-orders'},{kind:'relationship',character:'helen-morozova',delta:2},{kind:'relationship',character:'isabella-corelli',delta:1},{kind:'relationship',character:'gabriel-cross',delta:-1}]
+      : choice.id==='condemn-harvest-leaders'
+        ? [{kind:'set-flag',flag:'mutiny-condemned'},{kind:'relationship',character:'gabriel-cross',delta:2},{kind:'relationship',character:'isabella-corelli',delta:-2}]
+        : [{kind:'set-flag',flag:'mutiny-forgiven'},{kind:'add-evidence',evidenceId:'hunger-tribunal-convened'},{kind:'relationship',character:'helen-morozova',delta:1},{kind:'relationship',character:'gabriel-cross',delta:1}]
+    completeActivity('23-hunger-mutiny','mutiny-confrontation','b23-awakens',choice.id,effects)
+  }
+
+  const completeCoronalRouting = (result: FinalActThreeResult) => {
+    const effects: CampaignEffect[] = [
+      {kind:'add-evidence',evidenceId:`coronal-strikes:${result.strikes ?? 0}`},
+      ...(result.hullDamage?[{kind:'damage-hull',amount:result.hullDamage} as CampaignEffect]:[]),
+      {kind:'damage-system',system:'engines',amount:22},
+      ...(result.success?[{kind:'relationship',character:'lena-mori',delta:1} as CampaignEffect]:[]),
+    ]
+    completeActivity('24-judgment-star','coronal-routing','b24-aftermath',result.choiceId,effects,true)
+  }
+
+  const completeFailingDrive = (result: FinalActThreeResult) => {
+    if (!result.companionId) return
+    const effects: CampaignEffect[] = [
+      {kind:'character-status',character:result.companionId,status:'dead'},
+      {kind:'add-evidence',evidenceId:`last-companion:${result.companionId}`},
+      {kind:'add-evidence',evidenceId:`drive-stability:${result.stability ?? 0}`},
+      {kind:'add-scar',scarId:'helios-judgment-core'},
+      ...(result.hullDamage?[{kind:'damage-hull',amount:result.hullDamage} as CampaignEffect]:[]),
+      ...((result.recordQuality ?? 0)>=3?[{kind:'set-flag',flag:'last-companion-record-preserved'} as CampaignEffect]:[]),
+    ]
+    completeActivity('25-last-companion','failing-drive','b25-last-words',result.choiceId,effects)
+  }
+
   const passageRoute: PassageRoute = game.flags.includes('charybdis-wide-course') ? 'charybdis-wide' : 'scylla-close'
 
   const gateCombat = useMemo<CombatConfig>(() => ({
@@ -456,6 +556,7 @@ export function SliceGame() {
   }), [game.ship.hull])
 
   const scyllaCombat = useMemo<CombatConfig>(() => scyllaCombatConfigForRoute(passageRoute, game.ship.hull), [game.ship.hull, passageRoute])
+  const heliosCombat = useMemo<CombatConfig>(() => judgmentCombatConfig(game), [game])
 
   const renderScreen = () => {
     switch (screen) {
@@ -679,7 +780,27 @@ export function SliceGame() {
       case 'b21-voices': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b21-voices']} onContinue={()=>completeActivity('21-six-taken','rescue-decision','b21-rescue','rescue-launched',[{kind:'set-flag',flag:'scylla-rescue-attempted'}])} />
       case 'b21-rescue': return <TetherRescueGame route={passageRoute} onComplete={completeScyllaRescue} />
       case 'b21-aftermath': return <DialogueScene key={screen} scene={rescueAftermathScene(game)} onContinue={()=>setScreen('act-three-slice-complete')} />
-      case 'act-three-slice-complete': return <ActThreeSliceCompletionScreen game={game} onRestart={startNew} />
+      case 'act-three-slice-complete': return <ActThreeSliceCompletionScreen game={game} onRestart={startNew} onContinue={()=>setScreen('interlude-22')} />
+      case 'interlude-22': return <BeatInterlude data={livingSunInterlude(game)} game={game} onContinue={()=>setScreen('b22-arrival')} />
+      case 'b22-arrival': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b22-arrival']} onContinue={()=>setScreen('b22-ecology')} />
+      case 'b22-ecology': return <LivingSunEcologyGame onComplete={completeHeliosEcology} />
+      case 'b22-prohibition': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b22-prohibition']} onChoice={chooseHeliosProhibition} />
+      case 'interlude-23': return <BeatInterlude data={ACT_THREE_FINAL_INTERLUDES['interlude-23']} game={game} onContinue={()=>setScreen('b23-crisis')} />
+      case 'b23-crisis': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b23-crisis']} onContinue={()=>setScreen('b23-control')} />
+      case 'b23-control': return <MutinyControlGame game={game} onComplete={completeHungerControl} />
+      case 'b23-confrontation': return <DialogueScene key={screen} scene={mutinyConfrontationScene(game)} onChoice={judgeHungerMutiny} />
+      case 'b23-awakens': return <DialogueScene key={screen} scene={heliosAwakensScene(game)} onContinue={()=>completeActivity('23-hunger-mutiny','helios-awakens','interlude-24','helios-recognizes-theft',[],true)} />
+      case 'interlude-24': return <BeatInterlude data={ACT_THREE_FINAL_INTERLUDES['interlude-24']} game={game} onContinue={()=>setScreen('b24-two-accusers')} />
+      case 'b24-two-accusers': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b24-two-accusers']} onContinue={()=>completeActivity('24-judgment-star','two-accusers','b24-combat','both-claims-heard')} />
+      case 'b24-combat': return <CinematicCombat config={heliosCombat} onComplete={(result)=>completeActivity('24-judgment-star','three-sided-escape','b24-routing','judgment-corridor-open',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:12},{kind:'add-scar',scarId:'helios-corona-burn'}])} />
+      case 'b24-routing': return <CoronalRoutingGame game={game} onComplete={completeCoronalRouting} />
+      case 'b24-aftermath': return <DialogueScene key={screen} scene={judgmentAftermathScene(game)} onContinue={()=>setScreen('interlude-25')} />
+      case 'interlude-25': return <BeatInterlude data={ACT_THREE_FINAL_INTERLUDES['interlude-25']} game={game} onContinue={()=>setScreen('b25-volunteers')} />
+      case 'b25-volunteers': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b25-volunteers']} onContinue={()=>setScreen('b25-drive')} />
+      case 'b25-drive': return <FailingDriveGame game={game} onComplete={completeFailingDrive} />
+      case 'b25-last-words': return <DialogueScene key={screen} scene={lastWordsScene(game)} onContinue={()=>completeActivity('25-last-companion','last-words','b25-memorial','final-words-recorded',[],true)} />
+      case 'b25-memorial': return <DialogueScene key={screen} scene={companionMemorialScene(game)} onContinue={()=>setScreen('act-three-complete')} />
+      case 'act-three-complete': return <ActThreeCompletionScreen game={game} onRestart={startNew} />
     }
   }
 
@@ -706,7 +827,7 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACTS I—III · PLAYABLE CAMPAIGN</span><strong>BEATS 01—21</strong></footer>
+      <footer><span>ACTS I—III · PLAYABLE CAMPAIGN</span><strong>BEATS 01—25</strong></footer>
     </section>
   )
 }
@@ -817,9 +938,17 @@ function ActTwoCompletionScreen({ game, onRestart, onContinue }: { game: GameSta
   </section>
 }
 
-function ActThreeSliceCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}) {
+function ActThreeSliceCompletionScreen({game,onRestart,onContinue}:{game:GameState;onRestart:()=>void;onContinue:()=>void}) {
  const rescuedRecord=game.evidence.find(item=>item.startsWith('scylla-rescued:'))?.slice('scylla-rescued:'.length)??'none'
  const rescued=rescuedRecord==='none'?[]:rescuedRecord.split(',')
  const rescueLabel=rescued.length===6?'ALL SIX':rescued.length===0?'NONE':`${rescued.length} OF SIX`
- return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE I COMPLETE</p><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></section>
+ return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE I COMPLETE</p><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Helios <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
+}
+
+function ActThreeCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}) {
+ const companion=game.evidence.find((item)=>item.startsWith('last-companion:'))?.slice('last-companion:'.length)
+ const companionName=companion?companionDisplayName(companion as Parameters<typeof companionDisplayName>[0]):'THE LAST COMPANION'
+ const remnant=game.flags.includes('helios-remnant-preserved')?'PRESERVED':'CONSUMED'
+ const record=game.flags.includes('last-companion-record-preserved')?'FINAL WORDS HELD':'SIGNAL FRAGMENTED'
+ return <section className="completion-screen act-three-finale helios-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.lastCompanionMemorial})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE II COMPLETE · THE SEA TAKES ITS PRICE</p><h1>One voice fewer. One impossible shore ahead.</h1><p>The Ithaca understood Helios, consumed one of its living forms, survived the judgment that followed, and escaped only because a companion remained inside the dying drive. The ship continues as a crippled core carrying grief it can no longer describe as collateral.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>SOLAR REMNANT</span><strong>{remnant}</strong></div><div><span>LAST COMPANION</span><strong>{companionName.toUpperCase()}</strong></div><div><span>RECORD</span><strong>{record}</strong></div></div><div className="act-coda"><span>NEXT · ACT III</span><strong>THE ISLAND AT THE END OF TIME</strong><p>An ocean, a blue sky and the Earth Vale remembers are waiting inside a place that cannot exist.</p></div><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></section>
 }
