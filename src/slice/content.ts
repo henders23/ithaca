@@ -214,6 +214,7 @@ export interface InterludeData {
   incomingBeat: number
   chapter: string
   headline: string
+  /** Authored but no longer shown: the masthead and location line were cut as chrome. */
   elapsed: string
   location: string
   background: string

@@ -352,7 +352,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   return (
     <section className={`combat-screen ${takingFire ? 'taking-fire' : ''} ${paused ? 'is-paused' : ''}`} style={{ '--combat-bg': `url(${config.background})` } as React.CSSProperties}>
       <header className="combat-header">
-        <div><span>{config.beat}</span><strong>{config.title}</strong></div>
+        <div><strong>{config.title}</strong></div>
         <button onClick={() => setPaused((value) => !value)}>{paused ? 'RESUME' : 'PAUSE'} <kbd>SPACE</kbd></button>
       </header>
 

@@ -68,8 +68,8 @@ export function RefugeHub({ game, onComplete }: { game: GameState; onComplete: (
   }
   return (
     <section className="crew-hub refuge-hub" style={{ '--hub-bg': `url(${ASSETS.cinematics.cireneRefitYear})` } as React.CSSProperties}>
-      <header className="hub-heading"><div><span>BEAT 12</span><strong>REFIT GARDEN · LOCAL DAY 47</strong></div><small>{visited.length} / 4 LIVES WITNESSED</small></header>
-      <div className="hub-intro"><p className="eyebrow">A YEAR OUTSIDE TIME</p><h1>A ship forgetting its purpose</h1><p>Before asking the crew to resume the voyage, learn what the refuge has given them—and what returning to command will take away.</p></div>
+      <header className="hub-heading"><small>{visited.length} / 4 LIVES WITNESSED</small></header>
+      <div className="hub-intro"><h1>A ship forgetting its purpose</h1><p>Before asking the crew to resume the voyage, learn what the refuge has given them—and what returning to command will take away.</p></div>
       <div className="hub-deck">
         {items.map((item) => <button key={item.id} className={visited.includes(item.id) ? 'visited' : ''} onClick={() => open(item.id)}><img src={item.portrait} alt="" /><span>{item.station}</span><strong>{item.name}</strong><small>{item.want}</small><i>{visited.includes(item.id) ? 'HEARD' : 'SPEAK'}</i></button>)}
       </div>

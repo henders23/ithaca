@@ -58,8 +58,8 @@ export function CrewRumourHub({ onComplete }: { onComplete: (result: MiniGameRes
 
   return (
     <section className="crew-hub" style={{ '--hub-bg': `url(${ASSETS.cinematics.sphereChamber})` } as React.CSSProperties}>
-      <header className="hub-heading"><div><span>BEAT 08</span><strong>CREW DECK · 00:42</strong></div><small>{visited.length} / 4 VOICES HEARD</small></header>
-      <div className="hub-intro"><p className="eyebrow">THE FORBIDDEN SPHERE</p><h1>Rumours below decks</h1><p>The current is sealed. Home is visible. Before giving an order, walk the ship and learn what people believe is behind the door.</p></div>
+      <header className="hub-heading"><small>{visited.length} / 4 VOICES HEARD</small></header>
+      <div className="hub-intro"><h1>Rumours below decks</h1><p>The current is sealed. Home is visible. Before giving an order, walk the ship and learn what people believe is behind the door.</p></div>
       <div className="hub-deck">
         {CONVERSATIONS.map((conversation) => (
           <button key={conversation.id} className={visited.includes(conversation.id) ? 'visited' : ''} onClick={() => open(conversation.id)}>

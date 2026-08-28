@@ -30,8 +30,6 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
     <section className="dialogue-scene" style={{ '--scene-bg': `url(${scene.background})` } as React.CSSProperties}>
       <div className="cinematic-bars" aria-hidden="true" />
       <header className="scene-heading">
-        <span>{scene.beat}</span>
-        <strong>{scene.chapter}</strong>
         <small>{String(lineIndex + 1).padStart(2, '0')} / {String(scene.lines.length).padStart(2, '0')}</small>
       </header>
 
@@ -39,10 +37,8 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
         {portrait && <img key={`${line.speaker}-${lineIndex}`} className="speaker-portrait" src={portrait} alt={line.name} />}
         <div key={lineIndex} className={`dialogue-panel ${portrait ? '' : 'narration'} ${line.cutaway ? 'with-cutaway' : ''}`} aria-live="polite">
           <div className="scene-progress" aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
-          <p className="dialogue-title">{scene.title}</p>
           <div className="dialogue-body">
             <div className="dialogue-line">
-              {line.cue && <p className="stage-cue">{line.cue}</p>}
               <div className="speaker-label">
                 <strong>{line.name}</strong>
                 {line.station && <span>{line.station}</span>}

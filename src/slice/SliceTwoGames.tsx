@@ -5,31 +5,22 @@ import type { MiniGameResult } from './MiniGames.js'
 
 type SliceTwoVariant = 'cipher' | 'sacrifice' | 'current' | 'storm' | 'evidence'
 
-function ProcedureFrame({ beat, title, instruction, variant, background, station, risk, children }: {
-  beat: string
+function ProcedureFrame({ title, instruction, variant, background, children }: {
   title: string
   instruction: string
   variant: SliceTwoVariant
   background: string
-  station: string
-  risk: string
   children: React.ReactNode
 }) {
   return (
     <section className={`minigame-screen mini-${variant}`} style={{ '--minigame-bg': `url(${background})` } as React.CSSProperties}>
       <div className="minigame-ambient" aria-hidden="true"><i /><i /><i /></div>
-      <header className="minigame-heading">
-        <div><span>{beat}</span><strong>FIELD PROCEDURE</strong></div>
-        <small>LIVE SHIPBOARD INTERFACE</small>
-      </header>
       <div className="minigame-card">
         <div className="minigame-titlebar">
           <div>
-            <p className="eyebrow">CREW ACTION · {station}</p>
             <h1>{title}</h1>
             <p className="minigame-instruction">{instruction}</p>
           </div>
-          <div className="procedure-seal"><span>LIVE</span><strong>{variant.slice(0, 3).toUpperCase()}</strong><small>{risk}</small></div>
         </div>
         {children}
       </div>
@@ -59,7 +50,7 @@ export function TransponderCipherGame({ onComplete }: { onComplete: (result: Min
   }
 
   return (
-    <ProcedureFrame beat="BEAT 05 · THE CAPTAIN GIVES HIS NAME" title="Forge a transponder identity" instruction="Rotate each carrier through five phases. A stable null will let ELIAS replace the record; failed injections leave a trail the enemy can follow." variant="cipher" background={ASSETS.cinematics.argusTransmitter} station="ELIAS / COMMUNICATIONS" risk="34 SEC">
+    <ProcedureFrame title="Forge a transponder identity" instruction="Rotate each carrier through five phases. A stable null will let ELIAS replace the record; failed injections leave a trail the enemy can follow." variant="cipher" background={ASSETS.cinematics.argusTransmitter}>
       <div className="cipher-console">
         <div className="signal-waterfall" aria-hidden="true"><i /><i /><i /><i /><span>ARGUS CARRIER</span></div>
         <div className="cipher-layers">
@@ -108,7 +99,7 @@ export function SystemSacrificeGame({ onComplete }: { onComplete: (result: MiniG
   }
 
   return (
-    <ProcedureFrame beat="BEAT 06 · THE FIRST WRATH" title="Choose what the Ithaca must lose" instruction="The emergency jump cannot carry every Gate-altered system. Isolate one deck network, evacuate it, and sever it from the ship permanently." variant="sacrifice" background={ASSETS.cinematics.tidefatherIntercept} station="COMMAND / ENGINEERING" risk="IRREVERSIBLE">
+    <ProcedureFrame title="Choose what the Ithaca must lose" instruction="The emergency jump cannot carry every Gate-altered system. Isolate one deck network, evacuate it, and sever it from the ship permanently." variant="sacrifice" background={ASSETS.cinematics.tidefatherIntercept}>
       <div className="sacrifice-layout">
         <div className="ship-cutaway">
           <img src={ASSETS.ships.ithaca} alt="CSV Ithaca system cutaway" />
@@ -149,7 +140,7 @@ export function PhaseCurrentGame({ onComplete }: { onComplete: (result: MiniGame
     if (next >= 5) onComplete({ success: false, score: stable * 20, choiceId: 'current-volatile' })
   }
   return (
-    <ProcedureFrame beat="BEAT 07 · THE KEEPER OF WINDS" title="Contain a spatial current" instruction="Counter-rotate four magnetic vanes until their phase marks hold still around the current. Each failed test increases pressure on the vessel." variant="current" background={ASSETS.cinematics.sphereChamber} station="AEOLIAN CURRENT VAULT" risk="PRESSURE RISING">
+    <ProcedureFrame title="Contain a spatial current" instruction="Counter-rotate four magnetic vanes until their phase marks hold still around the current. Each failed test increases pressure on the vessel." variant="current" background={ASSETS.cinematics.sphereChamber}>
       <div className="current-console">
         <div className={`current-sphere stability-${stable}`}><i /><i /><i /><strong>{stable}/4</strong><span>VANES STABLE</span></div>
         <div className="current-rings">
@@ -217,7 +208,7 @@ export function StormFlightGame({ onComplete }: { onComplete: (result: MiniGameR
   }, [onComplete, started])
 
   return (
-    <ProcedureFrame beat="BEAT 07 · THE KEEPER OF WINDS" title="Fly the current through the storm" instruction="Keep the sphere aligned with each luminous wind gate. Move port or starboard before the Ithaca reaches the cloud wall." variant="storm" background={ASSETS.cinematics.aeolianCity} station="FLIGHT / CURRENT TEST" risk="LIVE WEATHER">
+    <ProcedureFrame title="Fly the current through the storm" instruction="Keep the sphere aligned with each luminous wind gate. Move port or starboard before the Ithaca reaches the cloud wall." variant="storm" background={ASSETS.cinematics.aeolianCity}>
       <div className={`storm-flight ${started ? 'running' : ''}`}>
         <div className="storm-clouds" /><div className="storm-lightning"><i /><i /><i /></div>
         {STORM_GATES.filter((gate) => gate.at > progress - 7 && gate.at < progress + 32).map((gate) => (
@@ -257,7 +248,7 @@ export function AccessLogGame({ onComplete }: { onComplete: (result: MiniGameRes
     if (next >= 3) onComplete({ success: false, score: correct * 18, choiceId: 'partial-log-recovered' })
   }
   return (
-    <ProcedureFrame beat="BEAT 08 · THE FORBIDDEN SPHERE" title="Reconstruct the access log" instruction="The timestamps were stripped, but each fragment still contains a causal handshake. Build the chain that turned a rumour into the opened sphere." variant="evidence" background={ASSETS.cinematics.sphereRupture} station="ELIAS / SECURITY" risk="LOG DECAY">
+    <ProcedureFrame title="Reconstruct the access log" instruction="The timestamps were stripped, but each fragment still contains a causal handshake. Build the chain that turned a rumour into the opened sphere." variant="evidence" background={ASSETS.cinematics.sphereRupture}>
       <div className="evidence-board">
         <div className="evidence-pool">
           {scrambled.map((event) => (

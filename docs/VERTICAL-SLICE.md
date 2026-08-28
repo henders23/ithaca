@@ -50,7 +50,7 @@ Four compositions follow the voyage and crossfade into one another:
 | *Cirene’s Ark* | Any dialogue in which an Eidolon or encounter character speaks — the Tidefather, ARGUS-1, Keeper Aeolia, Doctor Cirene, TIRESIAS, Helios, Calypso or Speaker Nausica. |
 | *Black Banner* | Every cinematic battle. |
 
-The audio panel in the bottom corner names the track that is playing and carries separate mute and level controls for music and combat effects. Choices persist in local storage. Browsers that block autoplay start the score on the player's first click or keystroke.
+The audio control in the bottom corner stays a single note glyph until it is hovered, when it names the track that is playing; opening it reveals separate mute and level controls for music and combat effects. Choices persist in local storage. Browsers that block autoplay start the score on the player's first click or keystroke.
 
 ## Controls
 
