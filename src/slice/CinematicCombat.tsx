@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { audioDirector } from '../audio/director.js'
+import { useMusicScene } from '../audio/useAudio.js'
+import { COMBAT_FX, EXPLOSION_SHEETS, type ExplosionId, type SfxId } from '../audio/tracks.js'
 
 export interface CombatTarget {
   id: string
@@ -53,7 +56,7 @@ export function combatObjectiveProgress(targets: readonly LiveCombatTarget[], mo
 }
 
 type WeaponId = 'lance' | 'missile' | 'ion'
-type SfxId = WeaponId | 'impact' | 'shield'
+type CombatSide = 'player' | 'enemy'
 
 interface WeaponEffect {
   id: number
@@ -61,6 +64,27 @@ interface WeaponEffect {
   incoming: boolean
   duration: number
 }
+
+/** Sprite-sheet and flash frames layered over the authored CSS weapon effects. */
+type CombatSpriteBody =
+  | { kind: 'flash'; image: string; side: CombatSide; size: number; life: number }
+  | { kind: 'bolt'; image: string; incoming: boolean; height: number; duration: number }
+  | { kind: 'explosion'; sheet: ExplosionId; side: CombatSide; size: number }
+
+type CombatSprite = CombatSpriteBody & { id: number }
+
+/** Fire sample, impact sample and travelling bolt frame for each weapon. */
+const WEAPON_AUDIO: Record<WeaponId, { fire: SfxId; impact: SfxId; bolt: boolean }> = {
+  lance: { fire: 'laserCannon', impact: 'mediumExplosion', bolt: false },
+  missile: { fire: 'blaster', impact: 'torpedoExplosion', bolt: true },
+  ion: { fire: 'laserBeam', impact: 'smallExplosion', bolt: true },
+}
+
+const COMBAT_SFX: readonly SfxId[] = [
+  'laserBeam', 'laserCannon', 'blaster', 'smallExplosion', 'mediumExplosion', 'torpedoExplosion',
+  'enemyDestroyed', 'shipDestroyed', 'enemySightedMale', 'enemySightedFemale',
+  'reportingDamage', 'reportingDamageAlt',
+]
 
 interface ImpactEffect {
   id: number
@@ -75,6 +99,9 @@ interface CombatFloater {
   text: string
   color: string
 }
+
+let spriteSequence = 0
+const nextSpriteId = () => ++spriteSequence
 
 const WEAPONS = {
   lance: { name: 'Rail lance', cost: 42, damage: 1, duration: 240 },
@@ -96,17 +123,23 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const [effects, setEffects] = useState<WeaponEffect[]>([])
   const [impacts, setImpacts] = useState<ImpactEffect[]>([])
   const [floaters, setFloaters] = useState<CombatFloater[]>([])
+  const [sprites, setSprites] = useState<CombatSprite[]>([])
   const [log, setLog] = useState('Weapons hot. Select a subsystem and fire.')
   const shieldRef = useRef(shield)
   const hullRef = useRef(hull)
   const pausedRef = useRef(paused)
   const phaseRef = useRef(phase)
-  const audioRef = useRef<AudioContext | null>(null)
+  const targetsRef = useRef(targets)
+  const lastReportRef = useRef(0)
+  const hailedRef = useRef('')
   const timersRef = useRef(new Set<number>())
   shieldRef.current = shield
   hullRef.current = hull
   pausedRef.current = paused
   phaseRef.current = phase
+  targetsRef.current = targets
+
+  useMusicScene('combat')
 
   const survivingTargets = useMemo(() => combatObjectiveTargets(targets).filter((target) => target.currentHp > 0), [targets])
   const objectiveProgress = combatObjectiveProgress(targets, config.mode, survivalRemaining, config.survivalSeconds ?? 30)
@@ -120,53 +153,28 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     return timer
   }
 
-  const sfx = (type: SfxId) => {
-    try {
-      const context = audioRef.current ?? new AudioContext()
-      audioRef.current = context
-      if (context.state === 'suspended') void context.resume()
-      const at = context.currentTime
-      const output = context.createGain()
-      output.gain.setValueAtTime(0.82, at)
-      output.connect(context.destination)
-      const oscillator = (shape: OscillatorType, from: number, to: number, duration: number, volume: number) => {
-        const source = context.createOscillator()
-        const gain = context.createGain()
-        source.type = shape
-        source.frequency.setValueAtTime(from, at)
-        source.frequency.exponentialRampToValueAtTime(Math.max(1, to), at + duration)
-        gain.gain.setValueAtTime(volume, at)
-        gain.gain.exponentialRampToValueAtTime(0.001, at + duration)
-        source.connect(gain).connect(output)
-        source.start(at)
-        source.stop(at + duration + 0.02)
-      }
-      const noise = (duration: number, volume: number, from: number, to: number) => {
-        const length = Math.ceil(context.sampleRate * duration)
-        const buffer = context.createBuffer(1, length, context.sampleRate)
-        const data = buffer.getChannelData(0)
-        for (let index = 0; index < length; index++) data[index] = Math.random() * 2 - 1
-        const source = context.createBufferSource()
-        const filter = context.createBiquadFilter()
-        const gain = context.createGain()
-        source.buffer = buffer
-        filter.type = 'bandpass'
-        filter.frequency.setValueAtTime(from, at)
-        filter.frequency.exponentialRampToValueAtTime(to, at + duration)
-        gain.gain.setValueAtTime(volume, at)
-        gain.gain.exponentialRampToValueAtTime(0.001, at + duration)
-        source.connect(filter).connect(gain).connect(output)
-        source.start(at)
-        source.stop(at + duration + 0.02)
-      }
-      if (type === 'lance') { oscillator('square', 920, 170, 0.15, 0.07); oscillator('sawtooth', 170, 70, 0.22, 0.04) }
-      else if (type === 'missile') { noise(0.46, 0.11, 760, 130); oscillator('triangle', 110, 60, 0.32, 0.05) }
-      else if (type === 'ion') { oscillator('sine', 620, 260, 0.25, 0.09); oscillator('sine', 940, 420, 0.2, 0.045) }
-      else if (type === 'impact') { noise(0.2, 0.14, 980, 180); oscillator('sine', 130, 42, 0.25, 0.14) }
-      else { oscillator('sine', 1500, 920, 0.18, 0.08); oscillator('sine', 2200, 1300, 0.13, 0.04) }
-    } catch {
-      // Audio remains a progressive enhancement when browser policy blocks it.
-    }
+  const sfx = (id: SfxId, level = 1) => audioDirector.playSfx(id, level)
+
+  /** Crew damage-control chatter, rate-limited so it never stacks on itself. */
+  const reportDamage = () => {
+    const now = Date.now()
+    if (now - lastReportRef.current < 5200) return
+    lastReportRef.current = now
+    sfx(Math.random() < 0.5 ? 'reportingDamage' : 'reportingDamageAlt', 0.7)
+  }
+
+  const addSprite = (sprite: CombatSpriteBody, life: number) => {
+    const id = nextSpriteId()
+    setSprites((current) => [...current, { ...sprite, id }])
+    later(() => setSprites((current) => current.filter((item) => item.id !== id)), life)
+  }
+
+  const spawnFlash = (image: string, side: CombatSide, size: number, life = 320) =>
+    addSprite({ kind: 'flash', image, side, size, life }, life)
+
+  const spawnExplosion = (sheet: ExplosionId, side: CombatSide, size: number) => {
+    const { columns, rows, frameMs } = EXPLOSION_SHEETS[sheet]
+    addSprite({ kind: 'explosion', sheet, side, size }, columns * rows * frameMs + 60)
   }
 
   const launchEffect = (
@@ -176,15 +184,28 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     floater: string,
     onImpact: () => void,
   ) => {
-    const id = Date.now() + Math.floor(Math.random() * 1000)
+    const id = nextSpriteId()
     const duration = WEAPONS[kind].duration
+    const audio = WEAPON_AUDIO[kind]
+    const source: CombatSide = incoming ? 'enemy' : 'player'
+    const struck: CombatSide = incoming ? 'player' : 'enemy'
     setEffects((current) => [...current, { id, kind, incoming, duration }])
-    sfx(kind)
+    sfx(audio.fire, incoming ? 0.62 : 0.85)
+    spawnFlash(incoming ? COMBAT_FX.muzzleEnemy : COMBAT_FX.muzzlePlayer, source, 96)
+    if (audio.bolt) addSprite({ kind: 'bolt', image: incoming ? COMBAT_FX.enemyBolt : COMBAT_FX.playerBolt, incoming, height: incoming ? 62 : 54, duration }, duration)
     later(() => {
       setEffects((current) => current.filter((effect) => effect.id !== id))
       setImpacts((current) => [...current, { id, kind, incoming, shielded }])
       setFloaters((current) => [...current, { id, incoming, text: floater, color: shielded ? '#7de7ff' : incoming ? '#ff826d' : kind === 'ion' ? '#7de7ff' : '#ffd28d' }])
-      sfx(shielded ? 'shield' : 'impact')
+      if (shielded) {
+        spawnFlash(struck === 'enemy' ? COMBAT_FX.shieldHitEnemy : COMBAT_FX.shieldHitPlayer, struck, 150, 420)
+        sfx('smallExplosion', 0.45)
+      } else {
+        spawnExplosion(struck === 'enemy' ? 'orange' : 'red', struck, 150)
+        spawnFlash(struck === 'enemy' ? COMBAT_FX.impactEnemy : COMBAT_FX.impactPlayer, struck, 130)
+        sfx(audio.impact, incoming ? 0.7 : 0.78)
+        if (incoming) reportDamage()
+      }
       onImpact()
       later(() => setImpacts((current) => current.filter((impact) => impact.id !== id)), 720)
       later(() => setFloaters((current) => current.filter((item) => item.id !== id)), 1250)
@@ -244,6 +265,8 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
           if (hullRef.current <= 0) {
             phaseRef.current = 'defeat'
             setPhase('defeat')
+            spawnExplosion('capital', 'player', 460)
+            sfx('shipDestroyed', 0.95)
           }
         }
       })
@@ -251,10 +274,17 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     return () => window.clearInterval(incoming)
   }, [config.enemyInterval, config.incomingLabel])
 
+  useEffect(() => {
+    audioDirector.preloadSfx(COMBAT_SFX)
+    // One hail per encounter, even when development remounts the screen.
+    if (hailedRef.current === config.beat) return
+    hailedRef.current = config.beat
+    audioDirector.playSfx(Math.random() < 0.5 ? 'enemySightedMale' : 'enemySightedFemale', 0.9)
+  }, [config.beat])
+
   useEffect(() => () => {
     for (const timer of timersRef.current) window.clearTimeout(timer)
     timersRef.current.clear()
-    if (audioRef.current) void audioRef.current.close()
   }, [])
 
   const fire = (weaponId: WeaponId) => {
@@ -267,6 +297,13 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     setLog(`${weapon.name} away. Tracking ${target.name}.`)
     launchEffect(weaponId, false, false, `-${weapon.damage} ${target.name.toUpperCase()}`, () => {
       setLog(`${weapon.name} impacts ${target.name}.`)
+      // Destruction feedback is raised here rather than inside the updater so it
+      // stays a single explosion and a single sample per killing blow.
+      const before = targetsRef.current.find((item) => item.id === target.id)?.currentHp ?? 0
+      if (before > 0 && before - weapon.damage <= 0) {
+        spawnExplosion('capital', 'enemy', 340)
+        sfx('enemyDestroyed', 0.9)
+      }
       setTargets((current) => {
         const next = current.map((item) => item.id === target.id ? { ...item, currentHp: Math.max(0, item.currentHp - weapon.damage) } : item)
         const remaining = combatObjectiveTargets(next).filter((item) => item.currentHp > 0)
@@ -302,6 +339,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     setEffects([])
     setImpacts([])
     setFloaters([])
+    setSprites([])
     setPaused(false)
     phaseRef.current = 'playing'
     setPhase('playing')
@@ -326,6 +364,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         <img className="combat-ship player" src={config.playerShip} alt="CSV Ithaca" />
         <img className={`combat-ship enemy ${config.enemyClassName ?? ''}`} src={config.enemyShip} alt={config.enemyName} />
 
+        {sprites.map((sprite) => <CombatSpriteFx key={sprite.id} sprite={sprite} />)}
         {effects.map((effect) => <WeaponFx key={effect.id} effect={effect} />)}
         {impacts.map((impact) => <ImpactFx key={impact.id} impact={impact} />)}
         {floaters.map((floater) => <div key={floater.id} className={`combat-floater ${floater.incoming ? 'incoming' : 'outgoing'}`} style={{ color: floater.color }}>{floater.text}</div>)}
@@ -381,6 +420,46 @@ function WeaponFx({ effect }: { effect: WeaponEffect }) {
     <div className={`weapon-fx fx-${effect.kind} ${effect.incoming ? 'incoming' : 'outgoing'}`} style={{ '--fx-duration': `${effect.duration}ms` } as React.CSSProperties}>
       <i /><i /><i />
     </div>
+  )
+}
+
+function CombatSpriteFx({ sprite }: { sprite: CombatSprite }) {
+  if (sprite.kind === 'bolt') {
+    return <img className={`fx-sprite fx-bolt ${sprite.incoming ? 'incoming' : 'outgoing'}`} src={sprite.image} alt="" style={{ height: `${sprite.height}px`, '--fx-duration': `${sprite.duration}ms` } as React.CSSProperties} />
+  }
+  if (sprite.kind === 'flash') {
+    return <img className={`fx-sprite fx-flash at-${sprite.side}`} src={sprite.image} alt="" style={{ width: `${sprite.size}px`, height: `${sprite.size}px`, '--fx-life': `${sprite.life}ms` } as React.CSSProperties} />
+  }
+  return <ExplosionFx sprite={sprite} />
+}
+
+/**
+ * Steps a packed explosion sheet one cell at a time. The frame index is driven
+ * in script rather than CSS because the sheets are two-dimensional grids.
+ */
+function ExplosionFx({ sprite }: { sprite: Extract<CombatSprite, { kind: 'explosion' }> }) {
+  const sheet = EXPLOSION_SHEETS[sprite.sheet]
+  const [frame, setFrame] = useState(0)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setFrame((value) => value + 1), sheet.frameMs)
+    return () => window.clearInterval(timer)
+  }, [sheet.frameMs])
+
+  if (frame >= sheet.columns * sheet.rows) return null
+  const column = frame % sheet.columns
+  const row = Math.floor(frame / sheet.columns)
+  return (
+    <div
+      className={`fx-sprite fx-explosion at-${sprite.side}`}
+      style={{
+        width: `${sprite.size}px`,
+        height: `${sprite.size}px`,
+        backgroundImage: `url(${sheet.sheet})`,
+        backgroundSize: `${sheet.columns * sprite.size}px ${sheet.rows * sprite.size}px`,
+        backgroundPosition: `${-column * sprite.size}px ${-row * sprite.size}px`,
+      }}
+    />
   )
 }
 

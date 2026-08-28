@@ -116,6 +116,21 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .voyage-hud strong { margin-top: 2px; color: #e2edf1; font: 600 0.9rem 'Barlow Condensed'; letter-spacing: 0.08em; }
 .voyage-hud small { align-self: center; padding: 0 12px; color: #5c796d; font-size: 0.45rem; letter-spacing: 0.13em; }
 
+/* Voyage audio panel */
+.audio-panel { position: fixed; z-index: 95; left: 16px; bottom: 16px; width: max-content; max-width: min(300px, calc(100vw - 32px)); border: 1px solid rgba(188, 216, 230, 0.18); background: rgba(3, 9, 13, 0.82); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.38); backdrop-filter: blur(16px); }
+.audio-toggle { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 13px; border: 0; background: transparent; color: var(--muted); cursor: pointer; transition: color .18s; }
+.audio-toggle:hover, .audio-panel.open .audio-toggle { color: var(--ink); }
+.audio-toggle span { color: var(--cyan); font-size: 0.85rem; line-height: 1; }
+.audio-toggle strong { overflow: hidden; max-width: 190px; font: 600 0.62rem var(--mono); letter-spacing: 0.12em; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; }
+.audio-settings { display: grid; gap: 9px; padding: 4px 13px 13px; border-top: 1px solid var(--line); }
+.audio-settings .eyebrow { margin: 8px 0 0; color: #647986; font: 600 0.5rem var(--mono); letter-spacing: 0.15em; text-transform: uppercase; }
+.audio-note { margin: 0; color: var(--amber); font: 400 0.6rem var(--body); }
+.audio-row { display: flex; align-items: center; gap: 9px; }
+.audio-row span { min-width: 52px; color: #8ca0ae; font: 600 0.5rem var(--mono); letter-spacing: 0.13em; }
+.audio-row input[type='range'] { flex: 1; min-width: 78px; accent-color: var(--cyan); }
+.audio-switch { min-width: 34px; padding: 3px 6px; border: 1px solid var(--line); background: transparent; color: #647986; font: 700 0.5rem var(--mono); letter-spacing: 0.1em; cursor: pointer; }
+.audio-switch.on { border-color: rgba(114, 216, 232, 0.55); color: var(--cyan); }
+
 /* Dialogue */
 .dialogue-scene {
   --scene-bg: none;
@@ -427,6 +442,16 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .weapon-fx.fx-ion { width: 15px; height: 15px; margin: -7px; border-radius: 50%; background: radial-gradient(circle,#effcff 0 20%,#5fd8ff 42%,rgba(74,137,255,.45) 64%,transparent 70%); box-shadow: 0 0 14px #5fd8ff,0 0 34px rgba(95,216,255,.6); }.weapon-fx.fx-ion::before,.weapon-fx.fx-ion::after { content: ''; position: absolute; inset: -8px; border: 1px solid rgba(95,216,255,.5); border-radius: 50%; animation: ion-orbit .35s linear infinite; }.weapon-fx.fx-ion::after { inset: -3px -12px; animation-direction: reverse; }
 .impact-fx { position: absolute; z-index: 8; width: 20px; height: 20px; pointer-events: none; }.impact-fx.outgoing { left: 72%; top: 34%; }.impact-fx.incoming { left: 29%; top: 65%; }.impact-fx::before { content: ''; position: absolute; inset: -17px; border-radius: 50%; background: radial-gradient(circle,#fff 0 5%,#ffcc72 9%,rgba(255,96,48,.72) 24%,transparent 61%); animation: impact-bloom .7s ease-out both; }.impact-fx.shielded::before { inset: -28px; border: 2px solid #77e2ff; background: radial-gradient(circle,rgba(255,255,255,.75),rgba(95,216,255,.28) 28%,transparent 65%); box-shadow: 0 0 24px rgba(95,216,255,.7); animation: shield-impact .7s ease-out both; }
 .impact-fx > i { position: absolute; left: 8px; top: 8px; width: 4px; height: 25px; transform-origin: 2px 2px; background: linear-gradient(#fff0c4,transparent); animation: impact-spark .65s ease-out both; }.impact-fx > i:nth-child(2) { rotate: 72deg; }.impact-fx > i:nth-child(3) { rotate: 144deg; }.impact-fx > i:nth-child(4) { rotate: 216deg; }.impact-fx > i:nth-child(5) { rotate: 288deg; }
+/* Sample-based projectile, impact and explosion frames from the shared effects pack. */
+.fx-sprite { position: absolute; z-index: 8; translate: -50% -50%; pointer-events: none; }
+.fx-sprite.at-player { left: 29%; top: 65%; }
+.fx-sprite.at-enemy { left: 72%; top: 34%; }
+.fx-flash { animation: fx-flash var(--fx-life, 320ms) ease-out both; }
+.fx-explosion { background-repeat: no-repeat; }
+.fx-bolt { z-index: 7; width: auto; animation: projectile-flight var(--fx-duration, 500ms) linear both; }
+.fx-bolt.outgoing { --fx-x0: 29%; --fx-y0: 65%; --fx-x1: 72%; --fx-y1: 34%; rotate: 63deg; filter: drop-shadow(0 0 7px rgba(79, 216, 255, .7)); }
+.fx-bolt.incoming { --fx-x0: 72%; --fx-y0: 34%; --fx-x1: 29%; --fx-y1: 65%; rotate: 243deg; filter: drop-shadow(0 0 7px rgba(255, 84, 112, .7)); }
+
 .combat-floater { position: absolute; z-index: 9; font: 700 .66rem 'Inter'; letter-spacing: .06em; text-shadow: 0 0 8px currentColor,0 1px 2px #000; pointer-events: none; animation: combat-float 1.25s ease-out both; }.combat-floater.outgoing { left: 72%; top: 31%; }.combat-floater.incoming { left: 28%; top: 60%; }
 .combat-log { display: flex; align-items: center; justify-content: center; gap: 9px; }.log-pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: log-blink 1s ease-in-out infinite; }
 .weapon-buttons button { position: relative; overflow: hidden; display: grid; grid-template-columns: 10px 1fr auto; text-align: left; gap: 8px; }.weapon-buttons button > i { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 6px var(--amber); }.weapon-buttons button.weapon-ion > i { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); }.weapon-buttons button.weapon-missile > i { border-radius: 1px; background: #ff8351; box-shadow: 0 0 7px #ff8351; }
@@ -524,6 +549,7 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 @keyframes impact-bloom { 0% { scale: .15; opacity: 0; } 20% { opacity: 1; } 100% { scale: 2.3; opacity: 0; } }
 @keyframes shield-impact { 0% { scale: .25; opacity: 0; } 22% { opacity: 1; } 100% { scale: 2.8; opacity: 0; } }
 @keyframes impact-spark { from { scale: 0; opacity: 1; } to { scale: 1.7; opacity: 0; translate: 0 16px; } }
+@keyframes fx-flash { from { opacity: 0; transform: scale(.55); } 22% { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.4); } }
 @keyframes combat-float { from { translate: -50% 8px; opacity: 0; } 15% { opacity: 1; } to { translate: -50% -38px; opacity: 0; } }
 @keyframes log-blink { 50% { opacity: .25; } }
 
@@ -667,6 +693,11 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 }
 
 @media (max-width: 800px) {
+  .audio-panel { left: 10px; bottom: 10px; }
+  .audio-panel:not(.open) .audio-toggle strong { display: none; }
+  .audio-panel:not(.open) .audio-toggle { padding: 7px 10px; }
+  .audio-toggle strong { max-width: 130px; }
+
   .voyage-hud { top: 7px; right: 7px; }
   .voyage-hud div { min-width: 54px; padding: 6px 8px; }
   .voyage-hud div:first-child, .voyage-hud small { display: none; }

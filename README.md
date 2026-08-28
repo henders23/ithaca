@@ -11,11 +11,13 @@ The browser opens directly into the complete thirty-two-beat cinematic campaign 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
 - objective, survival, boss-passage and protected-target ship combat encounters with persistent damage;
-- weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
+- weapon-specific projectiles, shield impacts, damage feedback, sampled combat audio and sprite-sheet explosions;
+- a four-track score that follows the scene: *Glass Moon Relay* on the start screen, *Starship Ithaca* across the voyage,
+  *Cirene’s Ark* whenever an alien speaks, and *Black Banner* in every battle;
 - thirty-seven registered puzzles and action minigames, plus explorable character hubs;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
-- sixty-seven original, optimized backgrounds, portraits and combat assets.
+- sixty-seven original, optimized backgrounds, portraits and combat assets, plus seventeen audio tracks and eleven battle effect frames.
 
 The second playable slice completes Act I across Beats 05–08: Vale chooses the identity sent into the dark, survives the Tidefather’s first wrath, bargains for a spatial current in the Aeolian cloud cities, and judges the conspiracy that destroys the apparent route home.
 

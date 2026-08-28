@@ -39,10 +39,23 @@ All thirty-two campaign beats form one continuous playable campaign across four 
 | 31 · The Trial of the Captain | The neural chair can prove continuity but cannot acquit the Gate order. | Three-anchor resonance puzzle, public Tide Gate revelation and protected-witness combat. | The crime becomes public, the witness record survives and Earth repairs the Ithaca for the finale. |
 | 32 · The Last God at the Gate | Earth, the Host and the convoy fight over which record—and which future—will survive. | Protected-target orbital battle, Elara’s citadel network, shared-memory interpretation and an earned ending choice. | Vengeance, atonement, reconciliation, exile or succession completes the deterministic voyage. |
 
+## Score
+
+Four compositions follow the voyage and crossfade into one another:
+
+| Track | When it plays |
+| --- | --- |
+| *Glass Moon Relay* | The start screen. |
+| *Starship Ithaca* | The default theme: crew dialogue, interludes, minigames, hubs and completion screens. |
+| *Cirene’s Ark* | Any dialogue in which an Eidolon or encounter character speaks — the Tidefather, ARGUS-1, Keeper Aeolia, Doctor Cirene, TIRESIAS, Helios, Calypso or Speaker Nausica. |
+| *Black Banner* | Every cinematic battle. |
+
+The audio panel in the bottom corner names the track that is playing and carries separate mute and level controls for music and combat effects. Choices persist in local storage. Browsers that block autoplay start the score on the player's first click or keystroke.
+
 ## Controls
 
 - Dialogue and choices: pointer or keyboard focus.
-- Combat: select a subsystem, then fire a charged rail lance, kinetic salvo or ion shear. Each weapon has its own projectile, travel timing, impact, shield response and synthesized sound. Pause is available from the tactical header or the spacebar.
+- Combat: select a subsystem, then fire a charged rail lance, kinetic salvo or ion shear. Each weapon has its own projectile, travel timing, impact, shield response and sampled report, with muzzle, bolt, shield-hit and sprite-sheet explosion frames over the authored effects. Pause is available from the tactical header or the spacebar.
 - Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls.
 - Storm flight: the same movement controls, but the player must align with luminous current gates rather than dodge obstacles.
 - Survival combat: suppress living-ship subsystems to reduce incoming pressure and endure until the jump countdown reaches zero; the Tidefather cannot be destroyed.

@@ -187,3 +187,17 @@ export const RELATIONSHIP_IDS = [
 
 export type RelationshipId = (typeof RELATIONSHIP_IDS)[number]
 
+
+/**
+ * Groups whose members are not the Ithaca's crew or Earth's people. Scenes that
+ * give one of them a line are the campaign's alien encounters.
+ */
+export const ALIEN_CHARACTER_GROUPS: readonly CharacterGroup[] = ['eidolon', 'encounter']
+
+export const ALIEN_CHARACTER_IDS = CANON_CHARACTERS
+  .filter((character) => ALIEN_CHARACTER_GROUPS.includes(character.group))
+  .map((character) => character.id)
+
+export function isAlienCharacter(id: CharacterId | 'narrator'): boolean {
+  return id !== 'narrator' && ALIEN_CHARACTER_IDS.includes(id)
+}
