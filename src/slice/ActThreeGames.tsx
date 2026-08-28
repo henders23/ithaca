@@ -20,7 +20,6 @@ export interface ActThreeResult {
 }
 
 interface FrameProps {
-  beat: string
   title: string
   goal: string
   background: string
@@ -28,10 +27,10 @@ interface FrameProps {
   children: React.ReactNode
 }
 
-function Frame({ beat, title, goal, background, className = '', children }: FrameProps) {
+function Frame({ title, goal, background, className = '', children }: FrameProps) {
   return (
     <section className={`act-three-game ${className}`} style={{ '--act3-bg': `url(${background})` } as React.CSSProperties}>
-      <header><p>{beat}</p><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
+      <header><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
       {children}
     </section>
   )
@@ -94,7 +93,7 @@ export function ChoirFilterGame({ carrierId, onComplete }: { carrierId: ChoirBan
   }
 
   return (
-    <Frame beat="BEAT 18 · SIGNAL LAB" title="Build a silence inside the song" goal="Identify the route carrier from telemetry and free the pilgrim ships without erasing it." background={ASSETS.cinematics.choirInDark} className="choir-game">
+    <Frame title="Build a silence inside the song" goal="Identify the route carrier from telemetry and free the pilgrim ships without erasing it." background={ASSETS.cinematics.choirInDark} className="choir-game">
       <div className="act3-status">
         <span>CREW EXPOSURE <b>{exposure}%</b></span>
         <span>TIRESIAS SEED <b>{seed.period} · {seed.phase}</b></span>
@@ -166,7 +165,7 @@ export function HallucinatedNavigationGame({ onComplete }: { onComplete: (result
   }
 
   return (
-    <Frame beat="BEAT 19 · VALE ALONE" title="Navigate an interface that wants to be believed" goal="Test each control against damaged physical evidence while the Choir offers a perfect route home." background={ASSETS.cinematics.silentPassage} className="hallucination-game">
+    <Frame title="Navigate an interface that wants to be believed" goal="Test each control against damaged physical evidence while the Choir offers a perfect route home." background={ASSETS.cinematics.silentPassage} className="hallucination-game">
       <div className="act3-status"><span>IDENTITY INTEGRITY <b>{integrity}%</b></span><span>PASSAGE <b>{finished ? '3/3' : `${step + 1}/3`}</b></span><span>CREW AUDIO <b>DISCONNECTED</b></span></div>
       <div className="verification-rail" aria-label="Navigation verification history">{NAVIGATION_STEPS.map((item, index) => <i key={item.id} className={history[index] === true ? 'verified' : history[index] === false ? 'false' : index === step && !finished ? 'active' : ''}>{index + 1}</i>)}</div>
       {!finished ? <>
@@ -211,7 +210,7 @@ export function RouteExtractionGame({ onComplete }: { onComplete: (result: ActTh
     setFeedback(`${result.wrong.length} selected fragment${result.wrong.length === 1 ? '' : 's'} lack external corroboration. The Choir is using certainty as a source.`)
   }
   return (
-    <Frame beat="BEAT 19 · KNOWLEDGE RESIDUE" title="Keep the route. Refuse the promise." goal="Quarantine emotional claims and preserve exactly four externally corroborated constraints." background={ASSETS.cinematics.silentPassage} className="extraction-game">
+    <Frame title="Keep the route. Refuse the promise." goal="Quarantine emotional claims and preserve exactly four externally corroborated constraints." background={ASSETS.cinematics.silentPassage} className="extraction-game">
       <div className="act3-status"><span>SELECTED <b>{selected.length}/4</b></span><span>CONTAMINATION TESTS <b>{attempts}</b></span><span>CHOIR HOLD <b>{Math.max(8, 76 - selected.length * 14 - attempts * 9)}%</b></span></div>
       <p className="game-instruction">The Choir speaks in absolutes and borrowed voices. Provenance matters more than plausibility.</p>
       <div className="route-facts">{ROUTE_FRAGMENTS.map((fragment) => <button key={fragment.id} className={selected.includes(fragment.id) ? 'selected' : ''} onClick={() => toggle(fragment.id)}><strong>{fragment.text}</strong><small>{fragment.source}</small></button>)}</div>
@@ -296,7 +295,7 @@ export function GravityCourseGame({ route, compromised, onComplete }: { route: P
   const hullDamage = strikes * (route === 'charybdis-wide' ? 8 : 6) + (compromised ? 4 : 0)
 
   return (
-    <Frame beat="BEAT 20 · TWIN TERRORS" title="Hold the corridor between hunger and gravity" goal="Transfer power through three changing hazards before the correction burns are exhausted." background={ASSETS.cinematics.twinTerrors} className={`gravity-game route-${route}`}>
+    <Frame title="Hold the corridor between hunger and gravity" goal="Transfer power through three changing hazards before the correction burns are exhausted." background={ASSETS.cinematics.twinTerrors} className={`gravity-game route-${route}`}>
       <div className="act3-status"><span>HAZARD <b>{phaseIndex + 1}/3 · {phase.name}</b></span><span>COURSE ERROR <b>{stress}%</b></span><span>CORRECTION BURNS <b>{burns}</b></span></div>
       <div className="hazard-brief"><strong>{phase.threat}</strong><span>{route === 'scylla-close' ? 'CLOSE COURSE · COMPARTMENTS EXPOSED' : 'WIDE COURSE · WHOLE-SHIP GRAVITY RISK'}</span></div>
       <div className="power-balancer">{POWER_NAMES.map((name, index) => { const delta = phase.target[index] - power[index]; return <button key={name} className={source === index ? 'donor' : delta === 0 ? 'balanced' : ''} onClick={() => chooseSystem(index)}><strong>{name}</strong><b>{power[index]}%</b><small>TARGET {phase.target[index]}% · {delta === 0 ? 'LOCKED' : delta > 0 ? `NEEDS +${delta}` : `RELEASE ${Math.abs(delta)}`}</small></button> })}</div>
@@ -345,7 +344,7 @@ export function TetherRescueGame({ route, onComplete }: { route: PassageRoute; o
   const hullDamage = rescueHullDamage(state.seconds, route)
   const finish = () => onComplete({ choiceId: state.rescued.length === 6 ? 'all-six-recovered' : state.rescued.length === 0 ? 'all-six-abandoned' : 'partial-rescue', success: state.rescued.length === 6, rescued: state.rescued, abandoned, hullDamage, interceptSeconds: state.seconds })
   return (
-    <Frame beat="BEAT 21 · SIX TAKEN" title="Every voice has a name" goal="Sequence the rescue before Host intercept; guidance saves time, engineering restores pulses, and delay damages the Ithaca." background={ASSETS.cinematics.scyllaRescue} className="rescue-game">
+    <Frame title="Every voice has a name" goal="Sequence the rescue before Host intercept; guidance saves time, engineering restores pulses, and delay damages the Ithaca." background={ASSETS.cinematics.scyllaRescue} className="rescue-game">
       <div className="act3-status"><span>TETHER PULSES <b>{state.pulses}</b></span><span>RESCUED <b>{state.rescued.length}/6</b></span><span>HOST INTERCEPT <b>{formatClock(state.seconds)}</b></span></div>
       <div className={`intercept-warning ${state.seconds < 24 ? 'critical' : ''}`}><i style={{ width: `${Math.max(0, Math.min(100, state.seconds / initialSeconds * 100))}%` }} /><span>Projected hull exposure if the rescue ends now: −{hullDamage}%</span></div>
       <div className="rescue-grid">{RESCUE_CREW.map((person) => { const offer = rescueOffer(person.id, state); const rescued = state.rescued.includes(person.id); return <button disabled={!offer.canRescue} className={rescued ? 'rescued' : !offer.canRescue ? 'locked' : ''} key={person.id} onClick={() => setState((current) => applyRescue(person.id, current))}><strong>{person.id}</strong><small>{person.role} · {person.detail}</small>{person.ability && <em>{person.ability}</em>}<span>{rescued ? 'TETHERED' : offer.canRescue ? `${offer.pulses} PULSE${offer.pulses > 1 ? 'S' : ''} · −${offer.seconds} SEC` : 'OUTSIDE CURRENT WINDOW'}</span></button> })}</div>

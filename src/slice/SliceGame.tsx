@@ -984,9 +984,7 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
     <section className="title-screen" style={{ '--title-bg': `url(${ASSETS.cinematics.title})` } as React.CSSProperties}>
       <div className="title-vignette" />
       <div className="title-copy">
-        <p>AN AUTHORED SPACE ODYSSEY</p>
         <h1>ITHACA</h1>
-        <h2>NO SHORE WILL RECEIVE YOU</h2>
         <div className="title-rule" />
         <p className="title-lede">A cinematic voyage of command, consequence, puzzles and ship-to-ship combat.</p>
         <div className="title-actions">
@@ -994,7 +992,6 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACTS I—IV · COMPLETE PLAYABLE CAMPAIGN</span><strong>BEATS 01—32</strong></footer>
     </section>
   )
 }
@@ -1019,7 +1016,6 @@ function CompletionScreen({ game, onRestart, onContinue }: { game: GameState; on
   return (
     <section className="completion-screen" style={{ '--complete-bg': `url(${ASSETS.cinematics.fortress})` } as React.CSSProperties}>
       <div className="completion-card">
-        <p className="eyebrow">SLICE I COMPLETE · ACT I CONTINUES</p>
         <h1>The darkness is listening.</h1>
         <p>The Ithaca escaped ARGUS-1, but the fortress is broadcasting. Somewhere beyond the wrong stars, the thing that heard the Tide Gate die has learned where to look.</p>
         <div className="completion-stats">
@@ -1027,9 +1023,6 @@ function CompletionScreen({ game, onRestart, onContinue }: { game: GameState; on
           <div><span>DECISIONS</span><strong>{game.decisions.length}</strong></div>
           <div><span>STRONGEST TRUST</span><strong>{strongestTrust?.[0].split('-')[0].toUpperCase() ?? 'NONE'} {strongestTrust?.[1] ?? 0}</strong></div>
           <div><span>NEXT</span><strong>THE CAPTAIN GIVES HIS NAME</strong></div>
-        </div>
-        <div className="choice-recap">
-          {game.decisions.slice(-5).map((decision) => <span key={decision.id}>{decision.choiceId.replaceAll('-', ' ')}</span>)}
         </div>
         <div className="completion-actions">
           <button className="primary-action" onClick={onContinue}>Continue to Beat 05 <span>→</span></button>
@@ -1046,7 +1039,6 @@ function ActOneCompletionScreen({ game, onRestart, onContinue }: { game: GameSta
   return (
     <section className="completion-screen act-finale" style={{ '--complete-bg': `url(${ASSETS.cinematics.sphereRupture})` } as React.CSSProperties}>
       <div className="completion-card">
-        <p className="eyebrow">ACT I COMPLETE · THE VICTORY THAT BECAME A CURSE</p>
         <h1>No shore will receive you.</h1>
         <p>The current is gone. The familiar stars have vanished, and the Tidefather can hear the wound it left in the Ithaca. Vale still commands—but the crew now knows that home, truth and survival will not always point in the same direction.</p>
         <div className="completion-stats">
@@ -1076,7 +1068,6 @@ function ActTwoSliceCompletionScreen({ game, onRestart, onContinue }: { game: Ga
   return (
     <section className="completion-screen act-two-finale" style={{ '--complete-bg': `url(${ASSETS.cinematics.cireneMindTheatre})` } as React.CSSProperties}>
       <div className="completion-card">
-        <p className="eyebrow">ACT II · SLICE I COMPLETE · STRANGE SHORES</p>
         <h1>The living could not answer. Now ask the dead.</h1>
         <p>The Ithaca has escaped a harbour that consumed ships and a refuge that could have consumed the voyage. A year has passed beyond Cirene’s shield. The next route leads through a black-hole archive where the dead remember who falsified the Tide Gate intelligence.</p>
         <div className="completion-stats">
@@ -1097,7 +1088,7 @@ function ActTwoCompletionScreen({ game, onRestart, onContinue }: { game: GameSta
   const raoChoice = game.decisions.find((decision) => decision.activityId === 'final-request')?.choiceId
   const rao = raoChoice === 'preserve-rao-aboard' ? 'ABOARD' : raoChoice === 'free-rao-to-archive' ? 'FREE IN ARCHIVE' : 'FINAL REQUEST GRANTED'
   return <section className="completion-screen act-two-finale" style={{ '--complete-bg': `url(${ASSETS.cinematics.tiresiasObservatory})` } as React.CSSProperties}>
-    <div className="completion-card"><p className="eyebrow">ACT II COMPLETE · STRANGE SHORES</p><h1>The road home has become a prophecy.</h1><p>The Ithaca leaves the dead with the true Gate record, Elara’s uncertain invitation and a route through the Choir, the Twin Terrors and the living sun. TIRESIAS has named the cost hidden inside every future: Vale’s command may be the danger the crew cannot survive.</p>
+    <div className="completion-card"><h1>The road home has become a prophecy.</h1><p>The Ithaca leaves the dead with the true Gate record, Elara’s uncertain invitation and a route through the Choir, the Twin Terrors and the living sun. TIRESIAS has named the cost hidden inside every future: Vale’s command may be the danger the crew cannot survive.</p>
       <div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>GATE TRUTH</span><strong>{truth}</strong></div><div><span>RAO</span><strong>{rao}</strong></div><div><span>NEXT</span><strong>THE CHOIR</strong></div></div>
       <div className="act-coda"><span>NEXT · ACT III</span><strong>THE SEA TAKES ITS PRICE</strong><p>The first voice in the dark already knows what every member of the crew wants most.</p></div>
       <div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Act III <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div>
@@ -1109,7 +1100,7 @@ function ActThreeSliceCompletionScreen({game,onRestart,onContinue}:{game:GameSta
  const rescuedRecord=game.evidence.find(item=>item.startsWith('scylla-rescued:'))?.slice('scylla-rescued:'.length)??'none'
  const rescued=rescuedRecord==='none'?[]:rescuedRecord.split(',')
  const rescueLabel=rescued.length===6?'ALL SIX':rescued.length===0?'NONE':`${rescued.length} OF SIX`
- return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE I COMPLETE</p><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Helios <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
+ return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Helios <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
 }
 
 function ActThreeCompletionScreen({game,onRestart,onContinue}:{game:GameState;onRestart:()=>void;onContinue:()=>void}) {
@@ -1117,7 +1108,7 @@ function ActThreeCompletionScreen({game,onRestart,onContinue}:{game:GameState;on
  const companionName=companion?companionDisplayName(companion as Parameters<typeof companionDisplayName>[0]):'THE LAST COMPANION'
  const remnant=game.flags.includes('helios-remnant-preserved')?'PRESERVED':'CONSUMED'
  const record=game.flags.includes('last-companion-record-preserved')?'FINAL WORDS HELD':'SIGNAL FRAGMENTED'
- return <section className="completion-screen act-three-finale helios-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.lastCompanionMemorial})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE II COMPLETE · THE SEA TAKES ITS PRICE</p><h1>One voice fewer. One impossible shore ahead.</h1><p>The Ithaca understood Helios, consumed one of its living forms, survived the judgment that followed, and escaped only because a companion remained inside the dying drive. The ship continues as a crippled core carrying grief it can no longer describe as collateral.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>SOLAR REMNANT</span><strong>{remnant}</strong></div><div><span>LAST COMPANION</span><strong>{companionName.toUpperCase()}</strong></div><div><span>RECORD</span><strong>{record}</strong></div></div><div className="act-coda"><span>NEXT · ACT III</span><strong>THE ISLAND AT THE END OF TIME</strong><p>An ocean, a blue sky and the Earth Vale remembers are waiting inside a place that cannot exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Walk onto the impossible shore <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
+ return <section className="completion-screen act-three-finale helios-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.lastCompanionMemorial})`} as React.CSSProperties}><div className="completion-card"><h1>One voice fewer. One impossible shore ahead.</h1><p>The Ithaca understood Helios, consumed one of its living forms, survived the judgment that followed, and escaped only because a companion remained inside the dying drive. The ship continues as a crippled core carrying grief it can no longer describe as collateral.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>SOLAR REMNANT</span><strong>{remnant}</strong></div><div><span>LAST COMPANION</span><strong>{companionName.toUpperCase()}</strong></div><div><span>RECORD</span><strong>{record}</strong></div></div><div className="act-coda"><span>NEXT · ACT III</span><strong>THE ISLAND AT THE END OF TIME</strong><p>An ocean, a blue sky and the Earth Vale remembers are waiting inside a place that cannot exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Walk onto the impossible shore <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
 }
 
 function ActFourOpeningCompletionScreen({game,onRestart,onContinue}:{game:GameState;onRestart:()=>void;onContinue:()=>void}) {
@@ -1126,12 +1117,12 @@ function ActFourOpeningCompletionScreen({game,onRestart,onContinue}:{game:GameSt
  const escort=phaeacianEscortStrength(game)
  const years=calypsoElapsedYears(game)
  const copy=game.flags.includes('calypso-copy-created')?'ACTIVE':'UNCONFIRMED'
- return <section className="completion-screen act-four-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.phaeacianConvoy})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III COMPLETE · ACT IV HAS BEGUN</p><h1>For the first time, home is a destination rather than a memory.</h1><p>Vale refused a perfect Earth, left a second self inside Calypso’s preserve and placed the voyage before strangers who offered shelter without acquittal. The Phaeacian convoy has broken its neutrality to carry the Ithaca toward the real Earth.</p><div className="completion-stats"><div><span>YEARS OUTSIDE</span><strong>{years}</strong></div><div><span>CALYPSO COPY</span><strong>{copy}</strong></div><div><span>ACCOUNT</span><strong>{candor>=4?'WITNESS':candor>=0?'CONTESTED':'DECEPTIVE'}</strong></div><div><span>ESCORT GROUPS</span><strong>{escort}</strong></div></div><div className="act-coda"><span>NEXT · BEAT 29</span><strong>THE CHILD OF THE ABSENT CAPTAIN</strong><p>On Earth, Elara Vale receives the first credible claim that her father is returning—and evidence that another version of him may exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Take control of Elara <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
+ return <section className="completion-screen act-four-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.phaeacianConvoy})`} as React.CSSProperties}><div className="completion-card"><h1>For the first time, home is a destination rather than a memory.</h1><p>Vale refused a perfect Earth, left a second self inside Calypso’s preserve and placed the voyage before strangers who offered shelter without acquittal. The Phaeacian convoy has broken its neutrality to carry the Ithaca toward the real Earth.</p><div className="completion-stats"><div><span>YEARS OUTSIDE</span><strong>{years}</strong></div><div><span>CALYPSO COPY</span><strong>{copy}</strong></div><div><span>ACCOUNT</span><strong>{candor>=4?'WITNESS':candor>=0?'CONTESTED':'DECEPTIVE'}</strong></div><div><span>ESCORT GROUPS</span><strong>{escort}</strong></div></div><div className="act-coda"><span>NEXT · BEAT 29</span><strong>THE CHILD OF THE ABSENT CAPTAIN</strong><p>On Earth, Elara Vale receives the first credible claim that her father is returning—and evidence that another version of him may exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Take control of Elara <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
 }
 
 function CampaignCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}){
  const ending=game.ending??'exile';const copy=ENDING_COPY[ending];const companion=lastCompanionNameForEnding(game)
- return <section className={`completion-screen campaign-ending ending-${ending}`} style={{'--complete-bg':`url(${ASSETS.cinematics.earthEpilogue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">VOYAGE COMPLETE · {ending.toUpperCase()}</p><h1>{copy.title}</h1><p>{copy.text}</p><div className="completion-stats"><div><span>BEATS</span><strong>32 / 32</strong></div><div><span>ENDING</span><strong>{ending.toUpperCase()}</strong></div><div><span>LAST COMPANION</span><strong>{companion.toUpperCase()}</strong></div><div><span>PUBLIC RECORD</span><strong>{game.flags.includes('tide-gate-crime-exposed')?'PRESERVED':'CONTESTED'}</strong></div></div><div className="act-coda"><span>THE ODYSSEY ENDS</span><strong>HOME IS WHERE ANOTHER PERSON CAN ANSWER.</strong><p>Your complete action log remains deterministic: every relationship, casualty, omission, rescue and act of restraint led to the ending that was available.</p></div><button className="secondary-action" onClick={onRestart}>Begin another voyage</button></div></section>
+ return <section className={`completion-screen campaign-ending ending-${ending}`} style={{'--complete-bg':`url(${ASSETS.cinematics.earthEpilogue})`} as React.CSSProperties}><div className="completion-card"><h1>{copy.title}</h1><p>{copy.text}</p><div className="completion-stats"><div><span>BEATS</span><strong>32 / 32</strong></div><div><span>ENDING</span><strong>{ending.toUpperCase()}</strong></div><div><span>LAST COMPANION</span><strong>{companion.toUpperCase()}</strong></div><div><span>PUBLIC RECORD</span><strong>{game.flags.includes('tide-gate-crime-exposed')?'PRESERVED':'CONTESTED'}</strong></div></div><div className="act-coda"><span>THE ODYSSEY ENDS</span><strong>HOME IS WHERE ANOTHER PERSON CAN ANSWER.</strong><p>Your complete action log remains deterministic: every relationship, casualty, omission, rescue and act of restraint led to the ending that was available.</p></div><button className="secondary-action" onClick={onRestart}>Begin another voyage</button></div></section>
 }
 
 function lastCompanionNameForEnding(game:GameState){const id=game.evidence.find(e=>e.startsWith('last-companion:'))?.slice('last-companion:'.length);return companionDisplayName(id as Parameters<typeof companionDisplayName>[0])}

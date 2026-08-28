@@ -49,7 +49,8 @@ describe('Act II first slice', () => {
     expect(surfaces[0]).toContain('Plot a route through the closing jaws')
     expect(surfaces[0]).toContain('PROJECTED HULL RISK')
     expect(surfaces[1]).toContain('Audit the continuities')
-    expect(surfaces[1]).toContain('PERSONHOOD REVIEW')
+    // The removed procedure seal carried no goal; the instruction beneath the title does.
+    expect(surfaces[1]).toContain('classify the body record')
     expect(surfaces[2]).toContain('Hold the shape of Vale’s mind')
     expect(surfaces[2]).not.toContain('Hold the difficult detail')
     expect(surfaces[3]).toContain('Choose what the refuge restores')

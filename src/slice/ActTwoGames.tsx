@@ -3,27 +3,19 @@ import type { GameState, ShipSystemId } from '../state/types.js'
 import { ASSETS } from './content.js'
 import type { MiniGameResult } from './MiniGames.js'
 
-function ActProcedureFrame({ beat, title, instruction, variant, background, station, risk, children }: {
-  beat: string
+function ActProcedureFrame({ title, instruction, variant, background, children }: {
   title: string
   instruction: string
   variant: string
   background: string
-  station: string
-  risk: string
   children: React.ReactNode
 }) {
   return (
     <section className={`minigame-screen act-two-game mini-${variant}`} style={{ '--minigame-bg': `url(${background})` } as React.CSSProperties}>
       <div className="minigame-ambient" aria-hidden="true"><i /><i /><i /></div>
-      <header className="minigame-heading">
-        <div><span>{beat}</span><strong>FIELD PROCEDURE</strong></div>
-        <small>LIVE SHIPBOARD INTERFACE</small>
-      </header>
       <div className="minigame-card">
         <div className="minigame-titlebar">
-          <div><p className="eyebrow">CREW ACTION · {station}</p><h1>{title}</h1><p className="minigame-instruction">{instruction}</p></div>
-          <div className="procedure-seal"><span>LIVE</span><strong>{variant.slice(0, 3).toUpperCase()}</strong><small>{risk}</small></div>
+          <div><h1>{title}</h1><p className="minigame-instruction">{instruction}</p></div>
         </div>
         {children}
       </div>
@@ -86,7 +78,7 @@ export function DebrisCourseGame({ convoyWarned, onComplete }: { convoyWarned: b
   const launch = () => onComplete({ success: risk <= 64, score: Math.max(20, 115 - risk + rescue * 4), choiceId: rescue >= 5 ? 'convoy-corridor' : risk <= 45 ? 'clean-corridor' : 'exposed-corridor', risk, rescue })
 
   return (
-    <ActProcedureFrame beat="BEAT 09 · THE DEVOURING HARBOUR" title="Plot a route through the closing jaws" instruction="Choose one corridor through each harbour layer. Low-risk gaps save the Ithaca; wider corridors let damaged convoy ships follow. Your route determines the locks Cross must disable in combat." variant="route" background={ASSETS.cinematics.devouringHarbourEscape} station="NAVIGATION / TACTICAL" risk="HARBOUR CLOSING">
+    <ActProcedureFrame title="Plot a route through the closing jaws" instruction="Choose one corridor through each harbour layer. Low-risk gaps save the Ithaca; wider corridors let damaged convoy ships follow. Your route determines the locks Cross must disable in combat." variant="route" background={ASSETS.cinematics.devouringHarbourEscape}>
       <div className="route-planner">
         <div className="route-map" aria-label="Harbour route plan">
           <div className="route-ithaca"><img src={ASSETS.ships.ithaca} alt="CSV Ithaca" /><span>ITHACA</span></div>
@@ -136,7 +128,7 @@ export function IdentityForensicsGame({ onComplete }: { onComplete: (result: Ide
   const inspect = (id: string) => setRevealed((current) => ({ ...current, [id]: Math.min(3, (current[id] ?? 1) + 1) }))
   const finish = () => onComplete({ success: correct >= 3, correct, score: correct * 25, choiceId: correct === 4 ? 'continuities-identified' : 'identity-audit-partial' })
   return (
-    <ActProcedureFrame beat="BEAT 10 · THE PALACE OF NEW FLESH" title="Audit the continuities" instruction="Inspect each patient’s three evidence layers, then classify the body record. ‘Original’ tracks an uninterrupted body, ‘continuation’ begins in a new shell, and ‘hybrid’ has been materially rewritten without a second activation." variant="identity" background={ASSETS.cinematics.cireneIdentityLab} station="CORELLI / MOROZOVA" risk="PERSONHOOD REVIEW">
+    <ActProcedureFrame title="Audit the continuities" instruction="Inspect each patient’s three evidence layers, then classify the body record. ‘Original’ tracks an uninterrupted body, ‘continuation’ begins in a new shell, and ‘hybrid’ has been materially rewritten without a second activation." variant="identity" background={ASSETS.cinematics.cireneIdentityLab}>
       <div className="identity-audit">
         {IDENTITY_CASES.map((item) => {
           const clueCount = revealed[item.id] ?? 1
@@ -172,7 +164,7 @@ export function NeuralLockGame({ onComplete }: { onComplete: (result: MiniGameRe
     setRound((value) => value + 1)
   }
   return (
-    <ActProcedureFrame beat="BEAT 11 · THE CAPTAIN’S BARGAIN" title="Hold the shape of Vale’s mind" instruction="Cirene offers two coherent versions of each memory. Choose the one that preserves inconvenient detail rather than the one that makes Vale easiest to live with." variant="neural" background={ASSETS.cinematics.cireneMindTheatre} station="VALE / MOROZOVA" risk="LIVE NEURAL WRITE">
+    <ActProcedureFrame title="Hold the shape of Vale’s mind" instruction="Cirene offers two coherent versions of each memory. Choose the one that preserves inconvenient detail rather than the one that makes Vale easiest to live with." variant="neural" background={ASSETS.cinematics.cireneMindTheatre}>
       <div className="neural-theatre">
         <div className="neural-anchors">{MEMORY_ROUNDS.map((item, index) => <i key={item.title} className={index < round ? item.options.find((option) => option.id === locked[index])?.true ? 'locked' : 'rewritten' : index === round ? 'active' : ''}><span>{index + 1}</span><strong>{item.title}</strong></i>)}</div>
         {!complete ? <div className="neural-question"><span>MEMORY ANCHOR {round + 1} / 4</span><h2>{MEMORY_ROUNDS[round].prompt}</h2><div>{MEMORY_ROUNDS[round].options.map((option) => <button key={option.id} onClick={() => select(option)}><strong>{option.label}</strong><p>{option.text}</p></button>)}</div></div> : <div className="neural-question complete"><span>IDENTITY BOUNDARY RESTORED</span><h2>{rewrite === 0 ? 'Nothing comfortable survived by replacing the truth.' : 'Some memories now fit more neatly than they did before.'}</h2><p>Morozova has isolated {4 - rewrite / 25} stable anchors. Cirene’s revision reached {rewrite}% of the active pattern.</p></div>}
@@ -208,7 +200,7 @@ export function RefitAllocationGame({ game, onComplete }: { game: GameState; onC
   const toggle = (id: string) => setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length < 3 ? [...current, id] : current)
   const severed = Object.entries(game.ship.systems).find(([, state]) => state.status === 'destroyed')?.[0]
   return (
-    <ActProcedureFrame beat="BEAT 12 · A YEAR OUTSIDE TIME" title="Choose what the refuge restores" instruction="Cirene’s scaffolds can complete three major repairs before the temporal shield opens. Every restoration changes the Ithaca—and leaves a capability dependent on living technology." variant="refit" background={ASSETS.cinematics.cireneRefitYear} station="MORI / CORELLI" risk="3 GROWTH CYCLES">
+    <ActProcedureFrame title="Choose what the refuge restores" instruction="Cirene’s scaffolds can complete three major repairs before the temporal shield opens. Every restoration changes the Ithaca—and leaves a capability dependent on living technology." variant="refit" background={ASSETS.cinematics.cireneRefitYear}>
       <div className="refit-allocation">
         <div className="refit-ship"><img src={ASSETS.ships.ithaca} alt="CSV Ithaca in refit" /><span>SEVERED SYSTEM <strong>{severed?.toUpperCase() ?? 'NONE'}</strong></span><i>{3 - selected.length} CYCLES REMAIN</i></div>
         <div className="refit-options">{REFIT_OPTIONS.map((option) => {

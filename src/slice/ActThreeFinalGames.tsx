@@ -22,7 +22,6 @@ export interface FinalActThreeResult {
 }
 
 interface FrameProps {
-  beat: string
   title: string
   goal: string
   background: string
@@ -30,9 +29,9 @@ interface FrameProps {
   children: React.ReactNode
 }
 
-function Frame({ beat, title, goal, background, className = '', children }: FrameProps) {
+function Frame({ title, goal, background, className = '', children }: FrameProps) {
   return <section className={`helios-game ${className}`} style={{ '--helios-bg': `url(${background})` } as React.CSSProperties}>
-    <header><p>{beat}</p><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
+    <header><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
     {children}
   </section>
 }
@@ -83,7 +82,7 @@ export function LivingSunEcologyGame({ onComplete }: { onComplete:(result:FinalA
   const toggleZone=(id:string)=>setZones((current)=>current.includes(id)?current.filter((item)=>item!==id):current.length<2?[...current,id]:current)
   const commit=()=>onComplete({choiceId:outcome.lifeHarm===0?'ecology-mapped-ethical':'ecology-mapped-harmful',success:outcome.energy>=50&&outcome.lifeHarm===0,energy:outcome.energy,lifeHarm:outcome.lifeHarm,selected:zones})
 
-  return <Frame beat="BEAT 22 · LIVING SYSTEMS" title={phase==='map'?'Prove the star is alive':'Take only what life has shed'} goal={phase==='map'?'Build the solar food chain from observed population changes.':'Recover at least 50 charge from no more than two collection zones.'} background={phase==='map'?ASSETS.cinematics.heliosEcology:ASSETS.cinematics.heliosArrival} className="ecology-game">
+  return <Frame title={phase==='map'?'Prove the star is alive':'Take only what life has shed'} goal={phase==='map'?'Build the solar food chain from observed population changes.':'Recover at least 50 charge from no more than two collection zones.'} background={phase==='map'?ASSETS.cinematics.heliosEcology:ASSETS.cinematics.heliosArrival} className="ecology-game">
     <div className="helios-status"><span>ANALYSIS <b>{phase==='map'?'CAUSAL MAP':'COLLECTOR PLAN'}</b></span><span>{phase==='map'?'CHAIN':'CHARGE'} <b>{phase==='map'?`${chain.length}/4`:`${outcome.energy}/50`}</b></span><span>{phase==='map'?'FAILED TESTS':'LIVING CONTACT'} <b>{phase==='map'?attempts:outcome.lifeHarm===0?'NONE':`${outcome.lifeHarm} FORM${outcome.lifeHarm===1?'':'S'}`}</b></span></div>
     {phase==='map'?<>
       <p className="game-instruction">A shape is not proof of life. Follow repeatable birth, feeding, migration and protection across the telemetry.</p>
@@ -140,7 +139,7 @@ export function MutinyControlGame({ game,onComplete }:{game:GameState;onComplete
   }
   const specialist=survivors.includes('VEGA')?'Vega restored one override charge.':'No reactor specialist returned from Scylla.'
   const medic=survivors.includes('TAMSIN')?'Tamsin halves the clinic recovery cost.':'Medical must recover the clinic without Tamsin.'
-  return <Frame beat="BEAT 23 · INTERNAL EMERGENCY" title="Take back a ship that has already eaten" goal="Spend the remaining override charge on the systems—and lives—you refuse to abandon." background={ASSETS.cinematics.hungerMutiny} className="mutiny-grid-game">
+  return <Frame title="Take back a ship that has already eaten" goal="Spend the remaining override charge on the systems—and lives—you refuse to abandon." background={ASSETS.cinematics.hungerMutiny} className="mutiny-grid-game">
     <div className="helios-status"><span>OVERRIDE CHARGE <b>{outcome.chargeLimit-outcome.spent}/{outcome.chargeLimit}</b></span><span>ORGANISM STATUS <b>{selected.includes('cradle')?'REMNANT HELD':'EXTRACTION ACTIVE'}</b></span><span>COMMAND LINK <b>{selected.length>=2?'RECOVERABLE':'LOCKED'}</b></span></div>
     <div className="survivor-assists"><span className={survivors.includes('VEGA')?'online':''}>VEGA · {specialist}</span><span className={survivors.includes('TAMSIN')?'online':''}>TAMSIN · {medic}</span></div>
     <p className="game-instruction">The first solar organism is already dead. Powering cradle isolation cannot undo that death; it only stops a second extraction cycle.</p>
@@ -181,7 +180,7 @@ export function CoronalRoutingGame({ game,onComplete }:{game:GameState;onComplet
     if(phaseIndex===CORONAL_PHASES.length-1){const result=coronalRoutingOutcome(next,game.evidence);onComplete({choiceId:`coronal:${next.join('+')}`,success:result.strikes===0,strikes:result.strikes,hullDamage:result.hullDamage,selected:next});return}
     setChoices(next);setSelected(null);setRevealed(false);setPhaseIndex((value)=>value+1)
   }
-  return <Frame beat="BEAT 24 · DRIVE ROUTING" title="Keep one path alive through judgment" goal="Read the telemetry, commit one route per hazard, and preserve enough drive to escape." background={ASSETS.cinematics.heliosJudgment} className="coronal-routing-game">
+  return <Frame title="Keep one path alive through judgment" goal="Read the telemetry, commit one route per hazard, and preserve enough drive to escape." background={ASSETS.cinematics.heliosJudgment} className="coronal-routing-game">
     <div className="helios-status"><span>HAZARD <b>{phaseIndex+1}/3 · {phase.name}</b></span><span>UNABSORBED STRIKES <b>{partial.strikes}</b></span><span>PROJECTED HULL LOSS <b>−{partial.hullDamage}%</b></span></div>
     <div className="survivor-assists compact"><span className={survivors.includes('SATO')?'online':''}>SATO · {survivors.includes('SATO')?'marks the matching vector':'no navigation prediction'}</span><span className={survivors.includes('VEGA')?'online':''}>VEGA · {survivors.includes('VEGA')?'absorbs one wrong route':'no reactor recovery'}</span><span className={survivors.includes('AMARI')?'online':''}>AMARI · {survivors.includes('AMARI')?'reduces first strike damage':'no manual correction'}</span></div>
     <div className="routing-requirement"><strong>{phase.requirement}</strong><span>{survivors.includes('SATO')?'Sato has highlighted the telemetry field—not the answer.':'No navigator survived the Scylla ledger to narrow the field.'}</span></div>
@@ -232,7 +231,7 @@ export function FailingDriveGame({game,onComplete}:{game:GameState;onComplete:(r
     if(phaseIndex===DRIVE_CYCLES.length-1){const outcome=driveOutcome(next);onComplete({choiceId:`last-companion:${companion}`,success:outcome.success,companionId:companion??undefined,selected:next,recordQuality:outcome.recordQuality,stability:outcome.stability,hullDamage:outcome.hullDamage});return}
     setActions(next);setPhaseIndex((value)=>value+1)
   }
-  return <Frame beat="BEAT 25 · DRIVE CORE" title={confirmed?'Balance a drive that cannot be saved':'Choose who remains behind'} goal={confirmed?'Make three visible tradeoffs between stability, the ship, and the final human record.':'Assign one qualified companion to a manual station that will be lethal.'} background={ASSETS.cinematics.failingDrive} className="failing-drive-game">
+  return <Frame title={confirmed?'Balance a drive that cannot be saved':'Choose who remains behind'} goal={confirmed?'Make three visible tradeoffs between stability, the ship, and the final human record.':'Assign one qualified companion to a manual station that will be lethal.'} background={ASSETS.cinematics.failingDrive} className="failing-drive-game">
     {!confirmed?<>
       <div className="lethal-warning"><strong>NO REMOTE SOLUTION REMAINS</strong><span>The person assigned to the manual interlock will die when the jump field closes. This outcome is not determined by a hidden relationship score.</span></div>
       <div className="companion-candidates">{candidates.map((candidate)=><button key={candidate.id} className={companion===candidate.id?'selected':''} onClick={()=>setCompanion(candidate.id)}><img src={ASSETS.portraits[candidate.id]} alt=""/><div><small>{candidate.station} · TRUST {candidate.trust>=0?'+':''}{candidate.trust}</small><strong>{candidate.name}</strong><p>{candidate.skill}</p><span>{candidate.humanCost}</span></div></button>)}</div>

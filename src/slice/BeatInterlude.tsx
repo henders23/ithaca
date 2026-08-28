@@ -3,28 +3,13 @@ import type { InterludeData } from './content.js'
 
 export function BeatInterlude({ data, game, onContinue }: { data: InterludeData; game: GameState; onContinue: () => void }) {
   const record = captainRecord(data.id, game)
-  const route = data.incomingBeat <= 8
-    ? Array.from({ length: 8 }, (_, index) => index + 1)
-    : data.incomingBeat <= 17
-      ? Array.from({ length: 9 }, (_, index) => index + 9)
-      : data.incomingBeat <= 27
-        ? Array.from({ length: 10 }, (_, index) => index + 18)
-        : Array.from({ length: 5 }, (_, index) => index + 28)
 
   return (
     <section className="beat-interlude" style={{ '--interlude-bg': `url(${data.background})` } as React.CSSProperties}>
       <div className="interlude-scan" aria-hidden="true" />
-      <header className="interlude-masthead">
-        <span>CSV-141 · COMMAND RECORD</span>
-        <strong>VOYAGE INTERLUDE</strong>
-        <small>{data.elapsed}</small>
-      </header>
-
       <div className="interlude-content">
         <div className="interlude-copy">
-          <p className="eyebrow">INCOMING · BEAT {String(data.incomingBeat).padStart(2, '0')}</p>
           <h1>{data.headline}</h1>
-          <p className="interlude-location">{data.location}</p>
           <p className="interlude-recap">{data.recap}</p>
 
           <div className="interlude-briefing">
@@ -46,13 +31,7 @@ export function BeatInterlude({ data, game, onContinue }: { data: InterludeData;
         </div>
 
         <aside className="interlude-telemetry">
-          <div className="telemetry-orbit"><i /><i /><i /><b>{data.incomingBeat}</b></div>
-          <Metric label="HULL INTEGRITY" value={`${game.ship.hull}%`} tone={game.ship.hull < 60 ? 'danger' : 'stable'} />
           <Metric label="DRIVE" value={game.ship.systems.engines.status.toUpperCase()} tone={game.ship.systems.engines.status === 'online' ? 'stable' : 'danger'} />
-          <Metric label="PURSUIT TRACE" value={game.pursuit === 0 ? 'NONE' : String(game.pursuit).padStart(2, '0')} tone={game.pursuit > 8 ? 'danger' : 'stable'} />
-          <div className="beat-route" aria-label="Act one progress">
-            {route.map((beat) => <span key={beat} className={beat < data.incomingBeat ? 'done' : beat === data.incomingBeat ? 'current' : ''}>{String(beat).padStart(2, '0')}</span>)}
-          </div>
         </aside>
       </div>
     </section>

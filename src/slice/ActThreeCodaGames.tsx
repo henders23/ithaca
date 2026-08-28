@@ -18,7 +18,6 @@ export interface CodaResult {
 }
 
 interface FrameProps {
-  beat: string
   title: string
   goal: string
   background: string
@@ -26,9 +25,9 @@ interface FrameProps {
   children: React.ReactNode
 }
 
-function Frame({ beat, title, goal, background, className = '', children }: FrameProps) {
+function Frame({ title, goal, background, className = '', children }: FrameProps) {
   return <section className={`coda-game ${className}`} style={{ '--coda-bg': `url(${background})` } as React.CSSProperties}>
-    <header><p>{beat}</p><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
+    <header><h1>{title}</h1><strong>OBJECTIVE · {goal}</strong></header>
     {children}
   </section>
 }
@@ -89,7 +88,7 @@ export function FalseHomeGame({ onComplete }: { onComplete: (result: CodaResult)
     setRevealed(false)
   }
 
-  return <Frame beat="BEAT 26 · HOTSPOT INVESTIGATION" title="Find the fault in paradise" goal="Test three parts of the remembered Earth and distinguish physical contradiction from grief or imperfect memory." background={ASSETS.cinematics.calypsoFalseHome} className="false-home-game">
+  return <Frame title="Find the fault in paradise" goal="Test three parts of the remembered Earth and distinguish physical contradiction from grief or imperfect memory." background={ASSETS.cinematics.calypsoFalseHome} className="false-home-game">
     <div className="coda-status"><span>LOCATION <b>{roomIndex + 1}/3 · {room.name}</b></span><span>VERIFIED FAULTS <b>{running.correct}</b></span><span>OUTSIDE TIME <b>UNKNOWN</b></span></div>
     <p className="game-instruction">Calypso has Vale’s memories. A detail that merely feels wrong is not enough; choose an observation another person could test.</p>
     <div className="memory-test"><div className="memory-window"><span>ACTIVE RECONSTRUCTION</span><strong>{room.name}</strong><p>{room.prompt}</p><i /></div><div className="memory-options">{room.options.map((option) => <button key={option.id} disabled={revealed} className={`${selected === option.id ? 'selected' : ''} ${revealed && option.correct ? 'correct' : ''} ${revealed && selected === option.id && !option.correct ? 'wrong' : ''}`} onClick={() => setSelected(option.id)}><strong>{option.name}</strong><small>{option.detail}</small>{revealed && option.correct && <span>REPEATABLE EVIDENCE</span>}</button>)}</div></div>
@@ -152,7 +151,7 @@ export function IdentityExitGame({ game, onComplete }: { game: GameState; onComp
     }
     setSelections(next); setGateIndex((value) => value + 1); setSelected(null); setRevealed(false)
   }
-  return <Frame beat="BEAT 27 · IDENTITY MAZE" title="Choose the memory that points outward" goal="Cross three identity gates. Comfort loops back into the simulation; uncertainty and consequence open a route to the real ship." background={ASSETS.cinematics.calypsoMemoryMaze} className="identity-exit-game">
+  return <Frame title="Choose the memory that points outward" goal="Cross three identity gates. Comfort loops back into the simulation; uncertainty and consequence open a route to the real ship." background={ASSETS.cinematics.calypsoMemoryMaze} className="identity-exit-game">
     <div className="coda-status"><span>GATE <b>{gateIndex + 1}/3 · {gate.name}</b></span><span>OUTWARD ANCHORS <b>{current.integrity}</b></span><span>CALYPSO COPY <b>LEARNING</b></span></div>
     <div className="identity-context"><strong>{gate.prompt}</strong><span>{gate.id === 'companion' ? `The maze is using ${companion}’s death. The exact record—not Vale’s preferred ending—must identify the outward path.` : 'Every route is built from a true memory. Only one admits a world beyond Vale.'}</span></div>
     <div className="identity-gates">{gate.options.map((item) => <button key={item.id} disabled={revealed} className={`${selected === item.id ? 'selected' : ''} ${revealed && item.outward ? 'correct' : ''} ${revealed && selected === item.id && !item.outward ? 'wrong' : ''}`} onClick={() => setSelected(item.id)}><strong>{item.name}</strong><small>{item.detail}</small>{revealed && <span>{item.outward ? 'POINTS OUTWARD' : 'RETURNS TO PARADISE'}</span>}</button>)}</div>
@@ -210,7 +209,7 @@ export function VoyageAccountGame({ game, onComplete }: { game: GameState; onCom
     }
     setTones(next); setIndex((value) => value + 1); setSelected(null)
   }
-  return <Frame beat="BEAT 28 · TESTIMONY" title="Tell the voyage that actually happened" goal="Frame four campaign records for the Phaeacian Council. Every omission changes trust, convoy support and the account carried to Earth." background={ASSETS.cinematics.phaeacianCouncil} className="voyage-account-game">
+  return <Frame title="Tell the voyage that actually happened" goal="Frame four campaign records for the Phaeacian Council. Every omission changes trust, convoy support and the account carried to Earth." background={ASSETS.cinematics.phaeacianCouncil} className="voyage-account-game">
     <div className="coda-status"><span>CHAPTER <b>{index + 1}/4 · {chapter.name}</b></span><span>CANDOR <b>{projected.candor >= 0 ? '+' : ''}{projected.candor}</b></span><span>ESCORT COMMITMENT <b>{projected.escortStrength}/5</b></span></div>
     <div className="testimony-record"><span>VERIFIED VOYAGE RECORD</span><strong>{chapter.evidence}</strong><p>{chapter.question}</p></div>
     <div className="account-tones">{ACCOUNT_TONES.map((tone) => <button key={tone.id} className={selected === tone.id ? 'selected' : ''} onClick={() => setSelected(tone.id)}><strong>{tone.name}</strong><small>{tone.detail}</small><span>{tone.effect}</span></button>)}</div>
