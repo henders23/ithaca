@@ -19,6 +19,10 @@ import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES, choirAftermathScene, rescueAfte
 import { ChoirFilterGame, GravityCourseGame, HallucinatedNavigationGame, RouteExtractionGame, TetherRescueGame, choirCarrierForEvidence, type ActThreeResult, type PassageRoute } from './ActThreeGames.js'
 import { CoronalRoutingGame, FailingDriveGame, LivingSunEcologyGame, MutinyControlGame, companionDisplayName, rescuedCrew, type FinalActThreeResult } from './ActThreeFinalGames.js'
 import { ACT_THREE_FINAL_INTERLUDES, ACT_THREE_FINAL_SCENES, companionMemorialScene, heliosAwakensScene, judgmentAftermathScene, lastWordsScene, livingSunInterlude, mutinyConfrontationScene } from './actThreeFinalContent.js'
+import { FalseHomeGame, IdentityExitGame, VoyageAccountGame, type CodaResult } from './ActThreeCodaGames.js'
+import { ACT_THREE_CODA_INTERLUDES, calypsoElapsedYears, calypsoWakingScene, departureTermsScene, hospitalityVerdictScene, immortalityOfferScene, phaeacianWelcomeScene, yearsOutsideScene } from './actThreeCodaContent.js'
+import { CitadelNetworkGame, CommandResonanceGame, ElaraShuttleEscapeGame, EndingChoiceGame, OccupationEvidenceGame, SharedMemoryGame, ShipyardInfiltrationGame, type ActFourResult } from './ActFourGames.js'
+import { ACT_FOUR_INTERLUDES, ENDING_COPY, elaraIntroductionScene, eliasRecognitionScene, fatherDaughterScene, finalContactScene, gateTruthScene } from './actFourContent.js'
 
 const SAVE_KEY = 'ithaca-vertical-slice-v1'
 
@@ -50,6 +54,13 @@ export const SLICE_SCREEN_IDS: readonly SliceScreenId[] = [
   'interlude-23', 'b23-crisis', 'b23-control', 'b23-confrontation', 'b23-awakens',
   'interlude-24', 'b24-two-accusers', 'b24-combat', 'b24-routing', 'b24-aftermath',
   'interlude-25', 'b25-volunteers', 'b25-drive', 'b25-last-words', 'b25-memorial', 'act-three-complete',
+  'interlude-26', 'b26-waking', 'b26-false-home', 'b26-offer',
+  'interlude-27', 'b27-years', 'b27-identity', 'b27-departure',
+  'interlude-28', 'b28-welcome', 'b28-account', 'b28-verdict', 'b28-combat', 'act-four-opening-complete',
+  'interlude-29', 'b29-introduction', 'b29-evidence', 'b29-escape',
+  'interlude-30', 'b30-infiltration', 'b30-recognition', 'b30-reunion',
+  'interlude-31', 'b31-resonance', 'b31-truth', 'b31-combat',
+  'interlude-32', 'b32-orbit', 'b32-network', 'b32-memory', 'b32-contact', 'b32-ending', 'campaign-complete',
 ]
 
 export const VERTICAL_SLICE_BEATS = [
@@ -72,6 +83,8 @@ export const VERTICAL_SLICE_BEATS = [
   '17-prophet-probability',
   '18-choir-dark', '19-silent-passage', '20-twin-terrors', '21-six-taken',
   '22-living-sun', '23-hunger-mutiny', '24-judgment-star', '25-last-companion',
+  '26-island-end-time', '27-refusal-paradise', '28-hospitality-test',
+  '29-child-absent-captain', '30-stranger-own-door', '31-trial-captain', '32-last-god-gate',
 ] as const
 
 export function scyllaCombatConfigForRoute(passageRoute: PassageRoute, playerHull: number): CombatConfig {
@@ -119,6 +132,58 @@ export function judgmentCombatConfig(game: GameState): CombatConfig {
     victoryTitle:'One corridor remains.',
     victoryText:'The anchors are disabled and the coronal knot is displaced. The living nursery remains intact; the drive must still carry the ship through the fire.',
   }
+}
+
+export function phaeacianEscortStrength(game: GameState) {
+  const record = game.evidence.find((item) => item.startsWith('phaeacian-account:'))?.split(':')
+  return Math.max(1, Math.min(5, Number(record?.[3] ?? 1)))
+}
+
+export function phaeacianCombatConfig(game: GameState): CombatConfig {
+  const escort = phaeacianEscortStrength(game)
+  return {
+    beat: 'BEAT 28 · CONVOY DEFENCE',
+    title: 'KEEP THE STRANGER’S ROOF STANDING',
+    objective: 'Disable the Eidolon marking ships before they collapse the civilian sanctuary shields',
+    background: ASSETS.cinematics.phaeacianBattle,
+    playerShip: ASSETS.ships.ithaca,
+    enemyShip: ASSETS.ships.eidolon,
+    enemyName: 'Eidolon hospitality-breaker wing',
+    incomingLabel: 'A memory lance crosses the sanctuary shield and searches for the Ithaca.',
+    targets: [
+      { id: 'marker-one', name: 'Grief marker Alpha', role: 'DISABLE · TARGETING', hp: escort >= 4 ? 1 : 2 },
+      { id: 'marker-two', name: 'Grief marker Beta', role: 'DISABLE · TARGETING', hp: escort === 5 ? 1 : 2 },
+      { id: 'pursuit-relay', name: 'Pursuit relay', role: 'SEVER · REINFORCEMENTS', hp: escort >= 3 ? 2 : 3 },
+      { id: 'sanctuary-vessel', name: 'Sanctuary vessel Nausicaa', role: 'PROTECT · CIVILIANS', hp: 5, protected: true },
+    ],
+    playerHull: game.ship.hull,
+    enemyInterval: 1800 + escort * 180,
+    victoryTitle: 'The shelter holds.',
+    victoryText: `${escort} Phaeacian escort group${escort === 1 ? '' : 's'} hold the civilian shield while the final pursuit relay dies. The convoy has made Vale’s passage home its own risk.`,
+  }
+}
+
+export function citadelCombatConfig(game:GameState):CombatConfig {
+ const alert=Number(game.evidence.find(e=>e.startsWith('shipyard-alert:'))?.split(':')[1]??0)
+ return {beat:'BEAT 31 · HOLD THE WITNESS',title:'KEEP THE TRIAL PUBLIC',objective:'Disable the vanguard erasure systems while preserving the chair and witness archive',background:ASSETS.cinematics.commandCitadel,playerShip:ASSETS.ships.ithaca,enemyShip:ASSETS.ships.eidolon,enemyName:'Eidolon erasure vanguard',incomingLabel:'A vanguard lance searches for the public witness relays.',targets:[
+  {id:'scrubber',name:'Archive scrubber',role:'DISABLE · MEMORY ERASURE',hp:2+Math.min(1,alert)},
+  {id:'silencer',name:'Witness silencer',role:'DISABLE · SIGNAL',hp:2},
+  {id:'breach',name:'Citadel breach key',role:'SEVER · BOARDING',hp:2+Math.min(1,alert)},
+  {id:'chair',name:'Neural command chair',role:'PROTECT · IDENTITY RECORD',hp:5,protected:true},
+  {id:'archive',name:'Public witness archive',role:'PROTECT · TESTIMONY',hp:5,protected:true},
+ ],playerHull:game.ship.hull,enemyInterval:1900-alert*120,victoryTitle:'The record remains public.',victoryText:'The vanguard loses every erasure channel. Earth can survive or fall, but it cannot return to not knowing what the Tide Gate contained.'}
+}
+
+export function finalCombatConfig(game:GameState):CombatConfig {
+ const escort=phaeacianEscortStrength(game)
+ return {beat:'BEAT 32 · FINAL ORBITAL BATTLE',title:'BREAK THE SIEGE, PRESERVE THE BRIDGE',objective:'Disable the siege anchors and open the shared-memory corridor without striking protected witnesses',background:ASSETS.cinematics.earthOrbitSiege,playerShip:ASSETS.ships.ithaca,enemyShip:ASSETS.ships.tidefather,enemyClassName:'tidefather',enemyName:'Tidefather · Eidolon Host',incomingLabel:'Host memory fire crosses Earth’s shelter line.',targets:[
+  {id:'siege-alpha',name:'Siege anchor Alpha',role:'DISABLE · ORBITAL LOCK',hp:escort>=4?2:3},
+  {id:'siege-beta',name:'Siege anchor Beta',role:'DISABLE · ORBITAL LOCK',hp:escort>=5?2:3},
+  {id:'bridge-lock',name:'Memory bridge locks',role:'DISABLE · OPEN CORRIDOR',hp:2},
+  {id:'memory-aperture',name:'Memory aperture',role:'PROTECT · SHARED RECORD',hp:5,protected:true},
+  {id:'nausicaa',name:'Sanctuary vessel Nausicaa',role:'PROTECT · PUBLIC WITNESS',hp:6,protected:true},
+  {id:'earth-ring',name:'Earth civilian ring',role:'PROTECT · HOME',hp:8,protected:true},
+ ],playerHull:game.ship.hull,enemyInterval:1500+escort*140,victoryTitle:'The memory corridor opens.',victoryText:'The siege anchors fail without destroying the public witnesses. Tactical victory creates a conversation; it does not decide the peace.'}
 }
 
 interface SliceSave {
@@ -442,6 +507,67 @@ export function SliceGame() {
     completeActivity('25-last-companion','failing-drive','b25-last-words',result.choiceId,effects)
   }
 
+  const completeFalseHome = (result: CodaResult) => {
+    completeActivity('26-island-end-time', 'false-home', 'b26-offer', result.choiceId, [
+      { kind: 'add-evidence', evidenceId: `calypso-years:${result.externalYears ?? 9}` },
+      { kind: 'add-evidence', evidenceId: `false-home-faults:${result.correct ?? 0}` },
+      ...(result.success ? [{ kind: 'relationship', character: 'elara-vale', delta: 1 } as CampaignEffect] : []),
+    ])
+  }
+
+  const answerCalypsoOffer = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = choice.id === 'demand-real-world'
+      ? [{ kind: 'relationship', character: 'elara-vale', delta: 2 }, { kind: 'add-evidence', evidenceId: 'calypso-offer-refused-immediately' }]
+      : choice.id === 'ask-one-last-day'
+        ? [{ kind: 'relationship', character: 'elara-vale', delta: -1 }, { kind: 'add-evidence', evidenceId: 'calypso-final-day-accepted' }, { kind: 'add-evidence', evidenceId: 'calypso-extra-years:4' }]
+        : [{ kind: 'add-evidence', evidenceId: 'calypso-preserve-mapped' }, { kind: 'relationship', character: 'elias', delta: 1 }]
+    completeActivity('26-island-end-time', 'immortality-offer', 'interlude-27', choice.id, effects, true)
+  }
+
+  const completeIdentityExit = (result: CodaResult) => {
+    completeActivity('27-refusal-paradise', 'identity-exit', 'b27-departure', result.choiceId, [
+      { kind: 'add-evidence', evidenceId: `identity-integrity:${result.integrity ?? 0}` },
+      { kind: 'add-evidence', evidenceId: `calypso-copy-fidelity:${result.copyFidelity ?? 0}` },
+      ...(result.success ? [{ kind: 'relationship', character: 'elara-vale', delta: 1 } as CampaignEffect] : []),
+    ])
+  }
+
+  const chooseDepartureTerms = (choice: DialogueChoice) => {
+    const effects: CampaignEffect[] = [
+      { kind: 'set-flag', flag: 'calypso-copy-created' },
+      { kind: 'add-evidence', evidenceId: `calypso-departure:${choice.id}` },
+      ...(choice.id === 'leave-copy-the-truth'
+        ? [{ kind: 'add-evidence', evidenceId: 'copy-received-complete-voyage' } as CampaignEffect, { kind: 'relationship', character: 'helen-morozova', delta: 1 } as CampaignEffect]
+        : choice.id === 'bargain-for-future-contact'
+          ? [{ kind: 'add-evidence', evidenceId: 'copy-contact-promised' } as CampaignEffect, { kind: 'relationship', character: 'elias', delta: 1 } as CampaignEffect]
+          : [{ kind: 'damage-hull', amount: 6 } as CampaignEffect, { kind: 'add-scar', scarId: 'calypso-departure-fracture' } as CampaignEffect]),
+    ]
+    completeActivity('27-refusal-paradise', 'terms-of-departure', 'interlude-28', choice.id, effects, true)
+  }
+
+  const completeVoyageAccount = (result: CodaResult) => {
+    const candor = result.candor ?? 0
+    const effects: CampaignEffect[] = [
+      { kind: 'add-evidence', evidenceId: `phaeacian-account:${candor}:${result.coherence ?? 0}:${result.escortStrength ?? 1}` },
+      { kind: 'repair-hull', amount: 24 },
+      { kind: 'repair-system', system: 'shields', amount: 20 },
+      ...(candor >= 4
+        ? [{ kind: 'set-flag', flag: 'phaeacians-told-truth' } as CampaignEffect, { kind: 'relationship', character: 'helen-morozova', delta: 2 } as CampaignEffect]
+        : [{ kind: 'set-flag', flag: 'phaeacians-deceived' } as CampaignEffect, { kind: 'relationship', character: 'helen-morozova', delta: -2 } as CampaignEffect]),
+    ]
+    completeActivity('28-hospitality-test', 'tell-the-voyage', 'b28-verdict', result.choiceId, effects)
+  }
+
+  const completeOccupationEvidence=(result:ActFourResult)=>completeActivity('29-child-absent-captain','occupation-evidence','b29-escape',result.choiceId,[{kind:'add-evidence',evidenceId:`occupation-evidence:${result.correct??0}`},{kind:'relationship',character:'elara-vale',delta:result.success?2:-1}])
+  const completeElaraEscape=(result:ActFourResult)=>completeActivity('29-child-absent-captain','shuttle-escape','interlude-30',result.choiceId,[{kind:'add-evidence',evidenceId:`elara-shuttle-damage:${result.hullDamage??0}`},{kind:'add-evidence',evidenceId:`elara-escape-mistakes:${result.mistakes??0}`},{kind:'relationship',character:'elara-vale',delta:result.success?1:0}],true)
+  const completeInfiltration=(result:ActFourResult)=>completeActivity('30-stranger-own-door','shipyard-infiltration','b30-recognition',result.choiceId,[{kind:'add-evidence',evidenceId:`shipyard-alert:${result.alert??0}`}])
+  const chooseReunion=(choice:DialogueChoice)=>{const effects:CampaignEffect[]=choice.id==='reclaim-command'?[{kind:'set-flag',flag:'elara-opposes-vale'},{kind:'clear-flag',flag:'elara-trusts-vale'},{kind:'relationship',character:'elara-vale',delta:-3}]:[{kind:'set-flag',flag:'elara-trusts-vale'},{kind:'clear-flag',flag:'elara-opposes-vale'},{kind:'relationship',character:'elara-vale',delta:choice.id==='surrender-command-codes'?3:2},{kind:'add-evidence',evidenceId:`reunion:${choice.id}`}];completeActivity('30-stranger-own-door','father-and-daughter','interlude-31',choice.id,effects,true)}
+  const completeResonance=(result:ActFourResult)=>completeActivity('31-trial-captain','command-resonance','b31-truth',result.choiceId,[{kind:'add-evidence',evidenceId:`command-resonance:${result.correct??0}`},...(result.success?[{kind:'relationship',character:'elara-vale',delta:1} as CampaignEffect]:[])])
+  const chooseGateTruth=(choice:DialogueChoice)=>completeActivity('31-trial-captain','truth-of-gate','b31-combat',choice.id,[{kind:'set-flag',flag:'tide-gate-crime-exposed'},{kind:'add-evidence',evidenceId:`public-gate-position:${choice.id}`},{kind:'relationship',character:'elara-vale',delta:choice.id==='weaponize-conspiracy'?-2:2}])
+  const completeNetwork=(result:ActFourResult)=>completeActivity('32-last-god-gate','citadel-network','b32-memory',result.choiceId,[{kind:'add-evidence',evidenceId:`citadel-integrity:${result.correct??0}`},...(result.success?[{kind:'relationship',character:'elara-vale',delta:1} as CampaignEffect]:[])])
+  const completeMemoryBridge=(result:ActFourResult)=>completeActivity('32-last-god-gate','shared-memory','b32-contact',result.choiceId,[{kind:'add-evidence',evidenceId:`memory-bridge:${result.bridge??0}`}])
+  const chooseEnding=(result:ActFourResult)=>{if(!result.ending)return;completeActivity('32-last-god-gate','last-choice','campaign-complete',result.choiceId,[{kind:'set-ending',ending:result.ending}],true)}
+
   const passageRoute: PassageRoute = game.flags.includes('charybdis-wide-course') ? 'charybdis-wide' : 'scylla-close'
 
   const gateCombat = useMemo<CombatConfig>(() => ({
@@ -557,6 +683,9 @@ export function SliceGame() {
 
   const scyllaCombat = useMemo<CombatConfig>(() => scyllaCombatConfigForRoute(passageRoute, game.ship.hull), [game.ship.hull, passageRoute])
   const heliosCombat = useMemo<CombatConfig>(() => judgmentCombatConfig(game), [game])
+  const phaeacianCombat = useMemo<CombatConfig>(() => phaeacianCombatConfig(game), [game])
+  const citadelCombat = useMemo<CombatConfig>(()=>citadelCombatConfig(game),[game])
+  const finalCombat = useMemo<CombatConfig>(()=>finalCombatConfig(game),[game])
 
   const renderScreen = () => {
     switch (screen) {
@@ -800,7 +929,40 @@ export function SliceGame() {
       case 'b25-drive': return <FailingDriveGame game={game} onComplete={completeFailingDrive} />
       case 'b25-last-words': return <DialogueScene key={screen} scene={lastWordsScene(game)} onContinue={()=>completeActivity('25-last-companion','last-words','b25-memorial','final-words-recorded',[],true)} />
       case 'b25-memorial': return <DialogueScene key={screen} scene={companionMemorialScene(game)} onContinue={()=>setScreen('act-three-complete')} />
-      case 'act-three-complete': return <ActThreeCompletionScreen game={game} onRestart={startNew} />
+      case 'act-three-complete': return <ActThreeCompletionScreen game={game} onRestart={startNew} onContinue={()=>setScreen('interlude-26')} />
+      case 'interlude-26': return <BeatInterlude data={ACT_THREE_CODA_INTERLUDES['interlude-26']} game={game} onContinue={()=>setScreen('b26-waking')} />
+      case 'b26-waking': return <DialogueScene key={screen} scene={calypsoWakingScene(game)} onContinue={()=>setScreen('b26-false-home')} />
+      case 'b26-false-home': return <FalseHomeGame onComplete={completeFalseHome} />
+      case 'b26-offer': return <DialogueScene key={screen} scene={immortalityOfferScene(game)} onChoice={answerCalypsoOffer} />
+      case 'interlude-27': return <BeatInterlude data={ACT_THREE_CODA_INTERLUDES['interlude-27']} game={game} onContinue={()=>setScreen('b27-years')} />
+      case 'b27-years': return <DialogueScene key={screen} scene={yearsOutsideScene(game)} onContinue={()=>setScreen('b27-identity')} />
+      case 'b27-identity': return <IdentityExitGame game={game} onComplete={completeIdentityExit} />
+      case 'b27-departure': return <DialogueScene key={screen} scene={departureTermsScene(game)} onChoice={chooseDepartureTerms} />
+      case 'interlude-28': return <BeatInterlude data={ACT_THREE_CODA_INTERLUDES['interlude-28']} game={game} onContinue={()=>setScreen('b28-welcome')} />
+      case 'b28-welcome': return <DialogueScene key={screen} scene={phaeacianWelcomeScene(game)} onContinue={()=>setScreen('b28-account')} />
+      case 'b28-account': return <VoyageAccountGame game={game} onComplete={completeVoyageAccount} />
+      case 'b28-verdict': return <DialogueScene key={screen} scene={hospitalityVerdictScene(game)} onContinue={()=>completeActivity('28-hospitality-test','hospitality-verdict','b28-combat','passage-granted')} />
+      case 'b28-combat': return <CinematicCombat config={phaeacianCombat} onComplete={(result)=>completeActivity('28-hospitality-test','defend-convoy','act-four-opening-complete','convoy-shield-held',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:-12},{kind:'add-evidence',evidenceId:`phaeacian-defence-score:${result.score}`}],true)} />
+      case 'act-four-opening-complete': return <ActFourOpeningCompletionScreen game={game} onRestart={startNew} onContinue={()=>setScreen('interlude-29')} />
+      case 'interlude-29': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-29']} game={game} onContinue={()=>setScreen('b29-introduction')} />
+      case 'b29-introduction': return <DialogueScene key={screen} scene={elaraIntroductionScene(game)} onContinue={()=>completeActivity('29-child-absent-captain','elara-introduction','b29-evidence','elara-takes-control')} />
+      case 'b29-evidence': return <OccupationEvidenceGame onComplete={completeOccupationEvidence} />
+      case 'b29-escape': return <ElaraShuttleEscapeGame onComplete={completeElaraEscape} />
+      case 'interlude-30': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-30']} game={game} onContinue={()=>setScreen('b30-infiltration')} />
+      case 'b30-infiltration': return <ShipyardInfiltrationGame onComplete={completeInfiltration} />
+      case 'b30-recognition': return <DialogueScene key={screen} scene={eliasRecognitionScene(game)} onContinue={()=>completeActivity('30-stranger-own-door','elias-recognition','b30-reunion','private-gesture-recognized')} />
+      case 'b30-reunion': return <DialogueScene key={screen} scene={fatherDaughterScene(game)} onChoice={chooseReunion} />
+      case 'interlude-31': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-31']} game={game} onContinue={()=>setScreen('b31-resonance')} />
+      case 'b31-resonance': return <CommandResonanceGame onComplete={completeResonance} />
+      case 'b31-truth': return <DialogueScene key={screen} scene={gateTruthScene(game)} onChoice={chooseGateTruth} />
+      case 'b31-combat': return <CinematicCombat config={citadelCombat} onComplete={r=>completeActivity('31-trial-captain','hold-citadel','interlude-32','public-record-held',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'repair-hull',amount:18},{kind:'add-evidence',evidenceId:`citadel-defence-score:${r.score}`}],true)} />
+      case 'interlude-32': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-32']} game={game} onContinue={()=>setScreen('b32-orbit')} />
+      case 'b32-orbit': return <CinematicCombat config={finalCombat} onComplete={r=>completeActivity('32-last-god-gate','final-orbital-battle','b32-network','memory-corridor-open',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'add-evidence',evidenceId:`final-orbit-score:${r.score}`}])} />
+      case 'b32-network': return <CitadelNetworkGame onComplete={completeNetwork} />
+      case 'b32-memory': return <SharedMemoryGame onComplete={completeMemoryBridge} />
+      case 'b32-contact': return <DialogueScene key={screen} scene={finalContactScene(game)} onContinue={()=>setScreen('b32-ending')} />
+      case 'b32-ending': return <EndingChoiceGame game={game} onComplete={chooseEnding} />
+      case 'campaign-complete': return <CampaignCompletionScreen game={game} onRestart={startNew} />
     }
   }
 
@@ -827,21 +989,21 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
         </div>
       </div>
-      <footer><span>ACTS I—III · PLAYABLE CAMPAIGN</span><strong>BEATS 01—25</strong></footer>
+      <footer><span>ACTS I—IV · COMPLETE PLAYABLE CAMPAIGN</span><strong>BEATS 01—32</strong></footer>
     </section>
   )
 }
 
 function VoyageHud({ game }: { game: GameState }) {
   const completed = game.campaign.completedBeatIds.filter((id) => VERTICAL_SLICE_BEATS.includes(id as typeof VERTICAL_SLICE_BEATS[number])).length
-  const act = completed >= 17 ? 'ACT III' : completed >= 8 ? 'ACT II' : 'ACT I'
-  const withinAct = completed >= 17 ? Math.min(10, completed - 16) : completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
+  const act = completed >= 27 ? 'ACT IV' : completed >= 17 ? 'ACT III' : completed >= 8 ? 'ACT II' : 'ACT I'
+  const withinAct = completed >= 27 ? Math.min(5, completed - 26) : completed >= 17 ? Math.min(10, completed - 16) : completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
   return (
     <aside className="voyage-hud" aria-label="Voyage status">
       <div><span>CSV</span><strong>ITHACA</strong></div>
       <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
       <div><span>PURSUIT</span><strong>{game.pursuit}</strong></div>
-      <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : act === 'ACT II' ? 9 : 10}</strong></div>
+      <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : act === 'ACT II' ? 9 : act === 'ACT III' ? 10 : 5}</strong></div>
       <small>AUTOSAVED</small>
     </aside>
   )
@@ -945,10 +1107,26 @@ function ActThreeSliceCompletionScreen({game,onRestart,onContinue}:{game:GameSta
  return <section className="completion-screen act-three-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.scyllaRescue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE I COMPLETE</p><h1>The road has started taking names.</h1><p>The Ithaca resisted the Choir, crossed between Scylla and Charybdis, and carried a permanent ledger of the rescue toward Helios. The route survived; the ship and the people aboard it did not emerge unchanged.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>RECOVERED</span><strong>{rescueLabel}</strong></div><div><span>PURSUIT</span><strong>{game.pursuit}</strong></div><div><span>NEXT</span><strong>HELIOS</strong></div></div><div className="act-coda"><span>RESCUE LEDGER</span><strong>{rescued.length?rescued.join(' · '):'NO NAMES RETURNED'}</strong><p>Ahead waits the living sun TIRESIAS forbade the crew to consume. Hunger will make understanding insufficient.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Enter Helios <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
 }
 
-function ActThreeCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}) {
+function ActThreeCompletionScreen({game,onRestart,onContinue}:{game:GameState;onRestart:()=>void;onContinue:()=>void}) {
  const companion=game.evidence.find((item)=>item.startsWith('last-companion:'))?.slice('last-companion:'.length)
  const companionName=companion?companionDisplayName(companion as Parameters<typeof companionDisplayName>[0]):'THE LAST COMPANION'
  const remnant=game.flags.includes('helios-remnant-preserved')?'PRESERVED':'CONSUMED'
  const record=game.flags.includes('last-companion-record-preserved')?'FINAL WORDS HELD':'SIGNAL FRAGMENTED'
- return <section className="completion-screen act-three-finale helios-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.lastCompanionMemorial})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE II COMPLETE · THE SEA TAKES ITS PRICE</p><h1>One voice fewer. One impossible shore ahead.</h1><p>The Ithaca understood Helios, consumed one of its living forms, survived the judgment that followed, and escaped only because a companion remained inside the dying drive. The ship continues as a crippled core carrying grief it can no longer describe as collateral.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>SOLAR REMNANT</span><strong>{remnant}</strong></div><div><span>LAST COMPANION</span><strong>{companionName.toUpperCase()}</strong></div><div><span>RECORD</span><strong>{record}</strong></div></div><div className="act-coda"><span>NEXT · ACT III</span><strong>THE ISLAND AT THE END OF TIME</strong><p>An ocean, a blue sky and the Earth Vale remembers are waiting inside a place that cannot exist.</p></div><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></section>
+ return <section className="completion-screen act-three-finale helios-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.lastCompanionMemorial})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III · SLICE II COMPLETE · THE SEA TAKES ITS PRICE</p><h1>One voice fewer. One impossible shore ahead.</h1><p>The Ithaca understood Helios, consumed one of its living forms, survived the judgment that followed, and escaped only because a companion remained inside the dying drive. The ship continues as a crippled core carrying grief it can no longer describe as collateral.</p><div className="completion-stats"><div><span>HULL</span><strong>{game.ship.hull}%</strong></div><div><span>SOLAR REMNANT</span><strong>{remnant}</strong></div><div><span>LAST COMPANION</span><strong>{companionName.toUpperCase()}</strong></div><div><span>RECORD</span><strong>{record}</strong></div></div><div className="act-coda"><span>NEXT · ACT III</span><strong>THE ISLAND AT THE END OF TIME</strong><p>An ocean, a blue sky and the Earth Vale remembers are waiting inside a place that cannot exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Walk onto the impossible shore <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
 }
+
+function ActFourOpeningCompletionScreen({game,onRestart,onContinue}:{game:GameState;onRestart:()=>void;onContinue:()=>void}) {
+ const account=game.evidence.find((item)=>item.startsWith('phaeacian-account:'))?.split(':')??[]
+ const candor=Number(account[1]??0)
+ const escort=phaeacianEscortStrength(game)
+ const years=calypsoElapsedYears(game)
+ const copy=game.flags.includes('calypso-copy-created')?'ACTIVE':'UNCONFIRMED'
+ return <section className="completion-screen act-four-finale" style={{'--complete-bg':`url(${ASSETS.cinematics.phaeacianConvoy})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">ACT III COMPLETE · ACT IV HAS BEGUN</p><h1>For the first time, home is a destination rather than a memory.</h1><p>Vale refused a perfect Earth, left a second self inside Calypso’s preserve and placed the voyage before strangers who offered shelter without acquittal. The Phaeacian convoy has broken its neutrality to carry the Ithaca toward the real Earth.</p><div className="completion-stats"><div><span>YEARS OUTSIDE</span><strong>{years}</strong></div><div><span>CALYPSO COPY</span><strong>{copy}</strong></div><div><span>ACCOUNT</span><strong>{candor>=4?'WITNESS':candor>=0?'CONTESTED':'DECEPTIVE'}</strong></div><div><span>ESCORT GROUPS</span><strong>{escort}</strong></div></div><div className="act-coda"><span>NEXT · BEAT 29</span><strong>THE CHILD OF THE ABSENT CAPTAIN</strong><p>On Earth, Elara Vale receives the first credible claim that her father is returning—and evidence that another version of him may exist.</p></div><div className="completion-actions"><button className="primary-action" onClick={onContinue}>Take control of Elara <span>→</span></button><button className="secondary-action" onClick={onRestart}>Replay the voyage</button></div></div></section>
+}
+
+function CampaignCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}){
+ const ending=game.ending??'exile';const copy=ENDING_COPY[ending];const companion=lastCompanionNameForEnding(game)
+ return <section className={`completion-screen campaign-ending ending-${ending}`} style={{'--complete-bg':`url(${ASSETS.cinematics.earthEpilogue})`} as React.CSSProperties}><div className="completion-card"><p className="eyebrow">VOYAGE COMPLETE · {ending.toUpperCase()}</p><h1>{copy.title}</h1><p>{copy.text}</p><div className="completion-stats"><div><span>BEATS</span><strong>32 / 32</strong></div><div><span>ENDING</span><strong>{ending.toUpperCase()}</strong></div><div><span>LAST COMPANION</span><strong>{companion.toUpperCase()}</strong></div><div><span>PUBLIC RECORD</span><strong>{game.flags.includes('tide-gate-crime-exposed')?'PRESERVED':'CONTESTED'}</strong></div></div><div className="act-coda"><span>THE ODYSSEY ENDS</span><strong>HOME IS WHERE ANOTHER PERSON CAN ANSWER.</strong><p>Your complete action log remains deterministic: every relationship, casualty, omission, rescue and act of restraint led to the ending that was available.</p></div><button className="secondary-action" onClick={onRestart}>Begin another voyage</button></div></section>
+}
+
+function lastCompanionNameForEnding(game:GameState){const id=game.evidence.find(e=>e.startsWith('last-companion:'))?.slice('last-companion:'.length);return companionDisplayName(id as Parameters<typeof companionDisplayName>[0])}

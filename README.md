@@ -6,16 +6,16 @@ This repository is a clean rebuild. It does not inherit the procedural galaxy or
 
 ## Playable campaign
 
-The browser opens directly into a cinematic campaign covering the first twenty-five sequential set pieces—complete Acts I and II and the first eight beats of Act III:
+The browser opens directly into the complete thirty-two-beat cinematic campaign across all four acts:
 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
 - objective, survival, boss-passage and protected-target ship combat encounters with persistent damage;
 - weapon-specific projectiles, shield impacts, damage feedback and synthesized combat audio;
-- twenty-eight registered puzzles and action minigames, plus explorable character hubs;
+- thirty-seven registered puzzles and action minigames, plus explorable character hubs;
 - choices that persist in the deterministic campaign state;
 - autosave and continue support in local storage;
-- fifty-two original, optimized backgrounds, portraits and combat assets.
+- sixty-seven original, optimized backgrounds, portraits and combat assets.
 
 The second playable slice completes Act I across Beats 05–08: Vale chooses the identity sent into the dark, survives the Tidefather’s first wrath, bargains for a spatial current in the Aeolian cloud cities, and judges the conspiracy that destroys the apparent route home.
 
@@ -23,7 +23,9 @@ The first Act II slice covers Beats 09–12: the Ithaca runs a harbour that cons
 
 The second Act II slice covers Beats 13–17: the ship enters the Mourning Archive as a corpse, reconstructs the falsified Gate record, answers Rao’s unburied consciousness, receives Elara’s challenge from Earth and derives the Act III route from TIRESIAS.
 
-Act III currently covers Beats 18–25: the crew resists the Choir, crosses between Scylla and Charybdis, carries an exact rescue ledger into the living Helios system, breaks under hunger, survives two claims of vengeance and loses one relationship-defined companion keeping the final jump alive.
+Act III covers Beats 18–27: the crew resists the Choir, crosses between Scylla and Charybdis, carries an exact rescue ledger into the living Helios system, breaks under hunger, survives two claims of vengeance, loses one relationship-defined companion and then refuses Calypso’s perfect reconstruction of Earth.
+
+Act IV covers Beats 28–32: Vale gives a state-built account to the Phaeacians; control passes to Elara for an occupation investigation and shuttle escape; Vale infiltrates his altered home; ELIAS recognizes private continuity without granting moral authority; the command-chair trial exposes the Tide Gate as a cradle; and a three-front finale resolves through five campaign-earned endings.
 
 ## Run locally
 

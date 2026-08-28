@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { CAMPAIGN_BEATS } from '../src/campaign/beats.js'
 import { DIALOGUE_SCENES, INTERLUDES, type DialogueSceneData } from '../src/slice/content.js'
-import { ACT_THREE_CHARACTER_ARCS, ACT_TWO_CHARACTER_ARCS, CHARACTER_ARCS, EXPERIENCE_BEATS, EXPERIENCE_MINIGAMES } from '../src/slice/experienceManifest.js'
+import { ACT_FOUR_CHARACTER_ARCS, ACT_THREE_CHARACTER_ARCS, ACT_THREE_CODA_CHARACTER_ARCS, ACT_TWO_CHARACTER_ARCS, CHARACTER_ARCS, EXPERIENCE_BEATS, EXPERIENCE_MINIGAMES } from '../src/slice/experienceManifest.js'
 import { SLICE_TWO_INTERLUDES, SLICE_TWO_SCENES } from '../src/slice/sliceTwoContent.js'
 import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES, cireneBargainScene, departureScene } from '../src/slice/actTwoContent.js'
 import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from '../src/slice/actTwoFinalContent.js'
 import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES } from '../src/slice/actThreeContent.js'
 import { ACT_THREE_FINAL_INTERLUDES, ACT_THREE_FINAL_SCENES, companionMemorialScene, heliosAwakensScene, judgmentAftermathScene, lastWordsScene, mutinyConfrontationScene } from '../src/slice/actThreeFinalContent.js'
+import { ACT_THREE_CODA_INTERLUDES, calypsoWakingScene, departureTermsScene, hospitalityVerdictScene, immortalityOfferScene, phaeacianWelcomeScene, yearsOutsideScene } from '../src/slice/actThreeCodaContent.js'
+import { ACT_FOUR_INTERLUDES, elaraIntroductionScene, eliasRecognitionScene, fatherDaughterScene, finalContactScene, gateTruthScene } from '../src/slice/actFourContent.js'
 import { createInitialState } from '../src/state/initial.js'
 
 describe('adversarial experience contract', () => {
   it('requires every playable beat to pass a context → complication → interpretation → payoff ladder', () => {
-    expect(EXPERIENCE_BEATS).toHaveLength(25)
+    expect(EXPERIENCE_BEATS).toHaveLength(32)
     for (const [index, beat] of EXPERIENCE_BEATS.entries()) {
       expect(beat.beat).toBe(index + 1)
       expect(beat.playerQuestion.length).toBeGreaterThan(45)
@@ -22,7 +24,7 @@ describe('adversarial experience contract', () => {
   })
 
   it('rejects minigames without explicit goal, stakes, readable feedback and narrative consequence', () => {
-    expect(EXPERIENCE_MINIGAMES).toHaveLength(28)
+    expect(EXPERIENCE_MINIGAMES).toHaveLength(37)
     expect(new Set(EXPERIENCE_MINIGAMES.map((game) => game.id)).size).toBe(EXPERIENCE_MINIGAMES.length)
     for (const game of EXPERIENCE_MINIGAMES) {
       expect(game.goal.length, `${game.id} goal`).toBeGreaterThan(45)
@@ -38,7 +40,7 @@ describe('adversarial experience contract', () => {
   })
 
   it('keeps the quality manifest aligned with the playable campaign registry', () => {
-    const registered = CAMPAIGN_BEATS.slice(0, 25).flatMap((beat) => beat.activities.filter((activity) => activity.kind === 'minigame').map((activity) => activity.id))
+    const registered = CAMPAIGN_BEATS.flatMap((beat) => beat.activities.filter((activity) => activity.kind === 'minigame').map((activity) => activity.id))
     expect(EXPERIENCE_MINIGAMES.map((game) => game.id)).toEqual(registered)
   })
 
@@ -66,9 +68,22 @@ describe('adversarial experience contract', () => {
     }
   })
 
+  it('carries every core companion through the Calypso and hospitality coda', () => {
+    expect(Object.keys(ACT_THREE_CODA_CHARACTER_ARCS)).toEqual(Object.keys(CHARACTER_ARCS))
+    for (const [character, arc] of Object.entries(ACT_THREE_CODA_CHARACTER_ARCS)) {
+      expect(arc, `${character} coda arc`).toHaveLength(3)
+      for (const stage of arc) expect(stage.length).toBeGreaterThan(40)
+    }
+  })
+
+  it('completes every core companion arc through the homecoming',()=>{
+    expect(Object.keys(ACT_FOUR_CHARACTER_ARCS)).toEqual(Object.keys(CHARACTER_ARCS))
+    for(const [character,arc] of Object.entries(ACT_FOUR_CHARACTER_ARCS)){expect(arc,`${character} Act IV arc`).toHaveLength(4);for(const stage of arc)expect(stage.length).toBeGreaterThan(35)}
+  })
+
   it('paces decisions only after developed exchanges with legible consequences', () => {
     const blankGame = createInitialState('quality-test')
-    const scenes: DialogueSceneData[] = [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES), cireneBargainScene(blankGame), departureScene(blankGame), mutinyConfrontationScene(blankGame), heliosAwakensScene(blankGame), judgmentAftermathScene(blankGame), lastWordsScene(blankGame), companionMemorialScene(blankGame)]
+    const scenes: DialogueSceneData[] = [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES), cireneBargainScene(blankGame), departureScene(blankGame), mutinyConfrontationScene(blankGame), heliosAwakensScene(blankGame), judgmentAftermathScene(blankGame), lastWordsScene(blankGame), companionMemorialScene(blankGame), calypsoWakingScene(blankGame), immortalityOfferScene(blankGame), yearsOutsideScene(blankGame), departureTermsScene(blankGame), phaeacianWelcomeScene(blankGame), hospitalityVerdictScene(blankGame),elaraIntroductionScene(blankGame),eliasRecognitionScene(blankGame),fatherDaughterScene(blankGame),gateTruthScene(blankGame),finalContactScene(blankGame)]
     for (const scene of scenes) {
       expect(scene.lines.length, `${scene.title} is moving too quickly`).toBeGreaterThanOrEqual(5)
       expect(scene.lines.length, `${scene.title} is overlong`).toBeLessThanOrEqual(8)
@@ -80,8 +95,8 @@ describe('adversarial experience contract', () => {
   })
 
   it('briefs every transition after Beat 1 with state, danger and a concrete objective', () => {
-    const interludes = [...Object.values(INTERLUDES), ...Object.values(SLICE_TWO_INTERLUDES), ...Object.values(ACT_TWO_INTERLUDES), ...Object.values(ACT_TWO_FINAL_INTERLUDES), ...Object.values(ACT_THREE_INTERLUDES), ...Object.values(ACT_THREE_FINAL_INTERLUDES)]
-    expect(interludes).toHaveLength(24)
+    const interludes = [...Object.values(INTERLUDES), ...Object.values(SLICE_TWO_INTERLUDES), ...Object.values(ACT_TWO_INTERLUDES), ...Object.values(ACT_TWO_FINAL_INTERLUDES), ...Object.values(ACT_THREE_INTERLUDES), ...Object.values(ACT_THREE_FINAL_INTERLUDES), ...Object.values(ACT_THREE_CODA_INTERLUDES),...Object.values(ACT_FOUR_INTERLUDES)]
+    expect(interludes).toHaveLength(31)
     for (const interlude of interludes) {
       expect(interlude.recap.length).toBeGreaterThan(120)
       expect(interlude.situation).toHaveLength(3)

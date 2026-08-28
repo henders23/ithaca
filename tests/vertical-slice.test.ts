@@ -8,6 +8,8 @@ import { ACT_TWO_INTERLUDES, ACT_TWO_SCENES } from '../src/slice/actTwoContent.j
 import { ACT_TWO_FINAL_INTERLUDES, ACT_TWO_FINAL_SCENES } from '../src/slice/actTwoFinalContent.js'
 import { ACT_THREE_INTERLUDES, ACT_THREE_SCENES, rescueAftermathScene } from '../src/slice/actThreeContent.js'
 import { ACT_THREE_FINAL_INTERLUDES, ACT_THREE_FINAL_SCENES } from '../src/slice/actThreeFinalContent.js'
+import { ACT_THREE_CODA_INTERLUDES, calypsoWakingScene, departureTermsScene, hospitalityVerdictScene, immortalityOfferScene, phaeacianWelcomeScene, yearsOutsideScene } from '../src/slice/actThreeCodaContent.js'
+import { ACT_FOUR_INTERLUDES, elaraIntroductionScene, eliasRecognitionScene, fatherDaughterScene, finalContactScene, gateTruthScene } from '../src/slice/actFourContent.js'
 import { COURSE_PHASES, RESCUE_CREW, applyRescue, choirCarrierForEvidence, evaluateChoirFilter, evaluateRouteSelection, navigationChoiceIsReal, rescueHullDamage, rescueOffer, transferPower, vectorsMatch, type ChoirBandId, type RescueState } from '../src/slice/ActThreeGames.js'
 import { combatObjectiveComplete, combatObjectiveProgress, type LiveCombatTarget } from '../src/slice/CinematicCombat.js'
 import { SLICE_SCREEN_IDS, VERTICAL_SLICE_BEATS } from '../src/slice/SliceGame.js'
@@ -16,10 +18,10 @@ import { reduceGame } from '../src/state/reducer.js'
 
 describe('playable vertical slice', () => {
   it('registers one continuous and unique screen sequence', () => {
-    expect(SLICE_SCREEN_IDS).toHaveLength(120)
+    expect(SLICE_SCREEN_IDS).toHaveLength(153)
     expect(new Set(SLICE_SCREEN_IDS).size).toBe(SLICE_SCREEN_IDS.length)
     expect(SLICE_SCREEN_IDS[0]).toBe('title')
-    expect(SLICE_SCREEN_IDS.at(-1)).toBe('act-three-complete')
+    expect(SLICE_SCREEN_IDS.at(-1)).toBe('campaign-complete')
     expect(VERTICAL_SLICE_BEATS).toEqual([
       '01-burning-tide-gate',
       '02-wrong-stars',
@@ -40,12 +42,14 @@ describe('playable vertical slice', () => {
       '17-prophet-probability',
       '18-choir-dark', '19-silent-passage', '20-twin-terrors', '21-six-taken',
       '22-living-sun', '23-hunger-mutiny', '24-judgment-star', '25-last-companion',
+      '26-island-end-time', '27-refusal-paradise', '28-hospitality-test',
+      '29-child-absent-captain', '30-stranger-own-door', '31-trial-captain', '32-last-god-gate',
     ])
   })
 
   it('briefs the player between every completed beat in the slice', () => {
-    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES, ...ACT_TWO_FINAL_INTERLUDES, ...ACT_THREE_INTERLUDES, ...ACT_THREE_FINAL_INTERLUDES }
-    expect(Object.keys(interludes)).toHaveLength(24)
+    const interludes = { ...INTERLUDES, ...SLICE_TWO_INTERLUDES, ...ACT_TWO_INTERLUDES, ...ACT_TWO_FINAL_INTERLUDES, ...ACT_THREE_INTERLUDES, ...ACT_THREE_FINAL_INTERLUDES, ...ACT_THREE_CODA_INTERLUDES, ...ACT_FOUR_INTERLUDES }
+    expect(Object.keys(interludes)).toHaveLength(31)
     for (const interlude of Object.values(interludes)) {
       expect(interlude.recap.length).toBeGreaterThan(100)
       expect(interlude.situation).toHaveLength(3)
@@ -54,7 +58,7 @@ describe('playable vertical slice', () => {
   })
 
   it('ships every cinematic, portrait and combat asset used by the slice', () => {
-    expect(SLICE_ASSET_PATHS.length).toBe(52)
+    expect(SLICE_ASSET_PATHS.length).toBe(67)
     for (const asset of SLICE_ASSET_PATHS) {
       const file = join(process.cwd(), 'public', asset.slice(1))
       expect(existsSync(file), `${asset} should exist`).toBe(true)
@@ -64,10 +68,14 @@ describe('playable vertical slice', () => {
     expect(Object.keys(ASSETS.portraits)).toContain('tidefather')
     expect(Object.keys(ASSETS.portraits)).toContain('keeper-aeolia')
     expect(Object.keys(ASSETS.portraits)).toContain('doctor-cirene')
+    expect(Object.keys(ASSETS.portraits)).toContain('calypso')
+    expect(Object.keys(ASSETS.portraits)).toContain('speaker-nausica')
   })
 
   it('only uses narrators or characters with a vertical-slice portrait', () => {
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES)]) {
+    const game = createInitialState('portrait-audit')
+    const codaScenes = [calypsoWakingScene(game), immortalityOfferScene(game), yearsOutsideScene(game), departureTermsScene(game), phaeacianWelcomeScene(game), hospitalityVerdictScene(game),elaraIntroductionScene(game),eliasRecognitionScene(game),fatherDaughterScene(game),gateTruthScene(game),finalContactScene(game)]
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES), ...codaScenes]) {
       expect(scene.lines.length).toBeGreaterThan(0)
       for (const line of scene.lines) {
         expect(line.speaker === 'narrator' || line.speaker in ASSETS.portraits).toBe(true)
@@ -80,7 +88,9 @@ describe('playable vertical slice', () => {
     let cueCount = 0
     let cutawayCount = 0
 
-    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES)]) {
+    const game = createInitialState('pacing-audit')
+    const codaScenes = [calypsoWakingScene(game), immortalityOfferScene(game), yearsOutsideScene(game), departureTermsScene(game), phaeacianWelcomeScene(game), hospitalityVerdictScene(game),elaraIntroductionScene(game),eliasRecognitionScene(game),fatherDaughterScene(game),gateTruthScene(game),finalContactScene(game)]
+    for (const scene of [...Object.values(DIALOGUE_SCENES), ...Object.values(SLICE_TWO_SCENES), ...Object.values(ACT_TWO_SCENES), ...Object.values(ACT_TWO_FINAL_SCENES), ...Object.values(ACT_THREE_SCENES), ...Object.values(ACT_THREE_FINAL_SCENES), ...codaScenes]) {
       expect(scene.lines.length, `${scene.title} should unfold over several exchanges`).toBeGreaterThanOrEqual(5)
       for (const line of scene.lines as readonly DialogueLine[]) {
         lineCount += 1
@@ -93,12 +103,12 @@ describe('playable vertical slice', () => {
       }
     }
 
-    expect(lineCount).toBeGreaterThanOrEqual(150)
+    expect(lineCount).toBeGreaterThanOrEqual(215)
     expect(cueCount).toBeGreaterThanOrEqual(20)
     expect(cutawayCount).toBeGreaterThanOrEqual(18)
   })
 
-  it('can complete every mandatory activity through Act II', () => {
+  it('can complete every mandatory activity through the Phaeacian defence', () => {
     let state = reduceGame(createInitialState('slice-test'), { type: 'campaign/started' }).state
     const activities = [
       ['01-burning-tide-gate', 'incomplete-intelligence'],
@@ -153,6 +163,13 @@ describe('playable vertical slice', () => {
       ['23-hunger-mutiny','recover-ship-control'],['23-hunger-mutiny','mutiny-confrontation'],['23-hunger-mutiny','helios-awakens'],
       ['24-judgment-star','two-accusers'],['24-judgment-star','three-sided-escape'],['24-judgment-star','coronal-routing'],
       ['25-last-companion','failing-drive'],['25-last-companion','last-words'],
+      ['26-island-end-time','false-home'],['26-island-end-time','immortality-offer'],
+      ['27-refusal-paradise','identity-exit'],['27-refusal-paradise','terms-of-departure'],
+      ['28-hospitality-test','tell-the-voyage'],['28-hospitality-test','hospitality-verdict'],['28-hospitality-test','defend-convoy'],
+      ['29-child-absent-captain','elara-introduction'],['29-child-absent-captain','occupation-evidence'],['29-child-absent-captain','shuttle-escape'],
+      ['30-stranger-own-door','shipyard-infiltration'],['30-stranger-own-door','elias-recognition'],['30-stranger-own-door','father-and-daughter'],
+      ['31-trial-captain','command-resonance'],['31-trial-captain','truth-of-gate'],['31-trial-captain','hold-citadel'],
+      ['32-last-god-gate','final-orbital-battle'],['32-last-god-gate','citadel-network'],['32-last-god-gate','shared-memory'],['32-last-god-gate','last-choice'],
     ] as const
 
     for (const beatId of VERTICAL_SLICE_BEATS) {
@@ -167,7 +184,8 @@ describe('playable vertical slice', () => {
     }
 
     expect(state.campaign.completedBeatIds).toEqual(VERTICAL_SLICE_BEATS)
-    expect(state.campaign.currentBeatId).toBe('26-island-end-time')
+    expect(state.campaign.currentBeatId).toBeNull()
+    expect(state.campaign.status).toBe('completed')
   })
 
   it('protects non-target objectives while allowing the Scylla battle to finish', () => {

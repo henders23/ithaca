@@ -7,7 +7,9 @@ export function BeatInterlude({ data, game, onContinue }: { data: InterludeData;
     ? Array.from({ length: 8 }, (_, index) => index + 1)
     : data.incomingBeat <= 17
       ? Array.from({ length: 9 }, (_, index) => index + 9)
-      : Array.from({ length: 10 }, (_, index) => index + 18)
+      : data.incomingBeat <= 27
+        ? Array.from({ length: 10 }, (_, index) => index + 18)
+        : Array.from({ length: 5 }, (_, index) => index + 28)
 
   return (
     <section className="beat-interlude" style={{ '--interlude-bg': `url(${data.background})` } as React.CSSProperties}>
@@ -104,6 +106,22 @@ function captainRecord(id: InterludeData['id'], game: GameState): string {
   if (id === 'interlude-25') {
     const strikes = game.evidence.find((item) => item.startsWith('coronal-strikes:'))?.slice('coronal-strikes:'.length) ?? '0'
     return `The nursery survived the firing corridor. The Ithaca carries ${strikes} unabsorbed routing strike${strikes === '1' ? '' : 's'} and a drive that now requires one visible human cost.`
+  }
+  if (id === 'interlude-26') {
+    const companion = game.evidence.find((item) => item.startsWith('last-companion:'))?.slice('last-companion:'.length)?.replaceAll('-', ' ') ?? 'the last companion'
+    return `${companion} is dead, not missing. The impossible horizon appears only after the memorial, and no promise on the shore is permitted to erase that sequence.`
+  }
+  if (id === 'interlude-27') {
+    const baseYears = Number(game.evidence.find((item) => item.startsWith('calypso-years:'))?.split(':')[1] ?? 9)
+    const extraYears = Number(game.evidence.find((item) => item.startsWith('calypso-extra-years:'))?.split(':')[1] ?? 0)
+    const years = baseYears + extraYears
+    const offer = choiceFor(game, 'immortality-offer')?.replaceAll('-', ' ') ?? 'unanswered'
+    return `The false-home investigation proves the reconstruction. ${years} external years passed before Vale answered Calypso’s offer: ${offer}.`
+  }
+  if (id === 'interlude-28') {
+    const departure = choiceFor(game, 'terms-of-departure')?.replaceAll('-', ' ') ?? 'terms unrecorded'
+    const integrity = game.evidence.find((item) => item.startsWith('identity-integrity:'))?.split(':')[1] ?? '0'
+    return `Vale crossed the identity maze with ${integrity} outward anchors and departed under these terms: ${departure}. Calypso’s second Vale remains a future witness or adversary.`
   }
   const keeperChoice = choiceFor(game, 'keeper-negotiation')
   if (keeperChoice === 'tell-keeper-truth') return 'Vale gave Aeolia the unvarnished Gate record. The sphere was entrusted to the crew on the condition that truth would travel with it.'

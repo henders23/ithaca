@@ -33,6 +33,19 @@ export const ASSETS = {
     heliosJudgment: '/assets/cinematics/helios-judgment.webp',
     failingDrive: '/assets/cinematics/failing-drive.webp',
     lastCompanionMemorial: '/assets/cinematics/last-companion-memorial.webp',
+    calypsoShore: '/assets/cinematics/calypso-shore.webp',
+    calypsoFalseHome: '/assets/cinematics/calypso-false-home.webp',
+    calypsoMemoryMaze: '/assets/cinematics/calypso-memory-maze.webp',
+    calypsoDeparture: '/assets/cinematics/calypso-departure.webp',
+    phaeacianConvoy: '/assets/cinematics/phaeacian-convoy.webp',
+    phaeacianCouncil: '/assets/cinematics/phaeacian-council.webp',
+    phaeacianBattle: '/assets/cinematics/phaeacian-battle.webp',
+    earthShipyard: '/assets/cinematics/earth-shipyard.webp',
+    shipyardRecognition: '/assets/cinematics/shipyard-recognition.webp',
+    commandCitadel: '/assets/cinematics/command-citadel.webp',
+    earthOrbitSiege: '/assets/cinematics/earth-orbit-siege.webp',
+    sharedMemory: '/assets/cinematics/shared-memory.webp',
+    earthEpilogue: '/assets/cinematics/earth-epilogue.webp',
   },
   portraits: {
     'alexander-vale': '/assets/portraits/alexander-vale.webp',
@@ -49,6 +62,8 @@ export const ASSETS = {
     'elara-vale': '/assets/portraits/elara-vale.webp',
     tiresias: '/assets/portraits/tiresias.webp',
     helios: '/assets/portraits/helios.webp',
+    calypso: '/assets/portraits/calypso.webp',
+    'speaker-nausica': '/assets/portraits/speaker-nausica.webp',
   },
   ships: {
     ithaca: '/assets/ships/ithaca-combat.png',
@@ -155,6 +170,13 @@ export type SliceScreenId =
   | 'interlude-23' | 'b23-crisis' | 'b23-control' | 'b23-confrontation' | 'b23-awakens'
   | 'interlude-24' | 'b24-two-accusers' | 'b24-combat' | 'b24-routing' | 'b24-aftermath'
   | 'interlude-25' | 'b25-volunteers' | 'b25-drive' | 'b25-last-words' | 'b25-memorial' | 'act-three-complete'
+  | 'interlude-26' | 'b26-waking' | 'b26-false-home' | 'b26-offer'
+  | 'interlude-27' | 'b27-years' | 'b27-identity' | 'b27-departure'
+  | 'interlude-28' | 'b28-welcome' | 'b28-account' | 'b28-verdict' | 'b28-combat' | 'act-four-opening-complete'
+  | 'interlude-29' | 'b29-introduction' | 'b29-evidence' | 'b29-escape'
+  | 'interlude-30' | 'b30-infiltration' | 'b30-recognition' | 'b30-reunion'
+  | 'interlude-31' | 'b31-resonance' | 'b31-truth' | 'b31-combat'
+  | 'interlude-32' | 'b32-orbit' | 'b32-network' | 'b32-memory' | 'b32-contact' | 'b32-ending' | 'campaign-complete'
 
 export interface DialogueLine {
   speaker: CharacterId | 'narrator'

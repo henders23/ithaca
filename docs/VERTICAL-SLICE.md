@@ -1,6 +1,6 @@
 # Playable vertical slice
 
-The first twenty-five campaign beats form one continuous playable campaign: complete Acts I and II and the first eight beats of Act III. Dialogue, hubs, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
+All thirty-two campaign beats form one continuous playable campaign across four complete acts. Dialogue, hubs, minigames and combat all write to the same deterministic campaign state; the game autosaves after every transition. A cinematic voyage interlude connects every beat with a recap, current situation, remembered consequence and explicit next objective so the player always understands why the next set piece is happening.
 
 ## Sequence
 
@@ -31,6 +31,13 @@ The first twenty-five campaign beats form one continuous playable campaign: comp
 | 23 · The Hunger Mutiny | Cold decks and clinic deaths drive forty-one people to kill one solar grazer. | Scarce override allocation and shared-responsibility judgment. | Human casualties, engine damage and solar-remnant survival persist. |
 | 24 · Judgment of the Star | Helios and the Tidefather trap the Ithaca between two justified claims. | Protected-nursery three-sided combat and evidence-based coronal routing. | Rescued specialists pay off; the Ithaca becomes a crippled core. |
 | 25 · The Last Companion | One person must hold the lethal drive interlock. | Transparent companion assignment and three previewed stability/record tradeoffs. | The selected core character dies; trust shapes final words and memorial. |
+| 26 · The Island at the End of Time | Calypso reconstructs the Earth Vale remembers and offers an existence in which nobody must become past tense. | Three-stage falsifiable hotspot investigation followed by a developed immortality decision. | Verified faults, external years lost and Vale’s first response to paradise persist into the exit. |
+| 27 · The Refusal of Paradise | Vale must define identity when Calypso can copy every memory and control every comforting answer. | Three-gate identity maze and explicit departure terms for the second Vale. | Copy fidelity, identity integrity, ship damage and the autonomous Calypso copy persist into the homecoming. |
+| 28 · The Hospitality Test | The Phaeacians shelter the Ithaca before asking Vale to tell the voyage they will risk their people to carry home. | State-built testimony across four campaign records, a Council verdict and protected-civilian convoy combat. | Candour changes trust, future testimony, escort strength and combat difficulty without making sanctuary conditional. |
+| 29 · The Child of the Absent Captain | Earth’s factions compete to control the useful version of Vale’s return. | Play as Elara in a three-case evidence investigation and restrained surveillance-cordon escape. | Verified claims, shuttle damage and Elara’s independent assessment shape the reunion. |
+| 30 · The Stranger at His Own Door | A changed Vale crosses the occupied family shipyard while biometric identity has become politically meaningless. | Evidence-led infiltration, ELIAS recognition and a father-daughter authority decision. | Alert changes the trial battle; Elara trusts or opposes Vale based on an explicit reunion choice. |
+| 31 · The Trial of the Captain | The neural chair can prove continuity but cannot acquit the Gate order. | Three-anchor resonance puzzle, public Tide Gate revelation and protected-witness combat. | The crime becomes public, the witness record survives and Earth repairs the Ithaca for the finale. |
+| 32 · The Last God at the Gate | Earth, the Host and the convoy fight over which record—and which future—will survive. | Protected-target orbital battle, Elara’s citadel network, shared-memory interpretation and an earned ending choice. | Vengeance, atonement, reconciliation, exile or succession completes the deterministic voyage. |
 
 ## Controls
 
@@ -52,6 +59,10 @@ The first twenty-five campaign beats form one continuous playable campaign: comp
 - Hunger override: spend a finite charge budget on clinic, habitat, drive and cradle recovery; every omission is named.
 - Coronal routing: match one causal rule to three visible path telemetries; rescued specialists absorb specific errors.
 - Failing drive: choose the lethal assignment explicitly, then trade ship stability against preservation of the final voice.
+- False home: choose repeatable physical or chronological tests rather than treating Vale’s unreliable memory as proof; failed tests advance the story while outside time passes.
+- Identity maze: choose the interpretation that preserves another person’s independent will and carries consequences beyond the simulation.
+- Voyage account: frame four verified campaign records as confession, operational context or omission; candour and coherence visibly forecast escort support.
+- Convoy defence: disable Eidolon marking vessels while the Phaeacian sanctuary vessel remains a protected, non-targetable civilian objective.
 - All other minigames use pointer or keyboard focus.
 
 ## Cinematic scene language
@@ -73,4 +84,4 @@ The interface responds to both width and height. Laptop-height layouts reduce po
 
 The vertical slice uses original generated imagery rather than assets copied from `starship-explorer`. The art direction is photorealistic prestige science fiction: grounded military-NASA human engineering, steel-and-amber bridge lighting, and increasingly unfamiliar alien geometry. Cinematic backgrounds are 16:9 WebP files; recurring-character portraits are consistently framed 4:5 WebP files; combat ships are transparent PNGs.
 
-Assets live under `public/assets/` and are compressed to keep the first load practical. Act II adds a predatory industrial harbour, an ivory-and-cyan biotechnology ark, the black-hole Archive and the probability observatory. Act III moves through purple signal-space, the black/red Twin Terrors and a gold/cyan Helios visual grammar before reducing the palette to the dark drive chamber and memorial. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation for each decision.
+Assets live under `public/assets/` and are compressed to keep the first load practical. Act II adds a predatory industrial harbour, an ivory-and-cyan biotechnology ark, the black-hole Archive and the probability observatory. Act III moves through purple signal-space, the black/red Twin Terrors and a gold/cyan Helios visual grammar before reducing the palette to the dark drive chamber and memorial. Calypso’s intimate sea-blue and dawn-gold Earth gradually exposes cold simulation machinery; the Phaeacians replace military geometry with pearl, bronze and amber shelter forms. Minigames reuse these environments as dimmed diegetic backdrops and add task-specific instrumentation for each decision.
