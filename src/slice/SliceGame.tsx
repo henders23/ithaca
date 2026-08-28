@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AudioControls } from '../audio/AudioControls.js'
+import { useMusicDirector, useMusicScene } from '../audio/useAudio.js'
 import type { CampaignEffect, GameState } from '../state/types.js'
 import { createInitialState } from '../state/initial.js'
 import { reduceGame } from '../state/reducer.js'
@@ -211,6 +213,7 @@ function loadPreviewScreen(): SliceScreenId | null {
 }
 
 export function SliceGame() {
+  useMusicDirector()
   const [savedGame, setSavedGame] = useState<SliceSave | null>(() => loadSave())
   const [screen, setScreen] = useState<SliceScreenId>(() => loadPreviewScreen() ?? 'title')
   const [game, setGame] = useState<GameState>(() => savedGame?.game ?? createInitialState('ithaca-vertical-slice'))
@@ -970,11 +973,13 @@ export function SliceGame() {
     <main className="game-shell">
       {screen !== 'title' && <VoyageHud game={game} />}
       {renderScreen()}
+      <AudioControls />
     </main>
   )
 }
 
 function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: () => void; onResume: () => void }) {
+  useMusicScene('title')
   return (
     <section className="title-screen" style={{ '--title-bg': `url(${ASSETS.cinematics.title})` } as React.CSSProperties}>
       <div className="title-vignette" />

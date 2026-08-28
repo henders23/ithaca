@@ -40,6 +40,14 @@ Presentation only. The Part 1 screen exposes the registries and validation state
 
 All visual references will resolve through an asset manifest. Character IDs must never point directly to arbitrary generated filenames inside scene code.
 
+### `src/audio`
+
+`tracks.ts` is the manifest: the four music compositions, the combat samples and the battle effect frames. Nothing else in the codebase names an audio file.
+
+A single director owns playback. Screens never choose a track — they claim a **scene** (`title`, `voyage`, `alien` or `combat`) for as long as they are mounted, and the director crossfades between compositions. Claims are coalesced to the end of the React commit, so unmounting one screen and mounting the next never audibly bounces through the default theme. The alien scene is derived from content rather than a screen list: any dialogue in which an Eidolon or encounter character speaks is scored as an encounter, including scenes built from campaign state.
+
+Audio is a progressive enhancement throughout. Blocked autoplay, an unavailable `Audio` constructor and unwritable storage each degrade to a silent but fully playable game, and none of it runs during server rendering.
+
 ## Activity lifecycle
 
 1. The current beat selects an authored activity.

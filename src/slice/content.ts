@@ -1,3 +1,4 @@
+import { isAlienCharacter } from '../canon/characters.js'
 import type { CharacterId } from '../canon/characters.js'
 
 export const ASSETS = {
@@ -698,6 +699,14 @@ export const DIALOGUE_SCENES = {
     ],
   },
 } as const satisfies Partial<Record<SliceScreenId, DialogueSceneData>>
+
+/**
+ * True when an Eidolon or encounter entity speaks in the scene. Those are the
+ * conversations the alien theme scores; everything else stays on the voyage.
+ */
+export function sceneHasAlienSpeaker(scene: DialogueSceneData): boolean {
+  return scene.lines.some((line) => isAlienCharacter(line.speaker))
+}
 
 export const SLICE_ASSET_PATHS = [
   ...Object.values(ASSETS.cinematics),

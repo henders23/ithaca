@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { DialogueChoice, DialogueSceneData, PortraitId } from './content.js'
-import { ASSETS } from './content.js'
+import { ASSETS, sceneHasAlienSpeaker } from './content.js'
+import { useMusicScene } from '../audio/useAudio.js'
 
 interface DialogueSceneProps {
   scene: DialogueSceneData
@@ -18,6 +19,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
     : null
 
   useEffect(() => setLineIndex(0), [scene])
+  useMusicScene(sceneHasAlienSpeaker(scene) ? 'alien' : 'voyage')
 
   const advance = () => {
     if (!atEnd) setLineIndex((index) => index + 1)
