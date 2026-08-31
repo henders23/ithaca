@@ -28,6 +28,14 @@ export interface CombatConfig {
   survivalSeconds?: number
   victoryTitle?: string
   victoryText?: string
+  crewBarks?: readonly CombatBark[]
+}
+
+export interface CombatBark {
+  id: string
+  trigger: 'shield-break' | 'hull-75' | 'hull-40'
+  speaker: string
+  text: string
 }
 
 interface CombatResult {
@@ -83,7 +91,12 @@ const WEAPON_AUDIO: Record<WeaponId, { fire: SfxId; impact: SfxId; bolt: boolean
 const COMBAT_SFX: readonly SfxId[] = [
   'laserBeam', 'laserCannon', 'blaster', 'smallExplosion', 'mediumExplosion', 'torpedoExplosion',
   'enemyDestroyed', 'shipDestroyed', 'enemySightedMale', 'enemySightedFemale',
-  'reportingDamage', 'reportingDamageAlt',
+]
+
+const DEFAULT_CREW_BARKS: readonly CombatBark[] = [
+  { id: 'shield-break', trigger: 'shield-break', speaker: 'MORI', text: 'Shields are gone. Next sound is the hull.' },
+  { id: 'hull-75', trigger: 'hull-75', speaker: 'CROSS', text: 'Still steering. Make the next shot matter.' },
+  { id: 'hull-40', trigger: 'hull-40', speaker: 'CORELLI', text: 'Deck Five is open to vacuum. I need the ship still for eight seconds.' },
 ]
 
 interface ImpactEffect {
@@ -125,12 +138,13 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const [floaters, setFloaters] = useState<CombatFloater[]>([])
   const [sprites, setSprites] = useState<CombatSprite[]>([])
   const [log, setLog] = useState('Weapons hot. Select a subsystem and fire.')
+  const [crewBark, setCrewBark] = useState<CombatBark | null>(null)
   const shieldRef = useRef(shield)
   const hullRef = useRef(hull)
   const pausedRef = useRef(paused)
   const phaseRef = useRef(phase)
   const targetsRef = useRef(targets)
-  const lastReportRef = useRef(0)
+  const barkHistoryRef = useRef(new Set<string>())
   const hailedRef = useRef('')
   const timersRef = useRef(new Set<number>())
   shieldRef.current = shield
@@ -155,12 +169,12 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   const sfx = (id: SfxId, level = 1) => audioDirector.playSfx(id, level)
 
-  /** Crew damage-control chatter, rate-limited so it never stacks on itself. */
-  const reportDamage = () => {
-    const now = Date.now()
-    if (now - lastReportRef.current < 5200) return
-    lastReportRef.current = now
-    sfx(Math.random() < 0.5 ? 'reportingDamage' : 'reportingDamageAlt', 0.7)
+  const showCrewBark = (trigger: CombatBark['trigger']) => {
+    const bark = (config.crewBarks ?? DEFAULT_CREW_BARKS).find((candidate) => candidate.trigger === trigger && !barkHistoryRef.current.has(candidate.id))
+    if (!bark) return
+    barkHistoryRef.current.add(bark.id)
+    setCrewBark(bark)
+    later(() => setCrewBark((current) => current?.id === bark.id ? null : current), 3600)
   }
 
   const addSprite = (sprite: CombatSpriteBody, life: number) => {
@@ -204,7 +218,6 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         spawnExplosion(struck === 'enemy' ? 'orange' : 'red', struck, 150)
         spawnFlash(struck === 'enemy' ? COMBAT_FX.impactEnemy : COMBAT_FX.impactPlayer, struck, 130)
         sfx(audio.impact, incoming ? 0.7 : 0.78)
-        if (incoming) reportDamage()
       }
       onImpact()
       later(() => setImpacts((current) => current.filter((impact) => impact.id !== id)), 720)
@@ -256,12 +269,17 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         if (phaseRef.current !== 'playing') return
         if (shieldRef.current > 0) {
           const damage = kind === 'ion' ? 27 : kind === 'missile' ? 22 : 18
+          const before = shieldRef.current
           shieldRef.current = Math.max(0, shieldRef.current - damage)
           setShield(shieldRef.current)
+          if (before > 0 && shieldRef.current === 0) showCrewBark('shield-break')
         } else {
           const damage = kind === 'missile' ? 13 : 9
+          const before = hullRef.current
           hullRef.current = Math.max(0, hullRef.current - damage)
           setHull(hullRef.current)
+          if (before > 75 && hullRef.current <= 75) showCrewBark('hull-75')
+          if (before > 40 && hullRef.current <= 40) showCrewBark('hull-40')
           if (hullRef.current <= 0) {
             phaseRef.current = 'defeat'
             setPhase('defeat')
@@ -345,6 +363,8 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     setPhase('playing')
     setSurvivalRemaining(config.survivalSeconds ?? 30)
     setLog('Weapons hot. Select a subsystem and fire.')
+    setCrewBark(null)
+    barkHistoryRef.current.clear()
   }
 
   const takingFire = effects.some((effect) => effect.incoming) || impacts.some((impact) => impact.incoming && !impact.shielded)
@@ -370,6 +390,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         {floaters.map((floater) => <div key={floater.id} className={`combat-floater ${floater.incoming ? 'incoming' : 'outgoing'}`} style={{ color: floater.color }}>{floater.text}</div>)}
 
         <div className="combat-log"><i className="log-pulse" />{log}</div>
+        {crewBark && <div className="combat-bark" role="status"><strong>{crewBark.speaker}</strong><span>{crewBark.text}</span></div>}
       </div>
 
       <div className="combat-controls">

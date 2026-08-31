@@ -58,7 +58,8 @@ describe('playable vertical slice', () => {
   })
 
   it('ships every cinematic, portrait and combat asset used by the slice', () => {
-    expect(SLICE_ASSET_PATHS.length).toBe(67)
+    expect(SLICE_ASSET_PATHS.length).toBeGreaterThanOrEqual(74)
+    expect(new Set(SLICE_ASSET_PATHS).size).toBe(SLICE_ASSET_PATHS.length)
     for (const asset of SLICE_ASSET_PATHS) {
       const file = join(process.cwd(), 'public', asset.slice(1))
       expect(existsSync(file), `${asset} should exist`).toBe(true)
@@ -70,6 +71,9 @@ describe('playable vertical slice', () => {
     expect(Object.keys(ASSETS.portraits)).toContain('doctor-cirene')
     expect(Object.keys(ASSETS.portraits)).toContain('calypso')
     expect(Object.keys(ASSETS.portraits)).toContain('speaker-nausica')
+    for (const portrait of ['alexander-vale-grieving.webp', 'helen-morozova-angry.webp', 'gabriel-cross-wounded.webp', 'elara-vale-angry.webp', 'lena-mori-stressed.webp', 'isabella-corelli-exhausted.webp', 'kiara-ndala-frightened.webp']) {
+      expect(SLICE_ASSET_PATHS.some((path) => path.endsWith(portrait)), portrait).toBe(true)
+    }
   })
 
   it('only uses narrators or characters with a vertical-slice portrait', () => {

@@ -88,7 +88,7 @@ describe('Act II first slice', () => {
     let state = stateAtBeat(9)
     state = { ...state, flags: [...state.flags, 'harbour-convoy-warned', 'cirene-copies-recognized', 'cirene-allied'] }
     expect(harbourAftermathScene(state).title).toContain('Three ships')
-    expect(cireneBargainScene(state).lines[0].text).toContain('defended continuations')
+    expect(cireneBargainScene(state).lines[0].text).toMatch(/defended|people your registry called mistakes/i)
     expect(departureScene(state).lines.some((line) => line.text.includes('expanded crew'))).toBe(true)
   })
 

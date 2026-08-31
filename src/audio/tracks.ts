@@ -37,7 +37,6 @@ export type SfxId =
   | 'smallExplosion' | 'mediumExplosion' | 'torpedoExplosion'
   | 'enemyDestroyed' | 'shipDestroyed'
   | 'enemySightedMale' | 'enemySightedFemale'
-  | 'reportingDamage' | 'reportingDamageAlt'
   | 'uiClick'
 
 export const SFX_SOURCES: Readonly<Record<SfxId, string>> = {
@@ -51,8 +50,6 @@ export const SFX_SOURCES: Readonly<Record<SfxId, string>> = {
   shipDestroyed: '/assets/audio/ship_destroyed.mp3',
   enemySightedMale: '/assets/audio/enemy_sighted_m.mp3',
   enemySightedFemale: '/assets/audio/enemy_sighted_f.mp3',
-  reportingDamage: '/assets/audio/reporting_damage.mp3',
-  reportingDamageAlt: '/assets/audio/reporting_damage_1.mp3',
   uiClick: '/assets/audio/ui_click.wav',
 } as const
 
