@@ -20,7 +20,7 @@ export const ACT_THREE_FINAL_SCENES = {
   ],continueLabel:'Map the living system'},
   'b22-prohibition': {beat:'BEAT 22 · RECOGNITION',chapter:'THE LIVING SUN',title:'A rule the hungry can understand',background:ASSETS.cinematics.heliosEcology,lines:[
     {speaker:'narrator',name:'SCIENCE RECORD',text:'Birth. Feeding. Distress. Protection. The four events repeat across eleven migrations, and the word resource disappears from Morozova’s report.',cutaway:{image:ASSETS.cinematics.heliosEcology,label:'OBSERVATION DECK',caption:'The smallest seed shoals hide in the wake of the returning Ithaca collectors.'}},
-    {speaker:'helen-morozova',name:'MOROZOVA',station:'SCIENCE / XO',text:'The grazers consume seed plasma. The shepherds move them away from flares. Helios is not one animal. It is a world that can notice us.'},
+    {speaker:'helen-morozova',name:'MOROZOVA',station:'SCIENCE / XO',text:'Eleven migrations. Grazers feed. Shepherds move the young out of flares. The largest body just changed course to shade the smallest. Mark the system inhabited.'},
     {speaker:'lena-mori',name:'MORI',station:'ENGINEERING',text:'The empty wake can charge us slowly. Six days, if habitat accepts cold rationing. Four hours if I lower a collector into the nursery.'},
     {speaker:'gabriel-cross',name:'CROSS',station:'TACTICAL',text:'Say the second number on every deck. If command conceals the easy route, rumour will discover it before the rule.'},
     {speaker:'isabella-corelli',name:'CORELLI',station:'MEDICAL',text:'And say what six days means in the clinic. A prohibition earns trust only when it names who is being asked to suffer for it.'},
@@ -127,13 +127,17 @@ export function lastWordsScene(game:GameState):DialogueSceneData {
   const relation=game.relationships[id]
   const words=relation>=3?WORDS[id].trust:relation<=-2?WORDS[id].wounded:WORDS[id].mixed
   const record=game.flags.includes('last-companion-record-preserved')
-  return {beat:'BEAT 25 · FINAL TRANSMISSION',chapter:'THE LAST COMPANION',title:record?`${name} remains on the channel`:'Only fragments cross the closing field',background:ASSETS.cinematics.failingDrive,lines:[
-    {speaker:'narrator',name:'MANUAL INTERLOCK',text:`The pressure door seals with ${name} inside. The radiation badge crosses lethal exposure before the second load cycle.`},
-    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?words:'The carrier breaks the sentence into light, breath and one surviving word: “home.”'},
-    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:`${name.split(' ')[0]}—the field is stable. Come back to the door.`},
-    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?'No. Do not make the last order a lie. Commit the jump.':'The response is mostly static. A hand remains visible on the manual interlock.'},
-    {speaker:'narrator',name:'DRIVE CONTROL',text:'The jump field closes. The manual station disappears inside white light. The Ithaca moves again with one fewer voice aboard.'},
-  ],continueLabel:'Record the death'}
+  return {id:'b25-last-words',beat:'BEAT 25 · FINAL TRANSMISSION',chapter:'THE LAST COMPANION',title:record?`${name} remains on the channel`:'Only fragments cross the closing field',location:'DRIVE CORE · MANUAL INTERLOCK',sceneType:'private',background:ASSETS.cinematics.failingDrive,lines:[
+    {speaker:'narrator',name:'MANUAL INTERLOCK',text:`The pressure door seals with ${name} inside. The radiation badge crosses lethal exposure before the second load cycle.`,shot:'wide'},
+    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?words:'The carrier breaks the sentence into light, breath and one surviving word: “home.”',emotion:'exhausted',pause:'held',shot:'close'},
+    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:`${name.split(' ')[0]}—the field is stable. Come back to the door.`,emotion:'grieving'},
+    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?'No. Don’t make the last order a lie. Commit the jump.':'The response is mostly static. A hand remains visible on the manual interlock.',emotion:'exhausted',pause:'silence'},
+    {speaker:'narrator',name:'DRIVE CONTROL',text:'The jump field closes. The manual station disappears inside white light. The Ithaca moves again with one fewer voice aboard.',pause:'silence',shot:'wide'},
+  ],moments:[{id:'last-channel',afterLine:1,prompt:`There is still a live channel to ${name}. Vale has time for one sentence.`,choices:[
+    {id:'say-i-am-here',label:'“I’m here.”',detail:'Offer presence without turning the last seconds into another command.',character:id,axis:'intimacy',delta:1,response:{speaker:id,name:name.toUpperCase(),station:'DRIVE CORE',text:'I know.',emotion:'exhausted',pause:'silence',shot:'close'}},
+    {id:'ask-for-telemetry',label:'Ask for the field reading',detail:'Keep both of them inside the work because the personal sentence will not come.',character:id,axis:'resentment',delta:1,response:{speaker:id,name:name.toUpperCase(),station:'DRIVE CORE',text:'Stable enough. You can stop being captain for five seconds.',emotion:'exhausted'}},
+    {id:'use-first-name',label:`Say “${name.split(' ')[0]}”`,detail:'Say only the name and let the person decide what it means.',character:id,axis:'trust',delta:1,response:{speaker:'narrator',name:'COMMAND CHANNEL',text:`Vale says “${name.split(' ')[0]}.” Nothing follows it.`,pause:'silence',shot:'reaction'}},
+  ]}],continueLabel:'Record the death'}
 }
 
 export function companionMemorialScene(game:GameState):DialogueSceneData {

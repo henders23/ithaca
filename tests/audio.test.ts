@@ -39,9 +39,11 @@ describe('voyage soundtrack', () => {
       expect(existsSync(asset(path)), `${path} should exist`).toBe(true)
       expect(statSync(asset(path)).size, `${path} should not be empty`).toBeGreaterThan(5_000)
     }
-    expect(AUDIO_ASSET_PATHS.length).toBe(17)
+    expect(AUDIO_ASSET_PATHS.length).toBe(15)
     expect(COMBAT_FX_ASSET_PATHS.length).toBe(11)
-    expect(new Set(Object.values(SFX_SOURCES)).size).toBe(13)
+    expect(new Set(Object.values(SFX_SOURCES)).size).toBe(11)
+    expect(Object.keys(SFX_SOURCES).some((id) => id.toLowerCase().includes('reportingdamage'))).toBe(false)
+    expect(AUDIO_ASSET_PATHS.some((path) => path.includes('reporting_damage'))).toBe(false)
   })
 
   it('describes each explosion sheet as a complete grid of cells', () => {

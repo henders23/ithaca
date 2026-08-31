@@ -28,7 +28,7 @@ export const ACT_TWO_FINAL_SCENES: Record<string, DialogueSceneData> = {
     {speaker:'narrator',name:'ADMIRAL SORREN',text:'The sanctuary signal was real. Intelligence believed hesitation would let the Host weaponise the Gate. I authorised its removal from your packet.'},
     {speaker:'helen-morozova',name:'MOROZOVA',station:'SCIENCE / XO',text:'You converted uncertainty into permission. Then left his name on the fire order.'},
     {speaker:'narrator',name:'ADMIRAL SORREN',text:'I can testify that Vale was deceived. I cannot testify that he asked the question twice.'},
-    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:'Then the truth is not innocence. It is a larger room with more people standing inside it.'},
+    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:'Put Soren’s order beside mine. No summary. No one gets to disappear between them.'},
   ],choices:[
     {id:'preserve-complete-testimony',label:'Preserve the complete record',detail:'Keep the falsified intelligence and Vale’s unforced decision together as one account.'},
     {id:'publish-admiral-deception',label:'Lead with the deception',detail:'Use Sorren’s confession to protect the crew and challenge Vale’s war-crime designation.'},
@@ -45,13 +45,18 @@ export const ACT_TWO_FINAL_SCENES: Record<string, DialogueSceneData> = {
     {id:'preserve-rao-aboard',label:'Bring Rao aboard',detail:'Keep her consciousness isolated from weapons and accept her as a member of the returning crew.'},
     {id:'grant-rao-ending',label:'Grant her requested ending',detail:'Let Rao choose silence after her final statement is preserved.'},
   ]},
-  'b16-aftermath': { beat:'BEAT 16',chapter:'THE MOTHER’S MESSAGE',title:'Elara has grown older inside a message Vale cannot answer',background:ASSETS.cinematics.elaraFragmentedMessage,lines:[
-    {speaker:'elara-vale',name:'ELARA VALE',station:'RECOVERED EARTH CARRIER',text:'Dad, Grandmother died believing you would come back. I don’t know which version of you I’m waiting for. Come home alive enough to tell me the truth.'},
-    {speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'The carrier is at least four years old. I can preserve the channel, but there is nowhere to send a reply.'},
-    {speaker:'helen-morozova',name:'MOROZOVA',station:'SCIENCE / XO',text:'You made home the reason for every risk. She has just asked whether the person arriving will still be capable of truth.'},
-    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:'This message is personal. The consequences are not. The crew should hear why Earth may not welcome us.'},
-    {speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'Then say whether you are sharing Elara’s words—or using them to keep the voyage moving.'},
-  ],choices:[
+  'b16-aftermath': { id:'b16-elara-message',beat:'BEAT 16',chapter:'THE MOTHER’S MESSAGE',title:'Elara has grown older inside a message Vale cannot answer',location:'COMMUNICATIONS · CARRIER IS FOUR YEARS OLD',sceneType:'transmission',background:ASSETS.cinematics.elaraFragmentedMessage,lines:[
+    {speaker:'elara-vale',name:'ELARA VALE',station:'RECOVERED EARTH CARRIER',text:'Dad. Gran waited. Right up to the end.',emotion:'guarded',shot:'close',pause:'held'},
+    {speaker:'elara-vale',name:'ELARA VALE',station:'RECOVERED EARTH CARRIER',text:'I don’t know who’s coming back. Just don’t arrive with a speech.',emotion:'angry',reaction:{speaker:'alexander-vale',name:'VALE',emotion:'grieving'}},
+    {speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'Four years old, minimum. I can hold it. I can’t answer it.',emotion:'frightened'},
+    {speaker:'helen-morozova',name:'MOROZOVA',station:'SCIENCE / XO',text:'Alexander?',emotion:'guarded',pause:'silence'},
+    {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:'The crew needs to know what Earth knows.',emotion:'grieving'},
+    {speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'Do they need her voice?',emotion:'frightened'},
+  ],moments:[{id:'after-elara-message',afterLine:3,prompt:'Nobody asks Vale to make this useful yet. What does he do with the silence?',choices:[
+    {id:'ask-to-hear-elara-again',label:'“Again.”',detail:'Hear Elara as a father before deciding what the captain will publish.',character:'elara-vale',axis:'intimacy',delta:1,response:{speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'From the beginning?',emotion:'frightened',pause:'held'}},
+    {id:'ask-when-mother-died',label:'Ask when his mother died',detail:'Choose one personal fact instead of converting the carrier into strategy.',character:'elara-vale',axis:'trust',delta:1,response:{speaker:'kiara-ndala',name:'N’DALA',station:'COMMUNICATIONS',text:'The date is damaged. I can give you a year. I won’t invent the day.',emotion:'frightened'}},
+    {id:'move-to-public-record',label:'Open the command record',detail:'Move immediately to what the message means for the voyage and Earth.',character:'elara-vale',axis:'resentment',delta:1,response:{speaker:'narrator',name:'COMMUNICATIONS RECORD',text:'Vale opens the shipwide record. Elara’s paused face remains on the private screen.',pause:'silence',shot:'wide'}},
+  ]}],choices:[
     {id:'share-elara-message',label:'Share the message unedited',detail:'Let the crew hear Elara’s doubt, the death at home and the public accusation.'},
     {id:'share-only-route-context',label:'Share the strategic facts',detail:'Tell the crew how much time passed and how Earth sees the Gate, but keep Elara’s words private.'},
     {id:'keep-message-private',label:'Keep it entirely private',detail:'Protect Elara from becoming another instrument of command.'},

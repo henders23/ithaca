@@ -224,3 +224,34 @@ The rubric should become stricter as the game grows. Passing once does not exemp
 | Campaign momentum | 9.7 | Phaeacian shelter transfers agency to Elara immediately; investigation creates infiltration; recognition creates trial; trial creates a protected record; tactical victory creates—not replaces—the final moral choice. | External playtesting must confirm the full-campaign session rhythm. |
 
 **Weighted score: 9.39 / 10 — provisional release pass.** Seventy-seven automated tests cover all thirty-two beats, thirty-seven minigame contracts, the complete deterministic path, all five ending gates, death-safe witnesses, protected objectives, six final cinematic assets, mobile/short-laptop rules and server rendering of every new interaction. “Provisional” applies only to live target-device observation; no screenshot inspection is being claimed where access was unavailable.
+
+## Dialogue and performance red-team pass
+
+This pass attacked the complete campaign as drama rather than counting scenes. The evaluator looked for interchangeable voices, polished thesis statements, choices delayed until after a speech, invisible relationship arithmetic, forgotten callbacks, emotionally static portraits, session-reentry confusion and combat-audio fatigue.
+
+| Finding | Severity | Correction |
+| --- | --- | --- |
+| Vale, Morozova and Cross could all sound like the same careful moral essayist. | Critical | Added an executable voice bible for nine principal characters: rhythm, pressure behavior, humour, evasions, concrete lexicon, forbidden phrasing and private need. Signature scenes were rewritten against it. |
+| Important conversations made the player listen to a complete argument before responding. | Critical | Added ten mid-scene relationship moments with three meaningfully different responses each and an immediate performed reply before the scene continues. |
+| One scalar “relationship” score could not distinguish affection, confidence, professional respect and accumulated anger. | High | Added separate trust, intimacy, respect and resentment axes while retaining migration support for existing campaign effects. |
+| Dialogue choices changed state but later scenes recalled only broad flags. | High | Added deterministic dialogue memories. Elara’s Archive message changes the reunion; the reunion changes the final contact; the journey log preserves the player’s exact remembered words. |
+| Portrait-led scenes could not show anger, fear, exhaustion or grief without naming the feeling in text. | High | Added seven identity-locked performance portraits and shot, reaction, pause and music-ducking direction. Side-by-side visual inspection confirmed face, costume and lighting continuity. |
+| Long-session players could not reread a line or recover context after returning to a save. | High | Added Back and Transcript controls, state-aware resume briefings, a qualitative journey log and adjustable dialogue text size. Version-one saves migrate to the new relationship and memory schema. |
+| The journey log claimed “people, not points” and then exposed numerical relationship scores. | Medium | Replaced numbers with qualitative states such as guarded, opening, entrusted, distant, personal, strained and raw. |
+| Short-laptop rules hid mid-scene choice detail and system-sacrifice descriptions. | Critical | Replaced both `display:none` rules with compact two-line clamps, preserving motive and human cost inside the target viewport. |
+| “Reporting damage” voice samples could fire every few seconds and become comic through repetition. | High | Removed both audio binaries, source IDs, preloads and call sites. Combat now uses three sparse, threshold-triggered text barks that each fire at most once per encounter. |
+| Several late lines declared the theme as polished “not X, but Y” aphorisms. | High | Rewrote the Garden, Archive, Helios, Calypso and Phaeacian confrontation lines as remembered names, measurements, actions and sensory threats specific to the speaker. |
+
+### Performance-pass scorecard
+
+| Category | Score | Evidence | Remaining pressure |
+| --- | ---: | --- | --- |
+| Story clarity | 9.5 | Thirty-one interludes remain intact; resume briefing, scene orientation, transcript and journey log now support re-entry and recall. | Comprehension still needs observation with first-time players after a multi-day break. |
+| Character connection | 9.6 | Nine enforceable voice profiles, ten interruptible private moments, four relationship axes, exact callbacks, a multi-question crew hub and seven emotional portraits. | The complete campaign does not yet have expression variants for every character and every scene. |
+| Dialogue humanity | 9.4 | Short replies, unfinished personal questions, jokes, evasions, silence, reaction shots and concrete nouns replace the key thesis exchanges. | External table reads would expose cadence problems static inspection cannot hear. |
+| Minigame clarity | 9.5 | All thirty-seven contracts still pass; the adversarial laptop correction keeps relational and sacrifice costs visible instead of hiding them for fit. | First-attempt timing and misclick telemetry remain unavailable. |
+| Cinematic impact | 9.4 | Staged scene headings, close/wide/reaction framing, emotional portraits, cutaways, held silence, music ducking and sparse combat barks create editorial rhythm. | This remains still-image cinema without full voice acting or character animation. |
+| Visual usability | 8.9 | 85–130% text scaling, transcript, laptop-height clamps, mobile collapse, reduced motion and qualitative relationship language have executable gates. | The cloud browser could not reach the private local preview, so no target-device screenshot pass is claimed. |
+| Audio discipline | 9.3 | Music remains scene-specific; effects retain weapon identity; repetitive damage dialogue is absent from source, manifest and disk. | A future mix pass should add intentional silence and more location-specific ambience. |
+
+**Weighted performance score: 9.37 / 10 — provisional pass.** Ninety automated tests pass across deterministic state, all campaign beats, thirty-seven minigame contracts, audio delivery, save migration, dialogue performance, callbacks, asset continuity and laptop/mobile rules. Strict TypeScript and the production build pass. The production bundle is 621.7 KB minified / 186.6 KB gzip; route-level code splitting remains a documented optimization rather than a release blocker.

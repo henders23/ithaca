@@ -65,6 +65,24 @@ export const SHIP_SYSTEM_IDS = [
 export type ShipSystemId = (typeof SHIP_SYSTEM_IDS)[number]
 export type CharacterStatus = 'aboard' | 'at-home' | 'offstage' | 'injured' | 'missing' | 'dead'
 export type EndingId = 'vengeance' | 'atonement' | 'reconciliation' | 'exile' | 'succession'
+export type RelationshipAxis = 'trust' | 'intimacy' | 'respect' | 'resentment'
+
+export interface RelationshipProfile {
+  trust: number
+  intimacy: number
+  respect: number
+  resentment: number
+}
+
+export interface DialogueMemoryRecord {
+  id: string
+  sceneId: string
+  choiceId: string
+  label: string
+  character?: RelationshipId
+  axis?: RelationshipAxis
+  delta?: number
+}
 
 export interface CharacterState {
   status: CharacterStatus
@@ -96,6 +114,7 @@ export type CampaignEffect =
   | { kind: 'set-flag'; flag: StoryFlag }
   | { kind: 'clear-flag'; flag: StoryFlag }
   | { kind: 'relationship'; character: RelationshipId; delta: number }
+  | { kind: 'relationship-axis'; character: RelationshipId; axis: RelationshipAxis; delta: number }
   | { kind: 'pursuit'; delta: number }
   | { kind: 'character-status'; character: CharacterId; status: CharacterStatus }
   | { kind: 'damage-system'; system: ShipSystemId; amount: number }
@@ -110,6 +129,15 @@ export type CampaignEffect =
 export type GameAction =
   | { type: 'campaign/started' }
   | {
+      type: 'dialogue/moment'
+      sceneId: string
+      choiceId: string
+      label: string
+      character?: RelationshipId
+      axis?: RelationshipAxis
+      delta?: number
+    }
+  | {
       type: 'activity/completed'
       beatId: string
       activityId: string
@@ -119,7 +147,7 @@ export type GameAction =
   | { type: 'beat/completed'; beatId: string }
 
 export interface GameState {
-  schemaVersion: 1
+  schemaVersion: 2
   seed: string
   campaign: {
     status: 'not-started' | 'playing' | 'completed'
@@ -129,6 +157,8 @@ export interface GameState {
   }
   flags: StoryFlag[]
   relationships: Record<RelationshipId, number>
+  relationshipDimensions: Record<RelationshipId, RelationshipProfile>
+  dialogueMemories: DialogueMemoryRecord[]
   characters: Record<CharacterId, CharacterState>
   ship: ShipState
   pursuit: number
@@ -140,6 +170,7 @@ export interface GameState {
 
 export type GameEvent =
   | { type: 'campaign-started'; beatId: string }
+  | { type: 'dialogue-moment-recorded'; sceneId: string; choiceId: string }
   | { type: 'activity-completed'; beatId: string; activityId: string }
   | { type: 'beat-completed'; beatId: string; nextBeatId: string | null }
   | { type: 'effect-applied'; effect: CampaignEffect }

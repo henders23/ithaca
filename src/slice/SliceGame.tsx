@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AudioControls } from '../audio/AudioControls.js'
 import { useMusicDirector, useMusicScene } from '../audio/useAudio.js'
+import { beatById } from '../campaign/beats.js'
+import { CANON_CHARACTERS, RELATIONSHIP_IDS } from '../canon/characters.js'
+import { DialogueMemoryProvider, type DialogueMomentSelection } from '../narrative/DialogueMemoryContext.js'
 import type { CampaignEffect, GameState } from '../state/types.js'
 import { createInitialState } from '../state/initial.js'
 import { reduceGame } from '../state/reducer.js'
@@ -199,10 +202,28 @@ function loadSave(): SliceSave | null {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as SliceSave
-    if (!SLICE_SCREEN_IDS.includes(parsed.screen) || parsed.game.schemaVersion !== 1) return null
-    return parsed
+    if (!SLICE_SCREEN_IDS.includes(parsed.screen) || ![1, 2].includes(Number(parsed.game.schemaVersion))) return null
+    return { ...parsed, game: hydrateGameState(parsed.game) }
   } catch {
     return null
+  }
+}
+
+/** Keeps deployed v1 autosaves playable while adding relationship dimensions. */
+export function hydrateGameState(candidate: GameState): GameState {
+  const base = createInitialState(candidate.seed || 'ithaca-vertical-slice')
+  const previous = candidate as GameState & { relationshipDimensions?: GameState['relationshipDimensions']; dialogueMemories?: GameState['dialogueMemories'] }
+  const relationshipDimensions = Object.fromEntries(RELATIONSHIP_IDS.map((id) => [id, {
+    ...base.relationshipDimensions[id],
+    ...(previous.relationshipDimensions?.[id] ?? {}),
+  }])) as GameState['relationshipDimensions']
+  return {
+    ...base,
+    ...candidate,
+    schemaVersion: 2,
+    relationships: { ...base.relationships, ...candidate.relationships },
+    relationshipDimensions,
+    dialogueMemories: previous.dialogueMemories ?? [],
   }
 }
 
@@ -217,6 +238,8 @@ export function SliceGame() {
   const [savedGame, setSavedGame] = useState<SliceSave | null>(() => loadSave())
   const [screen, setScreen] = useState<SliceScreenId>(() => loadPreviewScreen() ?? 'title')
   const [game, setGame] = useState<GameState>(() => savedGame?.game ?? createInitialState('ithaca-vertical-slice'))
+  const [showResumeRecap, setShowResumeRecap] = useState(false)
+  const [journeyLogOpen, setJourneyLogOpen] = useState(false)
 
   useEffect(() => {
     if (screen === 'title' || game.campaign.status === 'not-started') return
@@ -235,6 +258,19 @@ export function SliceGame() {
     if (!savedGame) return
     setGame(savedGame.game)
     setScreen(savedGame.screen)
+    setShowResumeRecap(true)
+  }
+
+  const recordDialogueMoment = ({ sceneId, choice }: DialogueMomentSelection) => {
+    setGame((current) => reduceGame(current, {
+      type: 'dialogue/moment',
+      sceneId,
+      choiceId: choice.id,
+      label: choice.label,
+      character: choice.character,
+      axis: choice.axis,
+      delta: choice.delta,
+    }).state)
   }
 
   const completeActivity = (
@@ -970,11 +1006,14 @@ export function SliceGame() {
   }
 
   return (
-    <main className="game-shell">
-      {screen !== 'title' && <VoyageHud game={game} />}
-      {renderScreen()}
-      <AudioControls />
-    </main>
+    <DialogueMemoryProvider onRecord={recordDialogueMoment}>
+      <main className="game-shell">
+        {screen !== 'title' && <VoyageHud game={game} onOpenLog={() => setJourneyLogOpen(true)} />}
+        {showResumeRecap ? <ResumeBriefing game={game} onContinue={() => setShowResumeRecap(false)} /> : renderScreen()}
+        {journeyLogOpen && <JourneyLog game={game} onClose={() => setJourneyLogOpen(false)} />}
+        <AudioControls />
+      </main>
+    </DialogueMemoryProvider>
   )
 }
 
@@ -996,7 +1035,7 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
   )
 }
 
-function VoyageHud({ game }: { game: GameState }) {
+function VoyageHud({ game, onOpenLog }: { game: GameState; onOpenLog: () => void }) {
   const completed = game.campaign.completedBeatIds.filter((id) => VERTICAL_SLICE_BEATS.includes(id as typeof VERTICAL_SLICE_BEATS[number])).length
   const act = completed >= 27 ? 'ACT IV' : completed >= 17 ? 'ACT III' : completed >= 8 ? 'ACT II' : 'ACT I'
   const withinAct = completed >= 27 ? Math.min(5, completed - 26) : completed >= 17 ? Math.min(10, completed - 16) : completed >= 8 ? Math.min(9, completed - 7) : Math.min(8, completed + 1)
@@ -1006,9 +1045,53 @@ function VoyageHud({ game }: { game: GameState }) {
       <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
       <div><span>PURSUIT</span><strong>{game.pursuit}</strong></div>
       <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : act === 'ACT II' ? 9 : act === 'ACT III' ? 10 : 5}</strong></div>
+      <button className="voyage-log-button" onClick={onOpenLog}>LOG</button>
       <small>AUTOSAVED</small>
     </aside>
   )
+}
+
+function ResumeBriefing({ game, onContinue }: { game: GameState; onContinue: () => void }) {
+  const current = game.campaign.currentBeatId ? beatById(game.campaign.currentBeatId) : null
+  const lastBeatId = game.campaign.completedBeatIds.at(-1)
+  const lastBeat = lastBeatId ? beatById(lastBeatId) : null
+  const lastDecision = game.decisions.at(-1)
+  const strongest = Object.entries(game.relationshipDimensions).sort(([, a], [, b]) => (b.trust + b.intimacy + b.respect - b.resentment) - (a.trust + a.intimacy + a.respect - a.resentment))[0]
+  return <section className="resume-briefing" style={{ '--resume-bg': `url(${ASSETS.cinematics.wrongStars})` } as React.CSSProperties}>
+    <div>
+      <p className="eyebrow">PREVIOUSLY ABOARD THE ITHACA</p>
+      <h1>{current ? current.title : 'The voyage is waiting.'}</h1>
+      <p>{lastBeat ? `${lastBeat.title} is behind you. ` : ''}{current?.premise ?? 'The final record remains.'}</p>
+      <dl>
+        <div><dt>LAST CONSEQUENCE</dt><dd>{lastDecision?.choiceId.replaceAll('-', ' ') ?? 'The Tide Gate awaits.'}</dd></div>
+        <div><dt>HULL</dt><dd>{game.ship.hull}%</dd></div>
+        <div><dt>PURSUIT</dt><dd>{game.pursuit}</dd></div>
+        <div><dt>CLOSEST BOND</dt><dd>{strongest?.[0].replaceAll('-', ' ') ?? 'Unformed'}</dd></div>
+      </dl>
+      <button className="primary-action" onClick={onContinue}>Return to the voyage <span>→</span></button>
+    </div>
+  </section>
+}
+
+function JourneyLog({ game, onClose }: { game: GameState; onClose: () => void }) {
+  const current = game.campaign.currentBeatId ? beatById(game.campaign.currentBeatId) : null
+  const personName = (id: (typeof RELATIONSHIP_IDS)[number]) => CANON_CHARACTERS.find((character) => character.id === id)?.name.replace(/^(Captain|Commander|Chief|Dr|Lieutenant) /, '') ?? id.replaceAll('-', ' ')
+  const bondWord = (value: number, kind: 'trust' | 'intimacy' | 'respect' | 'resentment') => {
+    const words = kind === 'trust'
+      ? ['withheld', 'guarded', 'unproven', 'opening', 'entrusted']
+      : kind === 'intimacy'
+        ? ['distant', 'closed', 'unspoken', 'personal', 'intimate']
+        : kind === 'respect'
+          ? ['dismissed', 'strained', 'unproven', 'earned', 'deep']
+          : ['easing', 'quiet', 'none', 'present', 'raw']
+    return words[value <= -2 ? 0 : value < 0 ? 1 : value === 0 ? 2 : value < 3 ? 3 : 4]
+  }
+  return <aside className="journey-log" role="dialog" aria-modal="true" aria-label="Journey log">
+    <header><div><small>CSV ITHACA · CAPTAIN’S RECORD</small><h2>{current?.title ?? 'Voyage complete'}</h2></div><button onClick={onClose}>Close</button></header>
+    <section><h3>Where you stand</h3><div className="relationship-ledger">{RELATIONSHIP_IDS.map((id) => { const profile = game.relationshipDimensions[id]; return <article key={id}><strong>{personName(id)}</strong><span>Trust · {bondWord(profile.trust, 'trust')}</span><span>Closeness · {bondWord(profile.intimacy, 'intimacy')}</span><span>Respect · {bondWord(profile.respect, 'respect')}</span><span>Strain · {bondWord(profile.resentment, 'resentment')}</span></article> })}</div></section>
+    <section><h3>Words remembered</h3>{game.dialogueMemories.length ? <ol>{game.dialogueMemories.slice(-8).reverse().map((memory) => <li key={memory.id}><strong>{memory.label}</strong><small>{memory.sceneId.replaceAll('-', ' ')}</small></li>)}</ol> : <p>No private choices recorded yet.</p>}</section>
+    <section><h3>Recent decisions</h3>{game.decisions.length ? <ol>{game.decisions.slice(-8).reverse().map((decision) => <li key={decision.id}><strong>{decision.choiceId.replaceAll('-', ' ')}</strong><small>{decision.activityId.replaceAll('-', ' ')}</small></li>)}</ol> : <p>The first order has not been given.</p>}</section>
+  </aside>
 }
 
 function CompletionScreen({ game, onRestart, onContinue }: { game: GameState; onRestart: () => void; onContinue: () => void }) {

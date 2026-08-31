@@ -198,18 +198,26 @@ export function cireneBargainScene(game: GameState): DialogueSceneData {
   const recognized = game.flags.includes('cirene-copies-recognized')
   const destroyed = game.flags.includes('cirene-copies-destroyed')
   return {
+    id: 'b11-cirene-bargain',
     beat: 'BEAT 11',
     chapter: 'THE CAPTAIN’S BARGAIN',
     title: 'Cirene offers everything except an uncomplicated departure',
+    location: 'MIND THEATRE · VALE’S NEURAL LINK',
+    sceneType: 'private',
     background: ASSETS.cinematics.cireneMindTheatre,
     lines: [
-      { speaker: 'doctor-cirene', name: 'DOCTOR CIRENE', station: 'MIND THEATRE', text: `You held the painful memories. Good. Consent requires a self capable of refusal. ${destroyed ? 'Four continuations asked you for that refusal, and you answered with erasure.' : recognized ? 'You also defended continuations your law did not know how to name.' : 'You protected the old record when reality exceeded it.'}` },
-      { speaker: 'alexander-vale', name: 'VALE', station: 'NEURAL LINK', text: 'Name the price of the repairs.' },
-      { speaker: 'doctor-cirene', name: 'DOCTOR CIRENE', station: 'MIND THEATRE', text: 'Time. Let the crew recover while my scaffolds teach your ship to heal. In return, I retain a map of the Gate structure inside you. Not your memories. The road between them.' },
-      { speaker: 'helen-morozova', name: 'MOROZOVA', station: 'REMOTE MEDICAL LINK', text: 'That map may lead to Earth. It may also let her build another Tide Gate—or find the sanctuary the first one protected.' },
-      { speaker: 'doctor-cirene', name: 'DOCTOR CIRENE', station: 'MIND THEATRE', text: 'You came asking for a healer and discovered I can change history. The discovery does not make your need less real.' },
-      { speaker: 'alexander-vale', name: 'VALE', station: 'COMMAND', text: 'Then the bargain is not whether we need you. It is whether need gets to make the decision for us.' },
+      { speaker: 'doctor-cirene', name: 'CIRENE', station: 'MIND THEATRE', text: `${destroyed ? 'Four continuations asked not to be erased. You erased them.' : recognized ? 'You defended people your registry called mistakes.' : 'You kept the old record because the new one frightened you.'} I wondered which captain would wake up.` },
+      { speaker: 'alexander-vale', name: 'VALE', station: 'NEURAL LINK', text: 'The one asking what repairs cost.' },
+      { speaker: 'doctor-cirene', name: 'CIRENE', station: 'MIND THEATRE', text: 'Forty days. My scaffolds heal the ship. I keep the shape of the Gate I found in you.' },
+      { speaker: 'helen-morozova', name: 'MOROZOVA', station: 'REMOTE MEDICAL LINK', text: 'That shape points home. It may also point to the next sanctuary.', emotion: 'guarded', reaction: { speaker: 'alexander-vale', name: 'VALE' } },
+      { speaker: 'doctor-cirene', name: 'CIRENE', station: 'MIND THEATRE', text: 'You do need me, Alexander. I am not using the fact. I am refusing to pretend it is absent.' },
+      { speaker: 'alexander-vale', name: 'VALE', station: 'COMMAND', text: 'Good. Neither will I.' },
     ],
+    moments: [{ id: 'who-decides-cirene', afterLine: 3, prompt: 'Morozova is still on the private channel. Vale can ask for an answer, an audit, or distance.', choices: [
+      { id: 'ask-helen-what-she-would-do', label: '“What would you do?”', detail: 'Ask as a friend, knowing she may refuse to become Vale’s conscience.', character: 'helen-morozova', axis: 'intimacy', delta: 1, response: { speaker: 'helen-morozova', name: 'MOROZOVA', station: 'REMOTE MEDICAL LINK', text: 'I’d want you to ask me exactly that. I still won’t choose for you.', emotion: 'guarded', pause: 'held' } },
+      { id: 'ask-helen-to-audit', label: 'Give Helen the audit', detail: 'Turn suspicion into a concrete boundary she can enforce.', character: 'helen-morozova', axis: 'respect', delta: 1, response: { speaker: 'alexander-vale', name: 'VALE', station: 'NEURAL LINK', text: 'Helen watches every exchange. If the map opens, we leave.', reaction: { speaker: 'helen-morozova', name: 'MOROZOVA', emotion: 'guarded' } } },
+      { id: 'close-private-channel', label: 'Close the private channel', detail: 'Face Cirene alone and deny Morozova a view of the final negotiation.', character: 'helen-morozova', axis: 'resentment', delta: 1, response: { speaker: 'narrator', name: 'NEURAL LINK', text: 'Morozova’s breathing disappears from the channel. Cirene notices the silence.', pause: 'silence' } },
+    ] }],
     choices: [
       { id: 'ally-with-cirene', label: 'Accept a bounded alliance', detail: 'Permit a forty-day refit and a sealed map of the Gate structure, with Morozova auditing every exchange.' },
       { id: 'refuse-and-depart', label: 'Take only emergency shelter', detail: 'Allow the wounded time to stabilise, then leave without Cirene’s deeper repairs or protection.' },

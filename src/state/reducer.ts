@@ -11,6 +11,17 @@ import type {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
+function adjustRelationshipAxis(state: GameState, character: keyof GameState['relationshipDimensions'], axis: keyof GameState['relationshipDimensions'][keyof GameState['relationshipDimensions']], delta: number): GameState {
+  const before = state.relationshipDimensions[character]
+  return {
+    ...state,
+    relationshipDimensions: {
+      ...state.relationshipDimensions,
+      [character]: { ...before, [axis]: clamp(before[axis] + delta, -5, 5) },
+    },
+  }
+}
+
 function reject(state: GameState, reason: string): Transition {
   return { state, events: [{ type: 'action-rejected', reason }], accepted: false }
 }
@@ -22,13 +33,15 @@ function applyEffect(state: GameState, effect: CampaignEffect): GameState {
     case 'clear-flag':
       return { ...state, flags: state.flags.filter((flag) => flag !== effect.flag) }
     case 'relationship':
-      return {
+      return adjustRelationshipAxis({
         ...state,
         relationships: {
           ...state.relationships,
           [effect.character]: clamp(state.relationships[effect.character] + effect.delta, -5, 5),
         },
-      }
+      }, effect.character, effect.delta >= 0 ? 'trust' : 'resentment', Math.abs(effect.delta))
+    case 'relationship-axis':
+      return adjustRelationshipAxis(state, effect.character, effect.axis, effect.delta)
     case 'pursuit':
       return { ...state, pursuit: clamp(state.pursuit + effect.delta, 0, 100) }
     case 'character-status':
@@ -91,6 +104,32 @@ function reduceAccepted(state: GameState, action: GameAction): Transition {
           actionLog: [...state.actionLog, action],
         },
         events: [{ type: 'campaign-started', beatId: FIRST_BEAT.id }],
+        accepted: true,
+      }
+    }
+    case 'dialogue/moment': {
+      if (state.campaign.status !== 'playing') return reject(state, 'Dialogue memories can only be recorded during the voyage.')
+      const id = `${action.sceneId}:${action.choiceId}`
+      if (state.dialogueMemories.some((memory) => memory.id === id)) return reject(state, 'This dialogue moment has already been remembered.')
+      let nextState = action.character && action.axis && action.delta
+        ? adjustRelationshipAxis(state, action.character, action.axis, action.delta)
+        : state
+      nextState = {
+        ...nextState,
+        dialogueMemories: [...nextState.dialogueMemories, {
+          id,
+          sceneId: action.sceneId,
+          choiceId: action.choiceId,
+          label: action.label,
+          character: action.character,
+          axis: action.axis,
+          delta: action.delta,
+        }],
+        actionLog: [...nextState.actionLog, action],
+      }
+      return {
+        state: nextState,
+        events: [{ type: 'dialogue-moment-recorded', sceneId: action.sceneId, choiceId: action.choiceId }],
         accepted: true,
       }
     }
@@ -179,4 +218,3 @@ export function replayGame(initial: GameState, actions: readonly GameAction[]): 
 export function campaignActivityCount(): number {
   return CAMPAIGN_BEATS.reduce((total, beat) => total + beat.activities.length, 0)
 }
-

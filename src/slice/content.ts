@@ -1,5 +1,6 @@
 import { isAlienCharacter } from '../canon/characters.js'
-import type { CharacterId } from '../canon/characters.js'
+import type { CharacterId, RelationshipId } from '../canon/characters.js'
+import type { RelationshipAxis } from '../state/types.js'
 
 export const ASSETS = {
   cinematics: {
@@ -78,6 +79,23 @@ export const ASSETS = {
 } as const
 
 export type PortraitId = keyof typeof ASSETS.portraits
+
+export type PortraitEmotion = 'neutral' | 'guarded' | 'angry' | 'frightened' | 'wounded' | 'stressed' | 'exhausted' | 'grieving'
+
+/** Identity-locked performance variants. Missing emotions deliberately fall back to neutral. */
+export const PORTRAIT_VARIANTS: Readonly<Partial<Record<PortraitId, Partial<Record<PortraitEmotion, string>>>>> = {
+  'alexander-vale': { grieving: '/assets/portraits/alexander-vale-grieving.webp' },
+  'helen-morozova': { angry: '/assets/portraits/helen-morozova-angry.webp', guarded: '/assets/portraits/helen-morozova-angry.webp' },
+  'gabriel-cross': { wounded: '/assets/portraits/gabriel-cross-wounded.webp', exhausted: '/assets/portraits/gabriel-cross-wounded.webp' },
+  'lena-mori': { stressed: '/assets/portraits/lena-mori-stressed.webp', angry: '/assets/portraits/lena-mori-stressed.webp' },
+  'isabella-corelli': { exhausted: '/assets/portraits/isabella-corelli-exhausted.webp', angry: '/assets/portraits/isabella-corelli-exhausted.webp' },
+  'kiara-ndala': { frightened: '/assets/portraits/kiara-ndala-frightened.webp' },
+  'elara-vale': { angry: '/assets/portraits/elara-vale-angry.webp', guarded: '/assets/portraits/elara-vale-angry.webp' },
+}
+
+export function portraitFor(id: PortraitId, emotion: PortraitEmotion = 'neutral') {
+  return PORTRAIT_VARIANTS[id]?.[emotion] ?? ASSETS.portraits[id]
+}
 
 export type SliceScreenId =
   | 'title'
@@ -185,12 +203,38 @@ export interface DialogueLine {
   station?: string
   text: string
   cue?: string
+  emotion?: PortraitEmotion
+  shot?: 'close' | 'medium' | 'wide' | 'comms' | 'reaction'
+  pause?: 'short' | 'held' | 'silence'
+  reaction?: {
+    speaker: CharacterId
+    name: string
+    emotion?: PortraitEmotion
+  }
   cutaway?: {
     image: string
     label: string
     caption: string
     fit?: 'cover' | 'contain'
   }
+}
+
+export interface DialogueMomentChoice {
+  id: string
+  label: string
+  detail: string
+  response: DialogueLine
+  character?: RelationshipId
+  axis?: RelationshipAxis
+  delta?: number
+}
+
+export interface DialogueMoment {
+  id: string
+  /** Zero-based source-line index after which the player may intervene. */
+  afterLine: number
+  prompt: string
+  choices: readonly DialogueMomentChoice[]
 }
 
 export interface DialogueChoice {
@@ -200,12 +244,16 @@ export interface DialogueChoice {
 }
 
 export interface DialogueSceneData {
+  id?: string
   beat: string
   chapter: string
   title: string
+  location?: string
+  sceneType?: 'briefing' | 'private' | 'confrontation' | 'memory' | 'aftermath' | 'transmission'
   background: string
   lines: readonly DialogueLine[]
   choices?: readonly DialogueChoice[]
+  moments?: readonly DialogueMoment[]
   continueLabel?: string
 }
 
@@ -280,22 +328,25 @@ export const INTERLUDES: Record<'interlude-02' | 'interlude-03' | 'interlude-04'
 
 export const DIALOGUE_SCENES = {
   prologue: {
+    id: 'prologue-last-day',
     beat: 'PROLOGUE',
     chapter: 'THE LAST DAY OF THE WAR',
     title: 'A victory large enough to become a curse',
+    location: 'TIDE GATE APPROACH · BRIDGE WATCH',
+    sceneType: 'briefing',
     background: ASSETS.cinematics.title,
     lines: [
       {
         speaker: 'narrator',
         name: 'THE LONG RETURN',
         cue: 'ELEVEN YEARS AFTER DEPARTURE',
-        text: 'After eleven years of war, the Eidolon line has broken. One structure still holds the passage home: the Tide Gate.',
+        text: 'Eleven years after leaving Earth, the Ithaca can see the way home. The Tide Gate is closing.',
         cutaway: { image: ASSETS.cinematics.title, label: 'THE TIDE GATE', caption: 'One aperture. One surviving route to human space.' },
       },
       {
         speaker: 'narrator',
         name: 'TACTICAL RECORD 01',
-        text: 'The CSV Ithaca carries 312 souls, a damaged rail lance, and an order to end the war before the enemy can close the aperture.',
+        text: 'Three hundred and twelve people are awake for final approach. Nobody has said what they will do first on Earth.',
         cutaway: { image: ASSETS.ships.ithaca, label: 'CSV-141 · ITHACA', caption: 'Hesperia-class survey cruiser. Seventeen decks still habitable.', fit: 'contain' },
       },
       {
@@ -303,33 +354,47 @@ export const DIALOGUE_SCENES = {
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
         cue: 'BRIDGE AUDIO · FINAL APPROACH',
-        text: 'Eleven years ago you promised me the first drink on Earth. I have kept a very patient bottle, Captain.',
+        text: 'Bottle’s still there.',
+        shot: 'close',
+        reaction: { speaker: 'alexander-vale', name: 'VALE' },
       },
       {
         speaker: 'alexander-vale',
         name: 'CAPTAIN ALEXANDER VALE',
         station: 'COMMAND',
-        text: 'Elara was nine when we left. She will be twenty when we return. I think she has waited long enough.',
+        text: 'Elara was nine when we left. She’ll be twenty now.',
+        pause: 'held',
       },
       {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'SCIENCE / EXECUTIVE OFFICER',
-        text: 'Then let us make certain we understand the door before we burn it down behind us.',
+        text: 'Then look at the door, Alexander. Not through it.',
+        emotion: 'guarded',
       },
       {
         speaker: 'alexander-vale',
         name: 'CAPTAIN ALEXANDER VALE',
         station: 'COMMAND',
-        text: 'All stations, final approach. We finish this—and then we go home.',
+        text: 'All stations. Final approach. Let’s go home.',
       },
     ],
+    moments: [{
+      id: 'cross-bottle', afterLine: 2, prompt: 'Cross is trying to make this feel ordinary. What does Vale give him back?', choices: [
+        { id: 'share-the-joke', label: 'Share the old joke', detail: 'Meet fear with the private language of an eleven-year friendship.', character: 'gabriel-cross', axis: 'intimacy', delta: 1, response: { speaker: 'alexander-vale', name: 'VALE', station: 'COMMAND', text: 'Still tastes like coolant?', shot: 'close' } },
+        { id: 'ask-if-he-kept-it', label: 'Ask if he really kept it', detail: 'Let Cross admit what the promise has meant to him.', character: 'gabriel-cross', axis: 'trust', delta: 1, response: { speaker: 'gabriel-cross', name: 'CROSS', station: 'WEAPONS', text: 'Checked it every year. Stupid, really.', emotion: 'neutral', pause: 'short' } },
+        { id: 'look-at-elara', label: 'Look at Elara’s photograph', detail: 'Say nothing; Cross will understand which promise matters more.', character: 'gabriel-cross', axis: 'resentment', delta: 1, response: { speaker: 'narrator', name: 'BRIDGE RECORD', text: 'Vale turns the photograph beside his chair face up. Cross watches him do it.', shot: 'reaction', pause: 'held' } },
+      ],
+    }],
     continueLabel: 'Enter the bridge',
   },
   'b1-briefing': {
+    id: 'b1-incomplete-intelligence',
     beat: 'BEAT 01',
     chapter: 'THE BURNING OF THE TIDE GATE',
     title: 'Incomplete intelligence',
+    location: 'CSV ITHACA · SIX MINUTES TO GATE CLOSURE',
+    sceneType: 'confrontation',
     background: ASSETS.cinematics.bridge,
     lines: [
       {
@@ -337,7 +402,7 @@ export const DIALOGUE_SCENES = {
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
         cue: '06:42 TO APERTURE CLOSURE',
-        text: 'The screen cycles every forty seconds. Give me one clean window and the rail lance can crack it.',
+        text: 'Screen cycles every forty seconds. Give me one clean window and I can crack it.',
         cutaway: { image: ASSETS.cinematics.title, label: 'TARGET FEED', caption: 'The screen is rebuilding faster after every cycle.' },
       },
       {
@@ -350,14 +415,15 @@ export const DIALOGUE_SCENES = {
         speaker: 'gabriel-cross',
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
-        text: 'Two if they are cautious. One if their admiral is as tired of this war as I am.',
+        text: 'Two if they’re careful. One if they’re tired.',
       },
       {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'SCIENCE / EXECUTIVE OFFICER',
         cue: 'SCIENCE ALERT · UNCLASSIFIED PATTERN',
-        text: 'Captain, I have a pattern inside the Gate. At first I thought it was thermal noise.',
+        text: 'There’s a pattern inside the Gate. I called it heat noise. I was wrong.',
+        emotion: 'guarded',
         cutaway: { image: ASSETS.cinematics.bridge, label: 'SCIENCE OVERLAY', caption: 'Eight million repeating signals. No known machine cadence.' },
       },
       {
@@ -370,22 +436,33 @@ export const DIALOGUE_SCENES = {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'SCIENCE / EXECUTIVE OFFICER',
-        text: 'The pulses divide, differentiate, then begin again. They resemble cell cycles—but there are millions of them, synchronized.',
+        text: 'They divide. Differentiate. Begin again. Cell cycles—or something close enough that I need you to stop.',
+        emotion: 'angry',
       },
       {
         speaker: 'gabriel-cross',
         name: 'COMMANDER GABRIEL CROSS',
         station: 'WEAPONS',
         cue: '04:03 TO APERTURE CLOSURE',
-        text: 'Contact turn. The enemy fleet is coming back. Helen, tell him you know—not that it resembles something.',
+        text: 'Contact turn. Helen, do you know?',
+        reaction: { speaker: 'helen-morozova', name: 'MOROZOVA', emotion: 'angry' },
       },
       {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'SCIENCE / EXECUTIVE OFFICER',
-        text: 'I need twenty seconds. After eleven years, I am asking you for twenty seconds before we fire into something that may be alive.',
+        text: 'No. I need twenty seconds.',
+        emotion: 'angry',
+        pause: 'silence',
       },
     ],
+    moments: [{
+      id: 'twenty-seconds', afterLine: 7, prompt: 'The firing window is closing. Answer the person before answering the problem.', choices: [
+        { id: 'ask-what-she-needs', label: '“What do you need?”', detail: 'Give Morozova the authority to name a test before Vale gives an order.', character: 'helen-morozova', axis: 'trust', delta: 1, response: { speaker: 'helen-morozova', name: 'MOROZOVA', station: 'SCIENCE', text: 'Hold the target steady. And don’t let Cross fire because I sound afraid.', emotion: 'angry', shot: 'close' } },
+        { id: 'keep-cross-ready', label: 'Keep Cross on the window', detail: 'Acknowledge Morozova without surrendering the tactical opening.', character: 'gabriel-cross', axis: 'respect', delta: 1, response: { speaker: 'alexander-vale', name: 'VALE', station: 'COMMAND', text: 'Cross, hold the window. Helen—start.', reaction: { speaker: 'gabriel-cross', name: 'CROSS' } } },
+        { id: 'let-silence-answer', label: 'Say nothing', detail: 'Make both officers wait inside Vale’s silence before the final order.', character: 'helen-morozova', axis: 'resentment', delta: 1, response: { speaker: 'narrator', name: 'BRIDGE RECORD', text: 'Four seconds pass. Cross’s thumb stays over the firing key.', pause: 'silence', shot: 'wide' } },
+      ],
+    }],
     choices: [
       { id: 'scan-before-firing', label: 'Complete the scan', detail: 'Risk the firing window to learn what the Gate contains. Helen will remember.' },
       { id: 'fire-immediately', label: 'Fire immediately', detail: 'Exploit the opening before the Eidolon screen resets. Cross approves.' },
@@ -619,7 +696,7 @@ export const DIALOGUE_SCENES = {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'EXECUTIVE OFFICER',
-        text: 'Home is not a coordinate. It is the promise that our suffering still means something. That is why this place is dangerous.',
+        text: 'Twenty-three people looked at that garden and stopped asking when. I’m frightened by how quickly you heard that as surrender.',
       },
       {
         speaker: 'alexander-vale',
@@ -631,13 +708,13 @@ export const DIALOGUE_SCENES = {
         speaker: 'helen-morozova',
         name: 'DR HELEN MOROZOVA',
         station: 'EXECUTIVE OFFICER',
-        text: 'I think you keep asking whether a decision worked when the harder question is what it made of us.',
+        text: 'I think you ask whether it worked because that question has a report you can sign.',
       },
       {
         speaker: 'alexander-vale',
         name: 'CAPTAIN ALEXANDER VALE',
         station: 'COMMAND',
-        text: 'Set our course. Before the garden teaches the rest of us how to stop wanting.',
+        text: 'Set our course. Put every name in the departure record—whether they stayed or came back.',
       },
     ],
     continueLabel: 'Leave Eirenai',
@@ -709,8 +786,12 @@ export function sceneHasAlienSpeaker(scene: DialogueSceneData): boolean {
   return scene.lines.some((line) => isAlienCharacter(line.speaker))
 }
 
-export const SLICE_ASSET_PATHS = [
+const SLICE_ASSET_PATHS_WITH_ALIASES = [
   ...Object.values(ASSETS.cinematics),
   ...Object.values(ASSETS.portraits),
+  ...Object.values(PORTRAIT_VARIANTS).flatMap((variants) => Object.values(variants ?? {})),
   ...Object.values(ASSETS.ships),
 ] as const
+
+/** Unique preload/validation manifest; several emotional states intentionally share one performance image. */
+export const SLICE_ASSET_PATHS = [...new Set(SLICE_ASSET_PATHS_WITH_ALIASES)]
