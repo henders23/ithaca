@@ -11,7 +11,9 @@ The browser opens directly into the complete thirty-two-beat cinematic campaign 
 - cinematic dialogue with a consistent recurring cast;
 - cinematic voyage interludes that recap consequences and establish the next objective;
 - objective, survival, boss-passage and protected-target ship combat encounters with persistent damage;
+- real-time tactical combat with telegraphed enemy fire, evasive burns, shield bracing, reactor power routing, printed subsystem weaknesses, target lock, enemy escalation and a graded result;
 - weapon-specific projectiles, shield impacts, damage feedback, sampled combat audio and sprite-sheet explosions;
+- typed dialogue with auto-play and keyboard choice selection, and a consequence feed that acknowledges every choice that changes trust, pursuit, the ship or the record;
 - a four-track score that follows the scene: *Glass Moon Relay* on the start screen, *Starship Ithaca* across the voyage,
   *Cirene’s Ark* whenever an alien speaks, and *Black Banner* in every battle;
 - thirty-seven registered puzzles and action minigames, plus explorable character hubs;

@@ -10,6 +10,7 @@ import { reduceGame } from '../state/reducer.js'
 import { CinematicCombat, type CombatConfig } from './CinematicCombat.js'
 import { ASSETS, DIALOGUE_SCENES, INTERLUDES, type DialogueChoice, type SliceScreenId } from './content.js'
 import { BeatInterlude } from './BeatInterlude.js'
+import { ConsequenceFeed, useConsequenceFeed } from './ConsequenceFeed.js'
 import { CrewRumourHub } from './CrewHub.js'
 import { DialogueScene } from './DialogueScene.js'
 import { CircuitGame, MemoryGame, PowerGridGame, ShuttleChaseGame, TriageGame } from './MiniGames.js'
@@ -240,6 +241,7 @@ export function SliceGame() {
   const [game, setGame] = useState<GameState>(() => savedGame?.game ?? createInitialState('ithaca-vertical-slice'))
   const [showResumeRecap, setShowResumeRecap] = useState(false)
   const [journeyLogOpen, setJourneyLogOpen] = useState(false)
+  const consequences = useConsequenceFeed()
 
   useEffect(() => {
     if (screen === 'title' || game.campaign.status === 'not-started') return
@@ -262,6 +264,7 @@ export function SliceGame() {
   }
 
   const recordDialogueMoment = ({ sceneId, choice }: DialogueMomentSelection) => {
+    if (choice.character && choice.axis && choice.delta) consequences.push([{ kind: 'relationship-axis', character: choice.character, axis: choice.axis, delta: choice.delta }])
     setGame((current) => reduceGame(current, {
       type: 'dialogue/moment',
       sceneId,
@@ -281,6 +284,7 @@ export function SliceGame() {
     effects: CampaignEffect[] = [],
     finishBeat = false,
   ) => {
+    consequences.push(effects)
     setGame((current) => {
       let next = reduceGame(current, { type: 'activity/completed', beatId, activityId, choiceId, effects }).state
       if (finishBeat) next = reduceGame(next, { type: 'beat/completed', beatId }).state
@@ -1011,6 +1015,7 @@ export function SliceGame() {
         {screen !== 'title' && <VoyageHud game={game} onOpenLog={() => setJourneyLogOpen(true)} />}
         {showResumeRecap ? <ResumeBriefing game={game} onContinue={() => setShowResumeRecap(false)} /> : renderScreen()}
         {journeyLogOpen && <JourneyLog game={game} onClose={() => setJourneyLogOpen(false)} />}
+        <ConsequenceFeed notices={consequences.notices} />
         <AudioControls />
       </main>
     </DialogueMemoryProvider>
@@ -1042,8 +1047,8 @@ function VoyageHud({ game, onOpenLog }: { game: GameState; onOpenLog: () => void
   return (
     <aside className="voyage-hud" aria-label="Voyage status">
       <div><span>CSV</span><strong>ITHACA</strong></div>
-      <div><span>HULL</span><strong>{game.ship.hull}%</strong></div>
-      <div><span>PURSUIT</span><strong>{game.pursuit}</strong></div>
+      <div><span>HULL</span><strong key={game.ship.hull} className="hud-bump">{game.ship.hull}%</strong></div>
+      <div><span>PURSUIT</span><strong key={game.pursuit} className="hud-bump">{game.pursuit}</strong></div>
       <div><span>{act}</span><strong>{withinAct} / {act === 'ACT I' ? 8 : act === 'ACT II' ? 9 : act === 'ACT III' ? 10 : 5}</strong></div>
       <button className="voyage-log-button" onClick={onOpenLog}>LOG</button>
       <small>AUTOSAVED</small>

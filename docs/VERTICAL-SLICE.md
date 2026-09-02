@@ -54,11 +54,18 @@ The audio control in the bottom corner stays a single note glyph until it is hov
 
 ## Controls
 
-- Dialogue and choices: pointer or keyboard focus.
-- Combat: select a subsystem, then fire a charged rail lance, kinetic salvo or ion shear. Each weapon has its own projectile, travel timing, impact, shield response and sampled report, with muzzle, bolt, shield-hit and sprite-sheet explosion frames over the authored effects. Pause is available from the tactical header or the spacebar.
-- Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls.
+- Dialogue and choices: lines type out with a breath after punctuation; a click, `Enter` or `Space` completes the line, then advances. `1`–`4` pick a moment or a final choice, `←` backtracks, `T` opens the transcript and `A` toggles auto-play. Text speed cycles between brisk, measured and instant from the scene tools; both preferences persist in local storage. Every choice that changes the campaign state is acknowledged in the consequence feed beneath the voyage HUD (for example *MOROZOVA · trusts you more*, *PURSUIT +12*, *THE VOYAGE REMEMBERS · tide gate scanned*).
+- Combat: every encounter opens with a tactical briefing and then runs on one real-time clock.
+  - **Telegraphed fire.** The enemy shows its hand before every shot: a dashed threat line and an *INCOMING* card fill for about a second, turning red when the burn window opens. Destroying sensor-class subsystems lengthens the warning.
+  - **Evasive burn (`Q`)** dodges any shot that lands inside its window; a dodged shot costs nothing. **Brace (`E`)** angles the shields for half damage and stops a shot bleeding through into the hull.
+  - **Power routing (`Z` / `X` / `C`)** commits the reactor to weapons (double charge, no shield regeneration), shields (they knit while nothing is landing) or engines (a burn every three seconds and one shot in five misses).
+  - **Weapons (`1` / `2` / `3`).** Every subsystem card prints the weapon it is weak to; a weak-point hit adds damage. Consecutive hits on the same target build a three-pip lock, and a full lock adds a further point. Ion shear silences enemy fire control for three seconds on any hit. `Tab` cycles targets.
+  - **Destruction effects** are printed on the card: killing a threat-class subsystem slows enemy fire, killing a sensor-class subsystem lengthens warnings.
+  - **Escalation.** At half objective mass (or the back half of a survival clock) the enemy adapts: faster fire and every third attack becomes a two-shot volley, announced on screen and by the crew.
+  - Victory grades the engagement S–C on retained hull, evasions, locked shots and time. Defeat names what went wrong before the retry. Each weapon keeps its own projectile, travel timing, impact, shield response and sampled report, with muzzle, bolt, shield-hit and sprite-sheet explosion frames over the authored effects. Pause is available from the tactical header or the spacebar.
+- Shuttle chase: `A` / `D`, left / right arrows, or the on-screen controls to change lane; `W`, `↑` or `Space` burns for a moment of speed at the cost of a harder hit. The corridor accelerates, two-lane debris walls force a read of the lane ahead, near misses are counted as close calls and the shuttle visibly closes.
 - Storm flight: the same movement controls, but the player must align with luminous current gates rather than dodge obstacles.
-- Survival combat: suppress living-ship subsystems to reduce incoming pressure and endure until the jump countdown reaches zero; the Tidefather cannot be destroyed.
+- Survival combat: suppress living-ship subsystems to reduce incoming pressure (their destruction effects apply until the living hull regrows them) and endure until the jump countdown reaches zero; the Tidefather cannot be destroyed.
 - Crew hub: hear at least three private perspectives before deciding how Vale answers the rumour.
 - Harbour route: choose one corridor through each closing layer; live risk and convoy capacity determine combat conditions and aftermath.
 - Identity forensics: reveal evidence layers, classify each body record, then audit before the story asks what the classifications mean morally.

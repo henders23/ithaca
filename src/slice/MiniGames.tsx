@@ -165,41 +165,105 @@ export function MemoryGame({ onComplete }: { onComplete: (result: MiniGameResult
   )
 }
 
-const OBSTACLES = [
-  { at: 16, lane: 0 }, { at: 27, lane: 1 }, { at: 39, lane: 2 }, { at: 50, lane: 1 },
-  { at: 61, lane: 0 }, { at: 72, lane: 2 }, { at: 83, lane: 1 }, { at: 92, lane: 0 },
-] as const
+interface ChaseObstacle { at: number; lanes: readonly number[] }
+
+/** Habitat debris along the launch corridor. Two-lane walls force a real read of the lane ahead. */
+export const CHASE_OBSTACLES: readonly ChaseObstacle[] = [
+  { at: 12, lanes: [0] }, { at: 20, lanes: [2] }, { at: 27, lanes: [1] }, { at: 34, lanes: [0, 1] },
+  { at: 41, lanes: [2] }, { at: 48, lanes: [1, 2] }, { at: 54, lanes: [0] }, { at: 60, lanes: [1] },
+  { at: 66, lanes: [0, 2] }, { at: 72, lanes: [2] }, { at: 78, lanes: [0, 1] }, { at: 84, lanes: [1] },
+  { at: 90, lanes: [1, 2] }, { at: 96, lanes: [0] },
+]
+
+export const CHASE_HIT_DAMAGE = 28
+export const CHASE_BOOST_HIT_DAMAGE = 40
+const CHASE_BOOST_MS = 1100
+const CHASE_BOOST_COOLDOWN_MS = 3200
+const CHASE_TICK_MS = 70
+
+/** Corridor speed per tick: the launch accelerates as the shuttle's wake thins. */
+export function chaseSpeed(progress: number, boosting: boolean) {
+  const base = 0.42 + (progress / 100) * 0.43
+  return boosting ? base * 1.9 : base
+}
+
+/** Obstacles whose marker the ship crosses this tick. */
+export function crossedObstacles(previous: number, next: number, obstacles: readonly ChaseObstacle[] = CHASE_OBSTACLES) {
+  return obstacles.filter((obstacle) => previous < obstacle.at && next >= obstacle.at)
+}
+
+interface ChaseFloater { id: number; text: string; lane: number; tone: 'hit' | 'close' }
 
 export function ShuttleChaseGame({ onComplete }: { onComplete: (result: MiniGameResult) => void }) {
   const [started, setStarted] = useState(false)
   const [lane, setLane] = useState(1)
   const [progress, setProgress] = useState(0)
   const [integrity, setIntegrity] = useState(100)
-  const hitRef = useRef(new Set<number>())
+  const [boosting, setBoosting] = useState(false)
+  const [boostReadyAt, setBoostReadyAt] = useState(0)
+  const [closeCalls, setCloseCalls] = useState(0)
+  const [flash, setFlash] = useState(false)
+  const [floaters, setFloaters] = useState<ChaseFloater[]>([])
+  const [clock, setClock] = useState(0)
   const laneRef = useRef(lane)
   const integrityRef = useRef(integrity)
+  const boostingRef = useRef(boosting)
+  const boostReadyRef = useRef(0)
+  const clockRef = useRef(0)
+  const startedRef = useRef(false)
+  const floaterId = useRef(0)
   laneRef.current = lane
   integrityRef.current = integrity
+  boostingRef.current = boosting
+  startedRef.current = started
+
+  const boost = () => {
+    if (!startedRef.current || boostingRef.current || clockRef.current < boostReadyRef.current) return
+    boostingRef.current = true
+    setBoosting(true)
+    window.setTimeout(() => {
+      boostingRef.current = false
+      setBoosting(false)
+      boostReadyRef.current = clockRef.current + CHASE_BOOST_COOLDOWN_MS
+      setBoostReadyAt(boostReadyRef.current)
+    }, CHASE_BOOST_MS)
+  }
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') setLane((value) => Math.max(0, value - 1))
-      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') setLane((value) => Math.min(2, value + 1))
+      const key = event.key.toLowerCase()
+      if (key === 'arrowleft' || key === 'a') setLane((value) => Math.max(0, value - 1))
+      if (key === 'arrowright' || key === 'd') setLane((value) => Math.min(2, value + 1))
+      if (key === 'arrowup' || key === 'w' || key === ' ') { event.preventDefault(); if (startedRef.current) boost(); else setStarted(true) }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
+  const addFloater = (text: string, laneIndex: number, tone: ChaseFloater['tone']) => {
+    const id = ++floaterId.current
+    setFloaters((current) => [...current, { id, text, lane: laneIndex, tone }])
+    window.setTimeout(() => setFloaters((current) => current.filter((item) => item.id !== id)), 900)
+  }
+
   useEffect(() => {
     if (!started) return
     const timer = window.setInterval(() => {
+      clockRef.current += CHASE_TICK_MS
+      setClock(clockRef.current)
       setProgress((current) => {
-        const next = Math.min(100, current + 0.7)
-        for (const obstacle of OBSTACLES) {
-          if (Math.abs(next - obstacle.at) < 1 && obstacle.lane === laneRef.current && !hitRef.current.has(obstacle.at)) {
-            hitRef.current.add(obstacle.at)
-            integrityRef.current = Math.max(0, integrityRef.current - 28)
+        const next = Math.min(100, current + chaseSpeed(current, boostingRef.current))
+        for (const obstacle of crossedObstacles(current, next)) {
+          if (obstacle.lanes.includes(laneRef.current)) {
+            const damage = boostingRef.current ? CHASE_BOOST_HIT_DAMAGE : CHASE_HIT_DAMAGE
+            integrityRef.current = Math.max(0, integrityRef.current - damage)
             setIntegrity(integrityRef.current)
+            setFlash(true)
+            window.setTimeout(() => setFlash(false), 260)
+            addFloater(`-${damage} HULL`, laneRef.current, 'hit')
+          } else if (obstacle.lanes.some((blocked) => Math.abs(blocked - laneRef.current) === 1)) {
+            setCloseCalls((value) => value + 1)
+            addFloater('CLOSE', laneRef.current, 'close')
           }
         }
         if (next >= 100) {
@@ -208,27 +272,39 @@ export function ShuttleChaseGame({ onComplete }: { onComplete: (result: MiniGame
         }
         return next
       })
-    }, 70)
+    }, CHASE_TICK_MS)
     return () => window.clearInterval(timer)
   }, [onComplete, started])
 
+  const boostCooldown = Math.max(0, boostReadyAt - clock)
+  const rangeKm = Math.max(0, 18 - Math.floor(progress / 5.6))
+  const shuttleScale = 0.7 + (progress / 100) * 1.6
+  const speedFactor = chaseSpeed(progress, boosting) / 0.42
+
   return (
-    <MiniGameFrame title="Catch the departing shuttle" instruction="Thread the Ithaca’s launch through the rotating habitat rings. Use A/D, arrow keys, or the controls below." variant="chase" background={ASSETS.cinematics.garden}>
-      <div className={`chase-view ${started ? 'running' : ''}`}>
+    <MiniGameFrame title="Catch the departing shuttle" instruction="Thread the launch through the rotating habitat rings. A/D or arrows change lane; W, ↑ or SPACE burns for a moment of speed, at the cost of a harder hit if you misjudge the debris." variant="chase" background={ASSETS.cinematics.garden}>
+      <div className={`chase-view ${started ? 'running' : ''} ${boosting ? 'boosting' : ''} ${flash ? 'flash' : ''}`} style={{ '--chase-speed': speedFactor } as React.CSSProperties}>
         <div className="chase-stars" />
         <div className="chase-lanes" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="chase-rings"><i /><i /><i /></div>
-        {OBSTACLES.filter((obstacle) => obstacle.at > progress - 8 && obstacle.at < progress + 28).map((obstacle) => (
-          <span key={obstacle.at} className="chase-obstacle" style={{ left: `${16 + obstacle.lane * 34}%`, top: `${90 - (obstacle.at - progress) * 3.4}%` }} />
-        ))}
-        <div className="shuttle-target">SHUTTLE<br /><strong>{Math.max(0, 18 - Math.floor(progress / 6))} KM</strong></div>
+        {CHASE_OBSTACLES.filter((obstacle) => obstacle.at > progress - 8 && obstacle.at < progress + 30).flatMap((obstacle) => obstacle.lanes.map((blocked) => (
+          <span key={`${obstacle.at}-${blocked}`} className={`chase-obstacle ${obstacle.lanes.length > 1 ? 'wall' : ''}`} style={{ left: `${16 + blocked * 34}%`, top: `${90 - (obstacle.at - progress) * 3.2}%`, opacity: Math.min(1, (30 - (obstacle.at - progress)) / 12) }} />
+        )))}
+        {floaters.map((floater) => <span key={floater.id} className={`chase-floater ${floater.tone}`} style={{ left: `${18 + floater.lane * 32}%` }}>{floater.text}</span>)}
+        <div className="shuttle-target" style={{ '--shuttle-scale': shuttleScale } as React.CSSProperties}><i aria-hidden="true" />SHUTTLE<br /><strong>{rangeKm} KM</strong></div>
         <div className="chase-ship" style={{ left: `${18 + lane * 32}%` }}><img src={ASSETS.ships.ithaca} alt="" /><i /></div>
         {!started && <button className="launch-chase" onClick={() => setStarted(true)}>LAUNCH</button>}
       </div>
-      <div className="chase-hud"><span>RANGE <strong>{Math.round(progress)}%</strong></span><span>HULL <strong>{integrity}%</strong></span></div>
+      <div className="chase-hud">
+        <span>RANGE <strong>{Math.round(progress)}%</strong></span>
+        <span>CLOSE CALLS <strong>{closeCalls}</strong></span>
+        <span>BURN <strong>{boosting ? 'BURNING' : boostCooldown > 0 ? `${(boostCooldown / 1000).toFixed(1)}s` : 'READY'}</strong></span>
+        <span>HULL <strong className={integrity <= 44 ? 'danger' : ''}>{integrity}%</strong></span>
+      </div>
       <div className="chase-controls">
-        <button onClick={() => setLane((value) => Math.max(0, value - 1))}>← PORT</button>
-        <button onClick={() => setLane((value) => Math.min(2, value + 1))}>STARBOARD →</button>
+        <button onClick={() => setLane((value) => Math.max(0, value - 1))}>← PORT <kbd>A</kbd></button>
+        <button className={`chase-boost ${boosting ? 'active' : ''}`} disabled={!started || boosting || boostCooldown > 0} onClick={boost}>BURN <kbd>W</kbd></button>
+        <button onClick={() => setLane((value) => Math.min(2, value + 1))}>STARBOARD → <kbd>D</kbd></button>
       </div>
     </MiniGameFrame>
   )
