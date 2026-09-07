@@ -113,11 +113,11 @@ export function judgmentAftermathScene(game:GameState):DialogueSceneData {
 }
 
 const WORDS:Record<CompanionId,{trust:string;mixed:string;wounded:string}> = {
-  'helen-morozova':{trust:'You finally let the cost be visible before the choice. Keep doing that when I am not there to demand it.',mixed:'Do not make my death evidence that you were right. Make it the last decision nobody aboard had to misunderstand.',wounded:'You listened when the answer could no longer save me. Learn to arrive earlier for the people who remain.'},
-  'gabriel-cross':{trust:'I followed because loyalty could still mean telling you no. Do not surround yourself with people who only remember the first half.',mixed:'We survived every enemy except the part of command that needed certainty. Let the next captain doubt sooner.',wounded:'I gave you obedience until it became easier than judgment. Do not call that friendship after I am gone.'},
-  'lena-mori':{trust:'The ship was always us, Alex. If you get them home, let them leave it without owing the metal anything.',mixed:'Stop calling a system saved until you have counted who stayed inside it. That is the whole lesson.',wounded:'You kept spending the ship after I told you it was people. I hope this is the last time the metaphor needs a body.'},
-  'isabella-corelli':{trust:'You know every life cannot be saved. The test was whether each life stayed singular while you chose. Keep them singular.',mixed:'Do not triage your grief into useful and useless. Let this hurt without turning it into an order.',wounded:'You learned my patients’ names when their deaths became strategy. Learn the living ones before they become necessary.'},
-  'kiara-ndala':{trust:'The Tidefather was grief before he was an enemy. You were grief before you were a captain. Keep translating both.',mixed:'A signal is not understood because you can repeat it. Answer what it asked of you when you reach home.',wounded:'You heard every warning and kept choosing when it would become real. Let the next voice change you before it has to die.'},
+  'helen-morozova':{trust:'My notes are a mess. The blue tabs are the ones I meant to show you. There’s a page about that first sky. We never did find a name for it, did we?',mixed:'I left the unedited notes in your queue. You’ll hate the margins. Read them anyway. I was going to sit with you while you did.',wounded:'Don’t delete the margins this time, Alex. That’s where I put the things you didn’t want in the report. I needed you to read them while I was still here.'},
+  'gabriel-cross':{trust:'There’s a bottle under my bunk. Terrible stuff. I was saving it for an occasion that kept moving. Open it with someone who knew me before all this.',mixed:'My locker code is still your birthday. Stupid, I know. There’s a letter in there. Send it as it is. I never found a better way to start.',wounded:'I wrote “we did our best” in the letter. Cross that out. Leave the rest. And don’t sign it for me.'},
+  'lena-mori':{trust:'The kettle in Engineering needs a new seal. I kept fixing everyone else’s things. Will you do that one for me? Just the seal. Don’t let them throw it away.',mixed:'There’s a knock in the aft bearing. Every third turn. Whoever takes my shift needs to know. Sorry. I had something else to say and that’s what came out.',wounded:'I asked for a second pair of hands in here. Do you remember? Before we reached the harbour. I’m trying not to be angry. I haven’t got much time to manage it.'},
+  'isabella-corelli':{trust:'Sit down, Alex. Yes, I can still tell. Put both feet on the floor. Breathe with me until the channel goes. You can do that much for your doctor.',mixed:'The names on the yellow sheet need checking in the morning. They’ll say they’re fine. Ask twice. I used to ask twice.',wounded:'Don’t tell them I wasn’t afraid. I am. I’ve sat with enough people to know it doesn’t get easier because somebody needs you to be brave.'},
+  'kiara-ndala':{trust:'Leave the channel open. There’s a little delay, but I can hear you breathing. It’s almost like being on the bridge. Tell me what you can see.',mixed:'There’s an unsent message in my queue. It starts three times. Send all three. She’ll know why I couldn’t choose.',wounded:'Just listen this time. Please. Don’t decide what I meant until I’ve finished. I wanted—there was so much I wanted to tell you.'},
 }
 
 export function lastWordsScene(game:GameState):DialogueSceneData {
@@ -125,13 +125,14 @@ export function lastWordsScene(game:GameState):DialogueSceneData {
   const id=choice.slice('last-companion:'.length) as CompanionId
   const name=companionDisplayName(id)
   const relation=game.relationships[id]
-  const words=relation>=3?WORDS[id].trust:relation<=-2?WORDS[id].wounded:WORDS[id].mixed
+  const sharedBottle=id==='gabriel-cross' && game.dialogueMemories.some(memory=>memory.sceneId==='prologue-last-day' && memory.choiceId==='share-the-joke')
+  const words=sharedBottle && relation>-2?'That bottle. The one you said we’d open when the war was over. Under my bunk, Alex. We should have opened it that morning.':relation>=3?WORDS[id].trust:relation<=-2?WORDS[id].wounded:WORDS[id].mixed
   const record=game.flags.includes('last-companion-record-preserved')
   return {id:'b25-last-words',beat:'BEAT 25 · FINAL TRANSMISSION',chapter:'THE LAST COMPANION',title:record?`${name} remains on the channel`:'Only fragments cross the closing field',location:'DRIVE CORE · MANUAL INTERLOCK',sceneType:'private',background:ASSETS.cinematics.failingDrive,lines:[
     {speaker:'narrator',name:'MANUAL INTERLOCK',text:`The pressure door seals with ${name} inside. The radiation badge crosses lethal exposure before the second load cycle.`,shot:'wide'},
     {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?words:'The carrier breaks the sentence into light, breath and one surviving word: “home.”',emotion:'exhausted',pause:'held',shot:'close'},
     {speaker:'alexander-vale',name:'VALE',station:'COMMAND',text:`${name.split(' ')[0]}—the field is stable. Come back to the door.`,emotion:'grieving'},
-    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?'No. Don’t make the last order a lie. Commit the jump.':'The response is mostly static. A hand remains visible on the manual interlock.',emotion:'exhausted',pause:'silence'},
+    {speaker:id,name:name.toUpperCase(),station:'DRIVE CORE · MANUAL STATION',text:record?'I can’t take my hand off it. You know that. Go.':'The response is mostly static. A hand remains visible on the manual interlock.',emotion:'exhausted',pause:'silence'},
     {speaker:'narrator',name:'DRIVE CONTROL',text:'The jump field closes. The manual station disappears inside white light. The Ithaca moves again with one fewer voice aboard.',pause:'silence',shot:'wide'},
   ],moments:[{id:'last-channel',afterLine:1,prompt:`There is still a live channel to ${name}. Vale has time for one sentence.`,choices:[
     {id:'say-i-am-here',label:'“I’m here.”',detail:'Offer presence without turning the last seconds into another command.',character:id,axis:'intimacy',delta:1,response:{speaker:id,name:name.toUpperCase(),station:'DRIVE CORE',text:'I know.',emotion:'exhausted',pause:'silence',shot:'close'}},
@@ -145,11 +146,11 @@ export function companionMemorialScene(game:GameState):DialogueSceneData {
   const id=choice.slice('last-companion:'.length) as CompanionId
   const name=companionDisplayName(id)
   const medicalWitness=id==='isabella-corelli'
-    ? {speaker:'lena-mori' as const,name:'MORI',station:'ENGINEERING',text:'Nobody call this a clean exchange. The drive is turning. That does not make the person inside it into fuel we were entitled to spend.'}
-    : {speaker:'isabella-corelli' as const,name:'CORELLI',station:'MEDICAL',text:'Nobody say “gave their life” as if we received something simple. They were asked. They answered. We continue with the debt intact.'}
+    ? {speaker:'lena-mori' as const,name:'MORI',station:'ENGINEERING',text:'I cut my hand getting out. I went to Medical without thinking. Stood in the doorway for a while.'}
+    : {speaker:'isabella-corelli' as const,name:'CORELLI',station:'MEDICAL',text:'I keep counting the people in the room. There isn’t a count that makes it better. I know that. I keep doing it.'}
   const commandWitness=id==='helen-morozova'
-    ? {speaker:'gabriel-cross' as const,name:'CROSS',station:'TACTICAL',text:'Her station remains dark. Nobody moves a new name into it before we have learned what her disagreement was protecting.'}
-    : {speaker:'helen-morozova' as const,name:'MOROZOVA',station:'SCIENCE / XO',text:'We will not turn the last words into doctrine. They belonged to one relationship at one ending.'}
+    ? {speaker:'gabriel-cross' as const,name:'CROSS',station:'TACTICAL',text:'Her screen is still on. I tried to turn it off. I couldn’t remember whether she’d saved her work.'}
+    : {speaker:'helen-morozova' as const,name:'MOROZOVA',station:'SCIENCE / XO',text:'We can stand here a little longer. The next jump can wait a little longer.'}
   return {beat:'BEAT 25 · AFTERMATH',chapter:'THE LAST COMPANION',title:'The crew leaves one place unfilled',background:ASSETS.cinematics.lastCompanionMemorial,lines:[
     {speaker:'narrator',name:'OBSERVATION DECK',text:`No formal service is possible. The crew places ${name}’s empty jacket beside an extinguished work lamp and stands until the deck loses heat.`,cutaway:{image:ASSETS.cinematics.lastCompanionMemorial,label:'NO CEREMONY',caption:'The command log holds forty-seven seconds of silence after the final name is entered.'}},
     medicalWitness,

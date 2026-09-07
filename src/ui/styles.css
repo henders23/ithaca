@@ -1205,3 +1205,45 @@ button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3
 .chase-controls .chase-boost { flex: 0 0 24%; color: var(--amber); border-color: rgba(239,178,85,.45); }
 .chase-controls .chase-boost.active { background: rgba(61,44,20,.7); color: #fff; }
 .chase-controls .chase-boost:disabled { opacity: .45; cursor: default; }
+
+/* Decisions under fire: a held shot, a person, two legible costs. */
+.encounter-moment { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: clamp(12px, 3vw, 40px); background: rgba(1,5,8,.84); backdrop-filter: blur(8px); overflow-y: auto; }
+.encounter-frame { display: grid; grid-template-columns: minmax(130px, .6fr) minmax(0, 1.5fr); width: min(960px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; background-size: cover; background-position: center; border: 1px solid rgba(213,178,119,.45); box-shadow: 0 24px 100px #000; }
+.encounter-face { position: relative; display: flex; align-items: end; min-height: 230px; overflow: hidden; background: linear-gradient(0deg, #071019, transparent); }
+.encounter-face img { display: block; width: 100%; max-height: 450px; object-fit: contain; object-position: bottom; filter: saturate(.8); }
+.encounter-face span { position: absolute; bottom: 16px; left: 14px; color: #d5b783; font: 600 10px var(--mono); letter-spacing: .1em; }
+.encounter-copy { align-self: center; min-width: 0; padding: clamp(18px, 3vw, 38px); }
+.encounter-copy .eyebrow { font-size: 10px; color: #d5b783; line-height: 1.6; margin: 0 0 12px; }
+.encounter-copy h2 { margin: 0; font: 600 clamp(28px, 3.5vw, 46px)/1.02 var(--display); color: #f2eee5; text-wrap: balance; }
+.encounter-voice { font-size: clamp(16px, 1.45vw, 19px); line-height: 1.6; color: #d9e2e6; margin: 22px 0; }
+.encounter-options { display: grid; gap: 10px; }
+.encounter-options button { text-align: left; min-height: 64px; padding: 12px 16px; background: rgba(8,19,27,.9); border: 1px solid #53636a; color: #f1f4f4; cursor: pointer; }
+.encounter-options button:hover, .encounter-options button:focus-visible { border-color: #e4b772; background: #22241f; outline: 2px solid #e4b772; outline-offset: 2px; }
+.encounter-options strong { display: block; font-size: 16px; font-weight: 600; }
+.encounter-options span { display: block; margin-top: 6px; font: 11px/1.6 var(--mono); color: #c0cdd2; }
+.encounter-caution { display: block; margin-top: 18px; color: #a9b9c1; font-size: 11px; line-height: 1.6; }
+.encounter-consequence { color: #d5b783; font: 12px/1.7 var(--mono); }
+.battle-memory { max-width: 520px; text-align: left; border-left: 2px solid #d5b783; margin: 18px 0 0; padding: 10px 18px; color: #e6ddcb; font-size: 16px; line-height: 1.5; }
+.battle-memory span { display: block; font: 10px var(--mono); letter-spacing: .15em; color: #d5b783; margin-bottom: 8px; }
+.guns-quiet { position: absolute; top: 78px; left: 50%; translate: -50% 0; width: max-content; max-width: 90%; padding: 8px 12px; color: #c8e3ef; background: #091821ec; border: 1px solid #607983; font: 11px/1.5 var(--mono); text-align: center; z-index: 15; }
+.incoming-warning small { display: block; margin-top: 4px; color: #ffe6d6; font: 10px var(--mono); }
+.combat-screen.is-paused .weapon-fx, .combat-screen.is-paused .weapon-fx *, .combat-screen.is-paused .fx-bolt,
+.combat-screen.is-paused .combat-space *, .combat-screen.is-paused::after { animation-play-state: paused !important; }
+.combat-modal { overflow-y: auto; }
+@media (max-height: 650px) {
+  .encounter-copy { padding: 16px 22px; }
+  .encounter-voice { margin: 12px 0; font-size: 15px; line-height: 1.5; }
+  .encounter-copy h2 { font-size: 30px; }
+  .encounter-caution { margin-top: 10px; }
+  .combat-modal { place-content: start center; }
+}
+@media (max-width: 600px) {
+  .encounter-frame { grid-template-columns: 1fr; }
+  .encounter-face { min-height: 0; height: 110px; justify-content: center; border-bottom: 1px solid #33434c; }
+  .encounter-face img { height: 160px; width: auto; object-fit: cover; object-position: top; align-self: start; }
+  .encounter-face span { left: 12px; bottom: 8px; max-width: 110px; line-height: 1.5; font-size: 9px; }
+  .encounter-copy { padding: 18px; }
+  .encounter-voice { font-size: 16px; margin: 16px 0; }
+  .guns-quiet { top: 94px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .encounter-moment *, .battle-memory { animation: none; transition: none; } }

@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { audioDirector } from '../audio/director.js'
 import { useMusicScene } from '../audio/useAudio.js'
 import { COMBAT_FX, EXPLOSION_SHEETS, type ExplosionId, type SfxId } from '../audio/tracks.js'
+import { CombatTimeline } from './combatTimeline.js'
+import { HOMECOMING_BARKS, applyBattleChoice, battleChoiceCost, encounterForBeat, shouldOfferMoment, type BattleChoice, type BattleDecision } from './encounterMoments.js'
+import { ASSETS } from './content.js'
+import { useDialogFocus } from '../ui/useDialogFocus.js'
 import {
   BRACE_COST, BRACE_WINDOW_MS, DESTROY_EFFECT_LABEL, ENEMY_WEAPON_LABEL, EVADE_WINDOW_MS, LOCK_WINDOW_MS, MAX_LOCK,
   POWER_PROFILES, POWER_PROFILE_IDS, RATING_COPY, SHIELD_REGEN_DELAY_MS, WEAPONS, WEAPON_IDS,
@@ -43,6 +47,7 @@ export interface CombatResult {
   hull: number
   score: number
   rating?: CombatRating
+  decision?: BattleDecision
 }
 
 export type LiveCombatTarget = LiveTarget
@@ -71,6 +76,7 @@ interface WeaponEffect {
   kind: WeaponId
   incoming: boolean
   duration: number
+  impactAt: number
 }
 
 type CombatSpriteBody =
@@ -157,6 +163,7 @@ interface Sim {
   survivalRemaining: number
   survivalTickAt: number
   incomingInFlight: number
+  weaponLockUntil: number
 }
 
 let spriteSequence = 0
@@ -164,7 +171,8 @@ const nextSpriteId = () => ++spriteSequence
 
 const TICK_MS = 100
 
-export function CinematicCombat({ config, onComplete }: { config: CombatConfig; onComplete: (result: CombatResult) => void }) {
+export function CinematicCombat({ config, onComplete, suspended = false }: { config: CombatConfig; onComplete: (result: CombatResult) => void; suspended?: boolean }) {
+  const encounter = encounterForBeat(config.beat)
   const freshTargets = (): LiveCombatTarget[] => config.targets.map((target) => ({ ...target, currentHp: target.hp }))
   const freshSim = (): Sim => ({
     phase: 'briefing',
@@ -193,6 +201,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     survivalRemaining: config.survivalSeconds ?? 30,
     survivalTickAt: 0,
     incomingInFlight: 0,
+    weaponLockUntil: 0,
   })
 
   const simRef = useRef<Sim>(freshSim())
@@ -207,11 +216,20 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const [banner, setBanner] = useState<string | null>(null)
   const [banking, setBanking] = useState(false)
   const [rating, setRating] = useState<CombatRating | null>(null)
+  const [momentOpen, setMomentOpen] = useState(false)
+  const [momentAnswer, setMomentAnswer] = useState<BattleChoice | null>(null)
+  const momentOpenRef = useRef(false)
+  const decisionRef = useRef<BattleDecision | undefined>(undefined)
+  const timelineRef = useRef(new CombatTimeline())
   const pausedRef = useRef(paused)
+  const suspendedRef = useRef(suspended)
+  suspendedRef.current = suspended
   const barkHistoryRef = useRef(new Set<string>())
   const hailedRef = useRef('')
   const timersRef = useRef(new Set<number>())
   pausedRef.current = paused
+  const dialogBlocking = sim.phase !== 'playing' || paused || momentOpen || suspended
+  const dialogRef = useDialogFocus(dialogBlocking && !suspended, `${sim.phase}:${paused}:${momentOpen}:${momentAnswer?.id ?? ''}`)
 
   useMusicScene('combat')
 
@@ -227,9 +245,10 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   }
 
   const sfx = (id: SfxId, level = 1) => audioDirector.playSfx(id, level)
+  const afterFlight = (callback: () => void, delay: number) => timelineRef.current.schedule(simRef.current.elapsed, delay, callback)
 
   const showCrewBark = (trigger: CombatBark['trigger']) => {
-    const bark = (config.crewBarks ?? DEFAULT_CREW_BARKS).find((candidate) => candidate.trigger === trigger && !barkHistoryRef.current.has(candidate.id))
+    const bark = (config.crewBarks ?? HOMECOMING_BARKS[encounter?.id ?? ''] ?? DEFAULT_CREW_BARKS).find((candidate) => candidate.trigger === trigger && !barkHistoryRef.current.has(candidate.id))
     if (!bark) return
     barkHistoryRef.current.add(bark.id)
     setCrewBark(bark)
@@ -244,7 +263,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const addSprite = (sprite: CombatSpriteBody, life: number) => {
     const id = nextSpriteId()
     setSprites((current) => [...current, { ...sprite, id }])
-    later(() => setSprites((current) => current.filter((item) => item.id !== id)), life)
+    const expire = () => setSprites((current) => current.filter((item) => item.id !== id))
+    if (sprite.kind === 'bolt') afterFlight(expire, life)
+    else later(expire, life)
   }
 
   const spawnFlash = (image: string, side: CombatSide, size: number, life = 320) =>
@@ -262,11 +283,11 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     const audio = WEAPON_AUDIO[kind]
     const source: CombatSide = incoming ? 'enemy' : 'player'
     const struck: CombatSide = incoming ? 'player' : 'enemy'
-    setEffects((current) => [...current, { id, kind, incoming, duration }])
+    setEffects((current) => [...current, { id, kind, incoming, duration, impactAt: Math.ceil((simRef.current.elapsed + duration) / TICK_MS) * TICK_MS }])
     sfx(audio.fire, incoming ? 0.62 : 0.85)
     spawnFlash(incoming ? COMBAT_FX.muzzleEnemy : COMBAT_FX.muzzlePlayer, source, 96)
     if (audio.bolt) addSprite({ kind: 'bolt', image: incoming ? COMBAT_FX.enemyBolt : COMBAT_FX.playerBolt, incoming, height: incoming ? 62 : 54, duration }, duration)
-    later(() => {
+    afterFlight(() => {
       setEffects((current) => current.filter((effect) => effect.id !== id))
       const outcome = resolve()
       if (!outcome) return
@@ -292,6 +313,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     if (state.phase !== 'playing') return
     state.phase = phase
     state.telegraph = null
+    timelineRef.current.clear()
+    setEffects([])
+    setSprites((current) => current.filter((sprite) => sprite.kind !== 'bolt'))
     if (phase === 'victory') {
       setRating(combatRating({ hull: state.hull, startingHull: config.playerHull, evasions: state.evasions, crits: state.crits, seconds: state.elapsed / 1000 }))
     } else {
@@ -349,7 +373,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const fire = (weaponId: WeaponId) => {
     const state = simRef.current
     const weapon = WEAPONS[weaponId]
-    if (state.phase !== 'playing' || pausedRef.current || state.charge < weapon.cost || (weaponId === 'missile' && state.missiles <= 0)) return
+    if (state.phase !== 'playing' || pausedRef.current || suspendedRef.current || momentOpenRef.current || state.elapsed < state.weaponLockUntil || state.charge < weapon.cost || (weaponId === 'missile' && state.missiles <= 0)) return
     const alive = objectiveTargets(state.targets).filter((item) => item.currentHp > 0)
     const target = alive.find((item) => item.id === state.selected) ?? alive[0]
     if (!target) return
@@ -383,7 +407,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         else if (effect === 'blinds') { live.blinded += 1; setLog(`${target.name} destroyed. Their warnings will show earlier.`) }
         else setLog(`${target.name} destroyed.`)
         if (config.mode === 'survive') {
-          later(() => {
+          afterFlight(() => {
             const latest = simRef.current
             if (latest.phase !== 'playing') return
             const regrown = latest.targets.find((item) => item.id === target.id)
@@ -398,7 +422,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
       }
       const alive = objectiveTargets(live.targets).filter((item) => item.currentHp > 0)
       if (!alive.some((item) => item.id === live.selected) && alive[0]) live.selected = alive[0].id
-      if (combatObjectiveComplete(live.targets, config.mode)) later(() => finish('victory'), 300)
+      if (combatObjectiveComplete(live.targets, config.mode)) afterFlight(() => finish('victory'), 300)
       publish()
       return { shielded: false, evaded: false, floater: `-${roll.damage} ${target.name.toUpperCase()}${flavour ? ` · ${flavour}` : ''}`, color: roll.crit ? '#fff1c4' : weaponId === 'ion' ? '#7de7ff' : '#ffd28d' }
     })
@@ -406,7 +430,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   const evade = () => {
     const state = simRef.current
-    if (state.phase !== 'playing' || pausedRef.current || state.evadeReadyAt > state.elapsed) return
+    if (state.phase !== 'playing' || pausedRef.current || suspendedRef.current || momentOpenRef.current || state.evadeReadyAt > state.elapsed) return
     state.evadeUntil = state.elapsed + EVADE_WINDOW_MS
     state.evadeReadyAt = state.elapsed + POWER_PROFILES[state.power].evadeCooldownMs
     setBanking(true)
@@ -417,7 +441,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   const brace = () => {
     const state = simRef.current
-    if (state.phase !== 'playing' || pausedRef.current || state.charge < BRACE_COST || state.braceUntil > state.elapsed) return
+    if (state.phase !== 'playing' || pausedRef.current || suspendedRef.current || momentOpenRef.current || state.charge < BRACE_COST || state.braceUntil > state.elapsed) return
     state.charge -= BRACE_COST
     state.braceUntil = state.elapsed + BRACE_WINDOW_MS
     setLog('Shields angled. The next hit lands on the thick side.')
@@ -426,7 +450,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   const routePower = (profile: PowerProfile) => {
     const state = simRef.current
-    if (state.phase !== 'playing' || state.power === profile) return
+    if (state.phase !== 'playing' || momentOpenRef.current || suspendedRef.current || state.power === profile) return
     state.power = profile
     setLog(`Power to ${POWER_PROFILES[profile].label.toLowerCase()}. ${POWER_PROFILES[profile].detail}`)
     sfx('uiClick', 0.2)
@@ -444,6 +468,11 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const retry = () => {
     for (const timer of timersRef.current) window.clearTimeout(timer)
     timersRef.current.clear()
+    timelineRef.current.clear()
+    decisionRef.current = undefined
+    momentOpenRef.current = false
+    setMomentOpen(false)
+    setMomentAnswer(null)
     simRef.current = freshSim()
     simRef.current.phase = 'playing'
     setEffects([])
@@ -459,11 +488,37 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
     publish()
   }
 
+  const answerMoment = (choice: BattleChoice) => {
+    if (!encounter || decisionRef.current || !momentOpenRef.current) return
+    const next = applyBattleChoice(simRef.current, choice)
+    // A delayed launch cancels its charge-up, but cannot erase shots already airborne.
+    if (choice.enemyDelayMs) next.telegraph = null
+    simRef.current = next
+    decisionRef.current = { encounterId: encounter.id, choiceId: choice.id }
+    setMomentAnswer(choice)
+    sfx('uiClick', 0.25)
+    publish()
+  }
+
+  const resumeMoment = () => {
+    momentOpenRef.current = false
+    setMomentOpen(false)
+    setLog(momentAnswer?.response ?? 'Resume the firing solution.')
+  }
+
   useEffect(() => {
     const clock = window.setInterval(() => {
       const state = simRef.current
-      if (pausedRef.current || state.phase !== 'playing') return
+      if (pausedRef.current || suspendedRef.current || momentOpenRef.current || document.hidden || state.phase !== 'playing') return
+      const progress = combatObjectiveProgress(state.targets, config.mode, state.survivalRemaining, config.survivalSeconds ?? 30)
+      if (encounter && shouldOfferMoment(state.elapsed, progress, !!decisionRef.current)) {
+        momentOpenRef.current = true
+        setMomentOpen(true)
+        return
+      }
       state.elapsed += TICK_MS
+      timelineRef.current.advance(state.elapsed)
+      if (state.phase !== 'playing') return
       const profile = POWER_PROFILES[state.power]
       state.charge = Math.min(100, state.charge + profile.chargeRate)
       if (profile.shieldRegen > 0 && state.shield < 100 && state.incomingInFlight === 0 && state.elapsed - state.lastHitAt >= SHIELD_REGEN_DELAY_MS && !state.telegraph) {
@@ -487,14 +542,16 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
       } else if (!state.telegraph && state.elapsed >= state.nextAttackAt) {
         state.volleyCounter += 1
         const volley = state.adapting && state.volleyCounter % 3 === 0
-        state.telegraph = { kind: rollEnemyWeapon(Math.random()), startedAt: state.elapsed, endsAt: state.elapsed + telegraphDuration(state.blinded), volley }
+        const pattern = encounter?.pattern
+        const kind = pattern?.[(state.volleyCounter - 1) % pattern.length] ?? rollEnemyWeapon(Math.random())
+        state.telegraph = { kind, startedAt: state.elapsed, endsAt: state.elapsed + telegraphDuration(state.blinded), volley }
         setLog(`${config.incomingLabel} ${ENEMY_WEAPON_LABEL[state.telegraph.kind].toLowerCase()} charging${volley ? ' — volley' : ''}.`)
       } else if (state.telegraph && state.elapsed >= state.telegraph.endsAt) {
         const { kind, volley } = state.telegraph
         state.telegraph = null
         state.nextAttackAt = state.elapsed + enemyInterval(config.enemyInterval ?? 2700, state.slowed, state.adapting)
         launchIncoming(kind)
-        if (volley) later(() => { if (simRef.current.phase === 'playing') launchIncoming(rollEnemyWeapon(Math.random())) }, 380)
+        if (volley) afterFlight(() => { if (simRef.current.phase === 'playing') launchIncoming(kind) }, 380)
       }
       publish()
     }, TICK_MS)
@@ -505,6 +562,11 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.repeat) return
+      const focused = event.target instanceof HTMLElement ? event.target : null
+      if (focused?.closest('input,select,textarea,[role="dialog"]')) return
+      if (focused?.closest('button') && ['Enter', ' ', 'Tab'].includes(event.key)) return
+      if (momentOpenRef.current || suspendedRef.current) return
       const state = simRef.current
       if (event.code === 'Space') {
         if (state.phase === 'briefing') { event.preventDefault(); engage(); return }
@@ -539,6 +601,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   }, [config.beat])
 
   useEffect(() => () => {
+    timelineRef.current.clear()
     for (const timer of timersRef.current) window.clearTimeout(timer)
     timersRef.current.clear()
   }, [])
@@ -547,7 +610,11 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const objectiveProgress = combatObjectiveProgress(targets, config.mode, survivalRemaining, config.survivalSeconds ?? 30)
   const takingFire = effects.some((effect) => effect.incoming) || impacts.some((impact) => impact.incoming && !impact.shielded && !impact.evaded)
   const telegraphProgress = telegraph ? Math.min(1, (elapsed - telegraph.startedAt) / (telegraph.endsAt - telegraph.startedAt)) : 0
-  const dodgeWindow = telegraph ? telegraphProgress >= 0.35 : false
+  // Burn is timed to impact, including travel time. Earlier warnings encouraged doomed early dodges.
+  const airborne = effects.filter(effect => effect.incoming).sort((a, b) => a.impactAt - b.impactAt)[0]
+  const timeToImpact = airborne ? Math.max(0, airborne.impactAt - elapsed) : telegraph ? telegraph.endsAt - elapsed + WEAPONS[telegraph.kind].duration : 0
+  const incomingKind = airborne?.kind ?? telegraph?.kind
+  const dodgeWindow = !!incomingKind && timeToImpact > 0 && timeToImpact < EVADE_WINDOW_MS
   const evadeCooldown = Math.max(0, evadeReadyAt - elapsed)
   const evadeActive = evadeUntil > elapsed
   const braceActive = braceUntil > elapsed
@@ -556,10 +623,12 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
   const lockCount = lockChained ? lock.count : 0
   const profile = POWER_PROFILES[power]
   const evadeSeconds = (evadeCooldown / 1000).toFixed(1)
+  const gunsQuiet = sim.weaponLockUntil > elapsed
+  const quietSeconds = Math.max(0, (sim.weaponLockUntil - elapsed) / 1000).toFixed(1)
 
   return (
-    <section className={`combat-screen ${takingFire ? 'taking-fire' : ''} ${paused ? 'is-paused' : ''} ${hull <= 40 && phase === 'playing' ? 'critical' : ''} ${adapting ? 'adapting' : ''}`} style={{ '--combat-bg': `url(${config.background})` } as React.CSSProperties}>
-      <header className="combat-header">
+    <section className={`combat-screen ${takingFire ? 'taking-fire' : ''} ${paused || momentOpen || suspended ? 'is-paused' : ''} ${hull <= 40 && phase === 'playing' ? 'critical' : ''} ${adapting ? 'adapting' : ''}`} style={{ '--combat-bg': `url(${config.background})` } as React.CSSProperties}>
+      <header className="combat-header" inert={dialogBlocking}>
         <div><span>{config.beat}</span><strong>{config.title}</strong></div>
         <div className="combat-header-tools">
           <span className="combat-clock">{formatClock(elapsed)}</span>
@@ -567,12 +636,12 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         </div>
       </header>
 
-      <div className="combat-space">
+      <div className="combat-space" inert={dialogBlocking}>
         <div className="battle-objective"><span>OBJECTIVE</span><strong>{config.objective}</strong>{config.mode === 'survive' && <b>{String(survivalRemaining).padStart(2, '0')} SEC</b>}<i style={{ width: `${objectiveProgress}%` }} /></div>
         <div className={`ship-shield player ${shield > 0 ? 'active' : ''} ${braceActive ? 'braced' : ''}`}><i /><i /></div>
         <div className={`ship-shield enemy active ${disrupted ? 'disrupted' : ''}`}><i /><i /></div>
         <div className={`targeting-reticle enemy ${adapting ? 'hostile' : ''} ${lockCount >= MAX_LOCK ? 'locked' : ''}`}><i /><i /><i /></div>
-        {telegraph && <div className={`threat-line ${dodgeWindow ? 'imminent' : ''}`} aria-hidden="true" />}
+        {incomingKind && <div className={`threat-line ${dodgeWindow ? 'imminent' : ''}`} aria-hidden="true" />}
         <img className={`combat-ship player ${banking ? 'banking' : ''} ${evadeActive ? 'evading' : ''}`} src={config.playerShip} alt="CSV Ithaca" />
         <img className={`combat-ship enemy ${config.enemyClassName ?? ''} ${disrupted ? 'disrupted' : ''}`} src={config.enemyShip} alt={config.enemyName} />
 
@@ -581,21 +650,23 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         {impacts.map((impact) => <ImpactFx key={impact.id} impact={impact} />)}
         {floaters.map((floater) => <div key={floater.id} className={`combat-floater ${floater.incoming ? 'incoming' : 'outgoing'}`} style={{ color: floater.color }}>{floater.text}</div>)}
 
-        {telegraph && (
-          <div className={`incoming-warning ${dodgeWindow ? 'dodge-window' : ''} ${telegraph.volley ? 'volley' : ''}`} role="status">
-            <span>{dodgeWindow ? 'BURN NOW · Q' : 'INCOMING'}</span>
-            <strong>{ENEMY_WEAPON_LABEL[telegraph.kind]}{telegraph.volley ? ' · VOLLEY ×2' : ''}</strong>
-            <i style={{ width: `${telegraphProgress * 100}%` }} />
+        {incomingKind && (
+          <div className={`incoming-warning ${dodgeWindow ? 'dodge-window' : ''} ${telegraph?.volley ? 'volley' : ''}`} role="status">
+            <span>{dodgeWindow ? evadeCooldown > 0 ? 'BRACE · E · BURN RECHARGING' : 'BURN NOW · Q' : airborne ? 'SHOT IN FLIGHT' : 'INCOMING'}</span>
+            <strong>{ENEMY_WEAPON_LABEL[incomingKind]}{telegraph?.volley ? ' · VOLLEY ×2' : ''}</strong>
+            <small>IMPACT IN {(timeToImpact / 1000).toFixed(1)}s</small>
+            <i style={{ width: `${airborne ? 100 : telegraphProgress * 100}%` }} />
           </div>
         )}
         {disrupted && <div className="enemy-status disrupted-tag">FIRE CONTROL SILENCED · {((disruptedUntil - elapsed) / 1000).toFixed(1)}s</div>}
+        {gunsQuiet && <div className="guns-quiet" role="status">HOLDING FIRE · {quietSeconds}s · {momentAnswer?.label}</div>}
         {banner && <div className="combat-banner">{banner}</div>}
 
         <div className="combat-log"><i className="log-pulse" />{log}</div>
         {crewBark && <div className="combat-bark" role="status"><strong>{crewBark.speaker}</strong><span>{crewBark.text}</span></div>}
       </div>
 
-      <div className="combat-controls">
+      <div className="combat-controls" inert={dialogBlocking}>
         <div className="ship-status">
           <strong>CSV ITHACA</strong>
           <Meter label="SHIELD" value={Math.round(shield)} />
@@ -626,7 +697,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
                     ? <em>PROTECTED</em>
                     : <>
                         <i>{Array.from({ length: target.hp }, (_, pip) => <b key={pip} className={pip < target.currentHp ? '' : 'lost'} />)}</i>
-                        <span className={`weak-tag weak-${weakness}`}>WEAK · {WEAPONS[weakness].name.split(' ')[1]?.toUpperCase() ?? weakness.toUpperCase()}</span>
+                  <span className={`weak-tag weak-${weakness}`}>WEAK · {WEAPONS[weakness].name.toUpperCase()}</span>
                         {effect !== 'none' && <span className="effect-tag">{DESTROY_EFFECT_LABEL[effect]}</span>}
                       </>}
                 </button>
@@ -646,7 +717,7 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
               const selectedIndex = targets.findIndex((target) => target.id === selected)
               const effective = selectedTarget && !selectedTarget.protected && weaknessFor(selectedTarget, selectedIndex) === weaponId
               return (
-                <button key={weaponId} className={`weapon-${weaponId} ${effective ? 'effective' : ''}`} disabled={unavailable || phase !== 'playing'} onClick={() => fire(weaponId)} title={weapon.detail}>
+                <button key={weaponId} className={`weapon-${weaponId} ${effective ? 'effective' : ''}`} disabled={unavailable || gunsQuiet || paused || momentOpen || phase !== 'playing'} onClick={() => fire(weaponId)} title={weapon.detail}>
                   <i /><strong>{weapon.name}</strong><small>{weapon.cost}% {weaponId === 'missile' ? `· ${missiles} LEFT` : ''}{effective ? ' · WEAK POINT' : ''}</small><kbd>{weapon.key}</kbd>
                 </button>
               )
@@ -676,11 +747,29 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
         </div>
       </div>
 
+      {momentOpen && encounter && (
+        <div ref={dialogRef} tabIndex={-1} className="encounter-moment" role="dialog" aria-modal="true" aria-label={encounter.title}>
+          <div className="encounter-frame" style={{ backgroundImage: `linear-gradient(90deg,rgba(2,7,11,.4),rgba(2,7,11,.96)),url(${config.background})` }}>
+            <div className="encounter-face"><img src={ASSETS.portraits[encounter.speaker]} alt={encounter.speaker.replaceAll('-', ' ')} /><span>PRIVATE COMMAND CHANNEL</span></div>
+            <div className="encounter-copy">
+              <p className="eyebrow">{config.beat} · TACTICAL PAUSE · TAKE YOUR TIME</p>
+              <h2>{encounter.title}</h2>
+              <p className="encounter-voice">“{momentAnswer?.response ?? encounter.line}”</p>
+              {momentAnswer ? <>
+                <p className="encounter-consequence">{battleChoiceCost(momentAnswer)}. This order will be kept in the voyage record.</p>
+                <button className="primary-action" onClick={resumeMoment}>Back to the fight <span>→</span></button>
+              </> : <div className="encounter-options">{encounter.choices.map(choice => <button key={choice.id} onClick={() => answerMoment(choice)}><strong>{choice.label}</strong><span>{battleChoiceCost(choice)}</span></button>)}</div>}
+              <small className="encounter-caution">All values are capped at 0–100. Shots already in flight remain live when you resume.</small>
+            </div>
+          </div>
+        </div>
+      )}
       {phase === 'briefing' && (
-        <div className="combat-modal briefing">
+        <div ref={dialogRef} tabIndex={-1} className="combat-modal briefing" role="dialog" aria-modal="true" aria-label="Tactical briefing">
           <p className="eyebrow">{config.beat} · TACTICAL BRIEFING</p>
           <h2>{config.title}</h2>
           <p>{config.objective}.</p>
+          {encounter && <p className="enemy-doctrine">{encounter.threat}</p>}
           <ul className="briefing-rules">
             <li><kbd>1 2 3</kbd><span>Fire. Every subsystem shows the weapon it is weak to.</span></li>
             <li><kbd>Q</kbd><span>Evasive burn while the warning line is red. A dodged shot costs nothing.</span></li>
@@ -691,9 +780,9 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
           <small>ENTER or SPACE to engage</small>
         </div>
       )}
-      {paused && phase === 'playing' && <div className="combat-modal"><p className="eyebrow">TACTICAL PAUSE</p><h2>Time is holding.</h2><p>Select a target, check charge and routing, then resume.</p></div>}
+      {paused && phase === 'playing' && !momentOpen && <div ref={dialogRef} tabIndex={-1} className="combat-modal" role="dialog" aria-modal="true" aria-label="Tactical pause"><p className="eyebrow">TACTICAL PAUSE</p><h2>Time is holding.</h2><p>Shots, survival time and incoming volleys wait with you.</p><button className="primary-action" onClick={() => setPaused(false)}>Resume battle</button></div>}
       {(phase === 'victory' || phase === 'defeat') && (
-        <div className="combat-modal result">
+        <div ref={dialogRef} tabIndex={-1} className="combat-modal result" role="dialog" aria-modal="true" aria-label={phase === 'victory' ? 'Battle complete' : 'Battle lost'}>
           <p className="eyebrow">{phase === 'victory' ? 'OBJECTIVE COMPLETE' : 'THE ITHACA IS LOST'}</p>
           <h2>{phase === 'victory' ? config.victoryTitle ?? 'The way is open.' : 'Return to the last firing solution.'}</h2>
           {phase === 'victory' && rating && (
@@ -703,7 +792,8 @@ export function CinematicCombat({ config, onComplete }: { config: CombatConfig; 
             </div>
           )}
           <p>{phase === 'victory' ? config.victoryText ?? `Hull integrity ${hull}%. Combat consequences will follow the ship.` : defeatAdvice(sim)}</p>
-          <button className="primary-action" onClick={phase === 'victory' ? () => onComplete({ hull, score: hull + Math.round(shield), rating: rating ?? undefined }) : retry}>{phase === 'victory' ? 'Resume the story' : 'Retry battle'} <span>→</span></button>
+          {phase === 'victory' && momentAnswer && <blockquote className="battle-memory"><span>THE MOMENT YOU CARRY</span>{momentAnswer.memory}</blockquote>}
+          <button className="primary-action" onClick={phase === 'victory' ? () => onComplete({ hull, score: hull + Math.round(shield), rating: rating ?? undefined, decision: decisionRef.current }) : retry}>{phase === 'victory' ? 'Resume the story' : 'Retry battle'} <span>→</span></button>
         </div>
       )}
     </section>

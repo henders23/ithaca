@@ -77,6 +77,7 @@ export interface RelationshipProfile {
 export interface DialogueMemoryRecord {
   id: string
   sceneId: string
+  momentId?: string
   choiceId: string
   label: string
   character?: RelationshipId
@@ -131,6 +132,7 @@ export type GameAction =
   | {
       type: 'dialogue/moment'
       sceneId: string
+      momentId?: string
       choiceId: string
       label: string
       character?: RelationshipId

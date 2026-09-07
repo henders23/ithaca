@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { AudioControls } from '../audio/AudioControls.js'
 import { useMusicDirector, useMusicScene } from '../audio/useAudio.js'
 import { beatById } from '../campaign/beats.js'
+import { useDialogFocus } from '../ui/useDialogFocus.js'
 import { CANON_CHARACTERS, RELATIONSHIP_IDS } from '../canon/characters.js'
 import { DialogueMemoryProvider, type DialogueMomentSelection } from '../narrative/DialogueMemoryContext.js'
 import type { CampaignEffect, GameState } from '../state/types.js'
 import { createInitialState } from '../state/initial.js'
 import { reduceGame } from '../state/reducer.js'
+import { battleMemories, battleMemoryEffects } from './encounterMoments.js'
 import { CinematicCombat, type CombatConfig } from './CinematicCombat.js'
-import { ASSETS, DIALOGUE_SCENES, INTERLUDES, type DialogueChoice, type SliceScreenId } from './content.js'
+import { ASSETS, DIALOGUE_SCENES, INTERLUDES, gateCollapseScene, type DialogueChoice, type SliceScreenId } from './content.js'
 import { BeatInterlude } from './BeatInterlude.js'
 import { ConsequenceFeed, useConsequenceFeed } from './ConsequenceFeed.js'
 import { CrewRumourHub } from './CrewHub.js'
@@ -263,11 +265,13 @@ export function SliceGame() {
     setShowResumeRecap(true)
   }
 
-  const recordDialogueMoment = ({ sceneId, choice }: DialogueMomentSelection) => {
+  const recordDialogueMoment = ({ sceneId, momentId, choice }: DialogueMomentSelection) => {
+    if (game.dialogueMemories.some((memory) => memory.sceneId === sceneId && (memory.momentId === momentId || memory.choiceId === choice.id))) return
     if (choice.character && choice.axis && choice.delta) consequences.push([{ kind: 'relationship-axis', character: choice.character, axis: choice.axis, delta: choice.delta }])
     setGame((current) => reduceGame(current, {
       type: 'dialogue/moment',
       sceneId,
+      momentId,
       choiceId: choice.id,
       label: choice.label,
       character: choice.character,
@@ -739,9 +743,9 @@ export function SliceGame() {
       case 'b1-briefing':
         return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b1-briefing']} onChoice={chooseGateOrder} />
       case 'b1-combat':
-        return <CinematicCombat config={gateCombat} onComplete={(result) => completeActivity('01-burning-tide-gate', 'gate-assault', 'b1-collapse', 'screen-broken', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }])} />
+        return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={gateCombat} onComplete={(result) => completeActivity('01-burning-tide-gate', 'gate-assault', 'b1-collapse', 'screen-broken', [...battleMemoryEffects(result), { kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }])} />
       case 'b1-collapse':
-        return <DialogueScene key={screen} scene={DIALOGUE_SCENES['b1-collapse']} onContinue={() => completeActivity('01-burning-tide-gate', 'gate-collapse', 'interlude-02', 'lost-in-transit', [{ kind: 'add-scar', scarId: 'tide-gate-burn' }, { kind: 'damage-system', system: 'engines', amount: 45 }, { kind: 'damage-system', system: 'sensors', amount: 30 }], true)} />
+        return <DialogueScene key={screen} scene={gateCollapseScene(game)} onContinue={() => completeActivity('01-burning-tide-gate', 'gate-collapse', 'interlude-02', 'lost-in-transit', [{ kind: 'add-scar', scarId: 'tide-gate-burn' }, { kind: 'damage-system', system: 'engines', amount: 45 }, { kind: 'damage-system', system: 'sensors', amount: 30 }], true)} />
       case 'interlude-02':
         return <BeatInterlude data={INTERLUDES['interlude-02']} game={game} onContinue={() => setScreen('b2-grid')} />
       case 'b2-grid':
@@ -791,7 +795,7 @@ export function SliceGame() {
       case 'b4-circuit':
         return <CircuitGame onComplete={(result) => completeActivity('04-one-eyed-fortress', 'blind-the-eye', 'b4-combat', result.choiceId, result.success ? [] : [{ kind: 'set-flag', flag: 'argus-awakened' }, { kind: 'damage-system', system: 'shields', amount: 20 }])} />
       case 'b4-combat':
-        return <CinematicCombat config={argusCombat} onComplete={(result) => completeActivity('04-one-eyed-fortress', 'fortress-breakout', 'complete', 'exhaust-channel-escape', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'add-module', moduleId: 'argus-exhaust-key' }], true)} />
+        return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={argusCombat} onComplete={(result) => completeActivity('04-one-eyed-fortress', 'fortress-breakout', 'complete', 'exhaust-channel-escape', [...battleMemoryEffects(result), { kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'add-module', moduleId: 'argus-exhaust-key' }], true)} />
       case 'complete':
         return <CompletionScreen game={game} onRestart={startNew} onContinue={() => setScreen('interlude-05')} />
       case 'interlude-05':
@@ -811,7 +815,7 @@ export function SliceGame() {
       case 'b6-memories':
         return <DialogueScene key={screen} scene={SLICE_TWO_SCENES['b6-memories']} onChoice={answerTidefather} />
       case 'b6-combat':
-        return <CinematicCombat config={tidefatherCombat} onComplete={(result) => completeActivity('06-first-wrath', 'survive-tidefather', 'b6-sacrifice', 'jump-window-open', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 10 }])} />
+        return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={tidefatherCombat} onComplete={(result) => completeActivity('06-first-wrath', 'survive-tidefather', 'b6-sacrifice', 'jump-window-open', [...battleMemoryEffects(result), { kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 10 }])} />
       case 'b6-sacrifice':
         return <SystemSacrificeGame onComplete={(result) => completeActivity('06-first-wrath', 'sacrifice-system', 'b6-aftermath', result.choiceId, [{ kind: 'damage-system', system: result.system, amount: 100 }, { kind: 'add-scar', scarId: `${result.system}-severance` }, { kind: 'relationship', character: 'lena-mori', delta: -1 }], true)} />
       case 'b6-aftermath':
@@ -859,7 +863,7 @@ export function SliceGame() {
           { kind: 'add-evidence', evidenceId: result.rescue >= 4 ? 'harbour-route-convoy' : 'harbour-route-ithaca-only' },
         ])} />
       case 'b9-combat':
-        return <CinematicCombat config={harbourCombat} onComplete={(result) => completeActivity('09-devouring-harbour', 'harbour-escape', 'b9-aftermath', 'harbour-mouth-cleared', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 5 }], true)} />
+        return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={harbourCombat} onComplete={(result) => completeActivity('09-devouring-harbour', 'harbour-escape', 'b9-aftermath', 'harbour-mouth-cleared', [...battleMemoryEffects(result), { kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 5 }], true)} />
       case 'b9-aftermath':
         return <DialogueScene key={screen} scene={harbourAftermathScene(game)} onContinue={() => setScreen('interlude-10')} />
       case 'interlude-10':
@@ -881,7 +885,7 @@ export function SliceGame() {
       case 'b11-bargain':
         return <DialogueScene key={screen} scene={cireneBargainScene(game)} onChoice={chooseCireneBargain} />
       case 'b11-combat':
-        return <CinematicCombat config={cireneCombat} onComplete={(result) => completeActivity('11-captains-bargain', 'break-from-ark', 'b11-aftermath', 'custodians-disabled', [{ kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 8 }], true)} />
+        return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={cireneCombat} onComplete={(result) => completeActivity('11-captains-bargain', 'break-from-ark', 'b11-aftermath', 'custodians-disabled', [...battleMemoryEffects(result), { kind: 'damage-hull', amount: Math.max(0, game.ship.hull - result.hull) }, { kind: 'pursuit', delta: 8 }], true)} />
       case 'b11-aftermath':
         return <DialogueScene key={screen} scene={cireneAftermathScene(game)} onContinue={() => setScreen('interlude-12')} />
       case 'interlude-12':
@@ -947,7 +951,7 @@ export function SliceGame() {
       case 'interlude-20': return <BeatInterlude data={ACT_THREE_INTERLUDES['interlude-20']} game={game} onContinue={() => setScreen('b20-choice')} />
       case 'b20-choice': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b20-choice']} onChoice={chooseTwinPassage} />
       case 'b20-course': return <GravityCourseGame route={passageRoute} compromised={game.flags.includes('choir-navigation-compromised')} onComplete={completeGravityCourse} />
-      case 'b20-combat': return <CinematicCombat config={scyllaCombat} onComplete={(r)=>completeActivity('20-twin-terrors','scylla-passage','interlude-21','scylla-grasp-broken',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)}],true)} />
+      case 'b20-combat': return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={scyllaCombat} onComplete={(r)=>completeActivity('20-twin-terrors','scylla-passage','interlude-21','scylla-grasp-broken',[...battleMemoryEffects(r), {kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)}],true)} />
       case 'interlude-21': return <BeatInterlude data={scyllaRescueInterlude(game)} game={game} onContinue={() => setScreen('b21-voices')} />
       case 'b21-voices': return <DialogueScene key={screen} scene={ACT_THREE_SCENES['b21-voices']} onContinue={()=>completeActivity('21-six-taken','rescue-decision','b21-rescue','rescue-launched',[{kind:'set-flag',flag:'scylla-rescue-attempted'}])} />
       case 'b21-rescue': return <TetherRescueGame route={passageRoute} onComplete={completeScyllaRescue} />
@@ -964,7 +968,7 @@ export function SliceGame() {
       case 'b23-awakens': return <DialogueScene key={screen} scene={heliosAwakensScene(game)} onContinue={()=>completeActivity('23-hunger-mutiny','helios-awakens','interlude-24','helios-recognizes-theft',[],true)} />
       case 'interlude-24': return <BeatInterlude data={ACT_THREE_FINAL_INTERLUDES['interlude-24']} game={game} onContinue={()=>setScreen('b24-two-accusers')} />
       case 'b24-two-accusers': return <DialogueScene key={screen} scene={ACT_THREE_FINAL_SCENES['b24-two-accusers']} onContinue={()=>completeActivity('24-judgment-star','two-accusers','b24-combat','both-claims-heard')} />
-      case 'b24-combat': return <CinematicCombat config={heliosCombat} onComplete={(result)=>completeActivity('24-judgment-star','three-sided-escape','b24-routing','judgment-corridor-open',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:12},{kind:'add-scar',scarId:'helios-corona-burn'}])} />
+      case 'b24-combat': return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={heliosCombat} onComplete={(result)=>completeActivity('24-judgment-star','three-sided-escape','b24-routing','judgment-corridor-open',[...battleMemoryEffects(result), {kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:12},{kind:'add-scar',scarId:'helios-corona-burn'}])} />
       case 'b24-routing': return <CoronalRoutingGame game={game} onComplete={completeCoronalRouting} />
       case 'b24-aftermath': return <DialogueScene key={screen} scene={judgmentAftermathScene(game)} onContinue={()=>setScreen('interlude-25')} />
       case 'interlude-25': return <BeatInterlude data={ACT_THREE_FINAL_INTERLUDES['interlude-25']} game={game} onContinue={()=>setScreen('b25-volunteers')} />
@@ -985,7 +989,7 @@ export function SliceGame() {
       case 'b28-welcome': return <DialogueScene key={screen} scene={phaeacianWelcomeScene(game)} onContinue={()=>setScreen('b28-account')} />
       case 'b28-account': return <VoyageAccountGame game={game} onComplete={completeVoyageAccount} />
       case 'b28-verdict': return <DialogueScene key={screen} scene={hospitalityVerdictScene(game)} onContinue={()=>completeActivity('28-hospitality-test','hospitality-verdict','b28-combat','passage-granted')} />
-      case 'b28-combat': return <CinematicCombat config={phaeacianCombat} onComplete={(result)=>completeActivity('28-hospitality-test','defend-convoy','act-four-opening-complete','convoy-shield-held',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:-12},{kind:'add-evidence',evidenceId:`phaeacian-defence-score:${result.score}`}],true)} />
+      case 'b28-combat': return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={phaeacianCombat} onComplete={(result)=>completeActivity('28-hospitality-test','defend-convoy','act-four-opening-complete','convoy-shield-held',[...battleMemoryEffects(result), {kind:'damage-hull',amount:Math.max(0,game.ship.hull-result.hull)},{kind:'pursuit',delta:-12},{kind:'add-evidence',evidenceId:`phaeacian-defence-score:${result.score}`}],true)} />
       case 'act-four-opening-complete': return <ActFourOpeningCompletionScreen game={game} onRestart={startNew} onContinue={()=>setScreen('interlude-29')} />
       case 'interlude-29': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-29']} game={game} onContinue={()=>setScreen('b29-introduction')} />
       case 'b29-introduction': return <DialogueScene key={screen} scene={elaraIntroductionScene(game)} onContinue={()=>completeActivity('29-child-absent-captain','elara-introduction','b29-evidence','elara-takes-control')} />
@@ -998,9 +1002,9 @@ export function SliceGame() {
       case 'interlude-31': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-31']} game={game} onContinue={()=>setScreen('b31-resonance')} />
       case 'b31-resonance': return <CommandResonanceGame onComplete={completeResonance} />
       case 'b31-truth': return <DialogueScene key={screen} scene={gateTruthScene(game)} onChoice={chooseGateTruth} />
-      case 'b31-combat': return <CinematicCombat config={citadelCombat} onComplete={r=>completeActivity('31-trial-captain','hold-citadel','interlude-32','public-record-held',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'repair-hull',amount:18},{kind:'add-evidence',evidenceId:`citadel-defence-score:${r.score}`}],true)} />
+      case 'b31-combat': return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={citadelCombat} onComplete={r=>completeActivity('31-trial-captain','hold-citadel','interlude-32','public-record-held',[...battleMemoryEffects(r), {kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'repair-hull',amount:18},{kind:'add-evidence',evidenceId:`citadel-defence-score:${r.score}`}],true)} />
       case 'interlude-32': return <BeatInterlude data={ACT_FOUR_INTERLUDES['interlude-32']} game={game} onContinue={()=>setScreen('b32-orbit')} />
-      case 'b32-orbit': return <CinematicCombat config={finalCombat} onComplete={r=>completeActivity('32-last-god-gate','final-orbital-battle','b32-network','memory-corridor-open',[{kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'add-evidence',evidenceId:`final-orbit-score:${r.score}`}])} />
+      case 'b32-orbit': return <CinematicCombat suspended={journeyLogOpen || showResumeRecap} config={finalCombat} onComplete={r=>completeActivity('32-last-god-gate','final-orbital-battle','b32-network','memory-corridor-open',[...battleMemoryEffects(r), {kind:'damage-hull',amount:Math.max(0,game.ship.hull-r.hull)},{kind:'add-evidence',evidenceId:`final-orbit-score:${r.score}`}])} />
       case 'b32-network': return <CitadelNetworkGame onComplete={completeNetwork} />
       case 'b32-memory': return <SharedMemoryGame onComplete={completeMemoryBridge} />
       case 'b32-contact': return <DialogueScene key={screen} scene={finalContactScene(game)} onContinue={()=>setScreen('b32-ending')} />
@@ -1010,7 +1014,7 @@ export function SliceGame() {
   }
 
   return (
-    <DialogueMemoryProvider onRecord={recordDialogueMoment}>
+    <DialogueMemoryProvider onRecord={recordDialogueMoment} memories={game.dialogueMemories} suspended={journeyLogOpen}>
       <main className="game-shell">
         {screen !== 'title' && <VoyageHud game={game} onOpenLog={() => setJourneyLogOpen(true)} />}
         {showResumeRecap ? <ResumeBriefing game={game} onContinue={() => setShowResumeRecap(false)} /> : renderScreen()}
@@ -1030,7 +1034,7 @@ function TitleScreen({ hasSave, onNew, onResume }: { hasSave: boolean; onNew: ()
       <div className="title-copy">
         <h1>ITHACA</h1>
         <div className="title-rule" />
-        <p className="title-lede">A cinematic voyage of command, consequence, puzzles and ship-to-ship combat.</p>
+        <p className="title-lede">You won the war. Then the stars changed. Bring your crew home before they discover what your victory cost.</p>
         <div className="title-actions">
           <button className="primary-action" onClick={onNew}>Begin new voyage <span>→</span></button>
           {hasSave && <button className="secondary-action" onClick={onResume}>Continue voyage</button>}
@@ -1079,6 +1083,7 @@ function ResumeBriefing({ game, onContinue }: { game: GameState; onContinue: () 
 }
 
 function JourneyLog({ game, onClose }: { game: GameState; onClose: () => void }) {
+  const dialogRef = useDialogFocus<HTMLElement>(true)
   const current = game.campaign.currentBeatId ? beatById(game.campaign.currentBeatId) : null
   const personName = (id: (typeof RELATIONSHIP_IDS)[number]) => CANON_CHARACTERS.find((character) => character.id === id)?.name.replace(/^(Captain|Commander|Chief|Dr|Lieutenant) /, '') ?? id.replaceAll('-', ' ')
   const bondWord = (value: number, kind: 'trust' | 'intimacy' | 'respect' | 'resentment') => {
@@ -1091,9 +1096,10 @@ function JourneyLog({ game, onClose }: { game: GameState; onClose: () => void })
           : ['easing', 'quiet', 'none', 'present', 'raw']
     return words[value <= -2 ? 0 : value < 0 ? 1 : value === 0 ? 2 : value < 3 ? 3 : 4]
   }
-  return <aside className="journey-log" role="dialog" aria-modal="true" aria-label="Journey log">
+  return <aside ref={dialogRef} tabIndex={-1} className="journey-log" role="dialog" aria-modal="true" aria-label="Journey log" onKeyDown={event => { if (event.key === 'Escape') onClose() }}>
     <header><div><small>CSV ITHACA · CAPTAIN’S RECORD</small><h2>{current?.title ?? 'Voyage complete'}</h2></div><button onClick={onClose}>Close</button></header>
     <section><h3>Where you stand</h3><div className="relationship-ledger">{RELATIONSHIP_IDS.map((id) => { const profile = game.relationshipDimensions[id]; return <article key={id}><strong>{personName(id)}</strong><span>Trust · {bondWord(profile.trust, 'trust')}</span><span>Closeness · {bondWord(profile.intimacy, 'intimacy')}</span><span>Respect · {bondWord(profile.respect, 'respect')}</span><span>Strain · {bondWord(profile.resentment, 'resentment')}</span></article> })}</div></section>
+    {battleMemories(game).length > 0 && <section><h3>Under fire</h3><ol>{battleMemories(game).map((memory) => <li key={memory.beat}><strong>{memory.title}</strong><p>{memory.text}</p></li>)}</ol></section>}
     <section><h3>Words remembered</h3>{game.dialogueMemories.length ? <ol>{game.dialogueMemories.slice(-8).reverse().map((memory) => <li key={memory.id}><strong>{memory.label}</strong><small>{memory.sceneId.replaceAll('-', ' ')}</small></li>)}</ol> : <p>No private choices recorded yet.</p>}</section>
     <section><h3>Recent decisions</h3>{game.decisions.length ? <ol>{game.decisions.slice(-8).reverse().map((decision) => <li key={decision.id}><strong>{decision.choiceId.replaceAll('-', ' ')}</strong><small>{decision.activityId.replaceAll('-', ' ')}</small></li>)}</ol> : <p>The first order has not been given.</p>}</section>
   </aside>
@@ -1210,7 +1216,7 @@ function ActFourOpeningCompletionScreen({game,onRestart,onContinue}:{game:GameSt
 
 function CampaignCompletionScreen({game,onRestart}:{game:GameState;onRestart:()=>void}){
  const ending=game.ending??'exile';const copy=ENDING_COPY[ending];const companion=lastCompanionNameForEnding(game)
- return <section className={`completion-screen campaign-ending ending-${ending}`} style={{'--complete-bg':`url(${ASSETS.cinematics.earthEpilogue})`} as React.CSSProperties}><div className="completion-card"><h1>{copy.title}</h1><p>{copy.text}</p><div className="completion-stats"><div><span>BEATS</span><strong>32 / 32</strong></div><div><span>ENDING</span><strong>{ending.toUpperCase()}</strong></div><div><span>LAST COMPANION</span><strong>{companion.toUpperCase()}</strong></div><div><span>PUBLIC RECORD</span><strong>{game.flags.includes('tide-gate-crime-exposed')?'PRESERVED':'CONTESTED'}</strong></div></div><div className="act-coda"><span>THE ODYSSEY ENDS</span><strong>HOME IS WHERE ANOTHER PERSON CAN ANSWER.</strong><p>Your complete action log remains deterministic: every relationship, casualty, omission, rescue and act of restraint led to the ending that was available.</p></div><button className="secondary-action" onClick={onRestart}>Begin another voyage</button></div></section>
+ return <section className={`completion-screen campaign-ending ending-${ending}`} style={{'--complete-bg':`url(${ASSETS.cinematics.earthEpilogue})`} as React.CSSProperties}><div className="completion-card"><h1>{copy.title}</h1><p>{copy.text}</p><div className="completion-stats"><div><span>BEATS</span><strong>32 / 32</strong></div><div><span>ENDING</span><strong>{ending.toUpperCase()}</strong></div><div><span>LAST COMPANION</span><strong>{companion.toUpperCase()}</strong></div><div><span>PUBLIC RECORD</span><strong>{game.flags.includes('tide-gate-crime-exposed')?'PRESERVED':'CONTESTED'}</strong></div></div><div className="act-coda"><span>THE ODYSSEY ENDS</span><strong>HOME IS WHERE ANOTHER PERSON CAN ANSWER.</strong><p>Some will remember the captain who brought them home. Others will remember who he left behind. These are the choices you have to live with.</p></div><button className="secondary-action" onClick={onRestart}>Begin another voyage</button></div></section>
 }
 
 function lastCompanionNameForEnding(game:GameState){const id=game.evidence.find(e=>e.startsWith('last-companion:'))?.slice('last-companion:'.length);return companionDisplayName(id as Parameters<typeof companionDisplayName>[0])}
