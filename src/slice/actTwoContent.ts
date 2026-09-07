@@ -178,15 +178,16 @@ export const ACT_TWO_SCENES = {
 export function harbourAftermathScene(game: GameState): DialogueSceneData {
   const warned = game.flags.includes('harbour-convoy-warned')
   const routeSafe = game.evidence.includes('harbour-route-safe')
+  const whiteWake = game.evidence.includes('battle-choice:09:white-wake')
   return {
     beat: 'BEAT 09 · AFTERMATH',
     chapter: 'THE DEVOURING HARBOUR',
-    title: warned ? 'Three ships answer the Ithaca’s roll call' : 'The channel contains beacons with nobody left to answer',
+    title: warned ? 'Three ships answer the Ithaca’s roll call' : whiteWake ? 'One small voice follows the white wake' : 'The channel contains beacons with nobody left to answer',
     background: ASSETS.cinematics.devouringHarbourEscape,
     lines: [
-      { speaker: 'narrator', name: 'ESCAPE VECTOR', text: `Port Mercy closes behind the Ithaca. ${warned ? 'Three convoy vessels break through the outer ring in her wake.' : 'The harbour folds around the convoy and turns four distress signals into salvage claims.'}` },
+      { speaker: 'narrator', name: 'ESCAPE VECTOR', text: `Port Mercy closes behind the Ithaca. ${warned ? 'Three convoy vessels break through the outer ring in her wake.' : whiteWake ? 'One shuttle follows the white coolant trail through the jaws. The larger vessels are gone.' : 'The harbour folds around the convoy and turns four distress signals into salvage claims.'}` },
       { speaker: 'lena-mori', name: 'MORI', station: 'ENGINEERING', text: routeSafe ? 'The route held. Engines are hot, not broken. I had forgotten those were different states.' : 'We cleared the last jaw on emergency thrust. The drive can do that once. It cannot do it twice.' },
-      { speaker: 'gabriel-cross', name: 'CROSS', station: 'TACTICAL', text: warned ? 'Saving them exposed us earlier, but they drew half the tugs away. Mercy and tactics occasionally share a vector.' : 'We survived because we did not split attention. Put that sentence in the log exactly as it happened.' },
+      { speaker: 'gabriel-cross', name: 'CROSS', station: 'TACTICAL', text: whiteWake ? 'Someone followed the leak. A shuttle. They’re flashing a cabin light at us. Tell them we can see them.' : warned ? 'Three ships. Count them again. I know you just counted. Do it for me.' : 'We survived because we did not split attention. Put that sentence in the log exactly as it happened.' },
       { speaker: 'kiara-ndala', name: 'N’DALA', station: 'COMMUNICATIONS', text: 'A medical ark has answered the survivors’ beacons. It offers sanctuary. No tow required.' },
       { speaker: 'alexander-vale', name: 'VALE', station: 'COMMAND', text: 'After Eirenai, Aeolia and Port Mercy, that word has earned an inspection. Set course. Keep the weapons cold and the record open.' },
     ],

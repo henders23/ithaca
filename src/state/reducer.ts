@@ -110,7 +110,7 @@ function reduceAccepted(state: GameState, action: GameAction): Transition {
     case 'dialogue/moment': {
       if (state.campaign.status !== 'playing') return reject(state, 'Dialogue memories can only be recorded during the voyage.')
       const id = `${action.sceneId}:${action.choiceId}`
-      if (state.dialogueMemories.some((memory) => memory.id === id)) return reject(state, 'This dialogue moment has already been remembered.')
+      if (state.dialogueMemories.some((memory) => memory.id === id || (action.momentId && memory.sceneId === action.sceneId && memory.momentId === action.momentId))) return reject(state, 'This dialogue moment has already been remembered.')
       let nextState = action.character && action.axis && action.delta
         ? adjustRelationshipAxis(state, action.character, action.axis, action.delta)
         : state
@@ -119,6 +119,7 @@ function reduceAccepted(state: GameState, action: GameAction): Transition {
         dialogueMemories: [...nextState.dialogueMemories, {
           id,
           sceneId: action.sceneId,
+          momentId: action.momentId,
           choiceId: action.choiceId,
           label: action.label,
           character: action.character,

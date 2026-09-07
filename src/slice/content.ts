@@ -1,6 +1,16 @@
 import { isAlienCharacter } from '../canon/characters.js'
 import type { CharacterId, RelationshipId } from '../canon/characters.js'
-import type { RelationshipAxis } from '../state/types.js'
+import type { GameState, RelationshipAxis } from '../state/types.js'
+
+export function gateCollapseScene(game: Pick<GameState, 'evidence'>): DialogueSceneData {
+  const carrier = game.evidence.includes('battle-choice:01:keep-carrier')
+  const lost = game.evidence.includes('battle-choice:01:burn-opening')
+  const scene = DIALOGUE_SCENES['b1-collapse']
+  return { ...scene, id: 'b1-collapse', lines: scene.lines.map(line => line.speaker === 'kiara-ndala' ? {
+    ...line,
+    text: carrier ? 'The carrier we saved—listen. That voice is answering it from outside the Gate. It was waiting for someone inside to answer back.' : lost ? 'The inner carrier is gone. I can still hear something beyond the collapse. It keeps repeating the same word. I think it is a name.' : line.text,
+  } : line) }
+}
 
 export const ASSETS = {
   cinematics: {

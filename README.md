@@ -12,6 +12,8 @@ The browser opens directly into the complete thirty-two-beat cinematic campaign 
 - cinematic voyage interludes that recap consequences and establish the next objective;
 - objective, survival, boss-passage and protected-target ship combat encounters with persistent damage;
 - real-time tactical combat with telegraphed enemy fire, evasive burns, shield bracing, reactor power routing, printed subsystem weaknesses, target lock, enemy escalation and a graded result;
+- ten authored combat turning points with readable tactical costs, character responses, distinct enemy weapon patterns and persistent battle memories;
+- personal details planted during the refuge and recalled in companion farewells, with opening battle decisions returning as evidence at the trial;
 - weapon-specific projectiles, shield impacts, damage feedback, sampled combat audio and sprite-sheet explosions;
 - typed dialogue with auto-play and keyboard choice selection, and a consequence feed that acknowledges every choice that changes trust, pursuit, the ship or the record;
 - a four-track score that follows the scene: *Glass Moon Relay* on the start screen, *Starship Ithaca* across the voyage,
@@ -63,6 +65,7 @@ The underlying typed foundation defines:
 - [`docs/CANON.md`](docs/CANON.md) — names, characters and terminology that must remain consistent
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — boundaries between campaign content, rules, UI and assets
 - [`docs/ADVERSARIAL-EVALUATION.md`](docs/ADVERSARIAL-EVALUATION.md) — hostile release rubric and executable experience-quality gates
+- [`docs/MEMORABLE-ENCOUNTERS-REVIEW.md`](docs/MEMORABLE-ENCOUNTERS-REVIEW.md) — combat and character pass, interaction evidence and remaining playtest limits
 - [`docs/PART-1.md`](docs/PART-1.md) — foundation scope and acceptance criteria
 
 ## Stack

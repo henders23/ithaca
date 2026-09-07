@@ -120,8 +120,8 @@ describe('Helios adversarial release gate',()=>{
     const wounded=stateWith({decisions:[decision],flags:['last-companion-record-preserved'],relationships:{'lena-mori':-5} as GameState['relationships']})
     const trustedWords=lastWordsScene(trusted).lines.map((line)=>line.text).join(' ')
     const woundedWords=lastWordsScene(wounded).lines.map((line)=>line.text).join(' ')
-    expect(trustedWords).toContain('The ship was always us')
-    expect(woundedWords).toContain('kept spending the ship')
+    expect(trustedWords).toContain('The kettle in Engineering needs a new seal')
+    expect(woundedWords).toContain('a second pair of hands')
     expect(trustedWords).not.toBe(woundedWords)
     expect(companionMemorialScene(trusted).lines.map((line)=>line.text).join(' ')).toContain('Lena Mori')
 

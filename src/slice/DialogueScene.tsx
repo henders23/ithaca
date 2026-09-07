@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { audioDirector } from '../audio/director.js'
 import { useMusicScene } from '../audio/useAudio.js'
 import { useDialogueMemory } from '../narrative/DialogueMemoryContext.js'
+import { useDialogFocus } from '../ui/useDialogFocus.js'
 import type { DialogueChoice, DialogueLine, DialogueMomentChoice, DialogueSceneData, PortraitId } from './content.js'
 import { ASSETS, portraitFor, sceneHasAlienSpeaker } from './content.js'
 
@@ -50,11 +51,17 @@ export function characterDelay(char: string, base: number) {
 export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProps) {
   const [lineIndex, setLineIndex] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [selectedMoments, setSelectedMoments] = useState<Record<string, DialogueMomentChoice>>({})
+  const { record: recordMoment, memories, suspended } = useDialogueMemory()
+  const transcriptRef = useDialogFocus<HTMLElement>(historyOpen)
+  const sceneId = sceneIdFor(scene)
+  const rememberedMoments = () => Object.fromEntries((scene.moments ?? []).flatMap((moment) => {
+    const memory = memories.find((entry) => entry.sceneId === sceneId && (entry.momentId === moment.id || (!entry.momentId && moment.choices.some((choice) => choice.id === entry.choiceId))))
+    const choice = moment.choices.find((candidate) => candidate.id === memory?.choiceId)
+    return choice ? [[moment.id, choice]] : []
+  }))
+  const [selectedMoments, setSelectedMoments] = useState<Record<string, DialogueMomentChoice>>(rememberedMoments)
   const [auto, setAuto] = useState(() => typeof window !== 'undefined' && readSetting(AUTO_KEY, 'off', ['on', 'off']) === 'on')
   const [speed, setSpeed] = useState<TextSpeed>(() => typeof window === 'undefined' ? 'instant' : readSetting<TextSpeed>(TEXT_SPEED_KEY, 'brisk', ['instant', 'brisk', 'measured']))
-  const recordMoment = useDialogueMemory()
-  const sceneId = sceneIdFor(scene)
 
   const sequence = useMemo<DisplayLine[]>(() => {
     const lines: DisplayLine[] = []
@@ -87,28 +94,30 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
   const [shown, setShown] = useState(() => instant ? line.text.length : 0)
   const typing = shown < line.text.length
   const typingRef = useRef(typing)
+  const revealTimerRef = useRef<number | undefined>(undefined)
   typingRef.current = typing
 
   useEffect(() => {
     setLineIndex(0)
     setHistoryOpen(false)
-    setSelectedMoments({})
-  }, [scene])
+    setSelectedMoments(rememberedMoments())
+    // A relationship update can rebuild the same scene. It must not rewind it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneId])
 
   useEffect(() => {
     if (instant) { setShown(line.text.length); return }
     setShown(0)
     let index = 0
-    let timer = 0
     const step = () => {
       index += 1
       setShown(index)
       if (index >= line.text.length) return
-      timer = window.setTimeout(step, characterDelay(line.text[index - 1] ?? '', SPEED_MS[speed as Exclude<TextSpeed, 'instant'>]))
+      revealTimerRef.current = window.setTimeout(step, characterDelay(line.text[index - 1] ?? '', SPEED_MS[speed as Exclude<TextSpeed, 'instant'>]))
     }
-    timer = window.setTimeout(step, 120)
-    return () => window.clearTimeout(timer)
-  }, [line, instant, speed])
+    revealTimerRef.current = window.setTimeout(step, 120)
+    return () => window.clearTimeout(revealTimerRef.current)
+  }, [sceneId, lineIndex, line.text, instant, speed])
 
   useEffect(() => {
     if (line.pause === 'silence') audioDirector.duck(1600, 0.72)
@@ -117,7 +126,11 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
 
   useMusicScene(sceneHasAlienSpeaker(scene) ? 'alien' : 'voyage')
 
-  const revealAll = () => setShown(line.text.length)
+  const revealAll = () => {
+    window.clearTimeout(revealTimerRef.current)
+    typingRef.current = false
+    setShown(line.text.length)
+  }
 
   const advance = () => {
     if (typingRef.current) { revealAll(); return }
@@ -128,7 +141,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
 
   // Auto-play: once a line has landed, wait long enough to read it, then move on.
   useEffect(() => {
-    if (!auto || typing || historyOpen || activeMoment || (atEnd && scene.choices)) return
+    if (!auto || typing || historyOpen || suspended || activeMoment || (atEnd && scene.choices)) return
     const wait = 900 + Math.min(4200, line.text.length * 32) + (line.pause === 'silence' ? 1400 : line.pause === 'held' ? 700 : 0)
     const timer = window.setTimeout(() => {
       if (!atEnd) setLineIndex((index) => index + 1)
@@ -136,7 +149,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
     }, wait)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto, typing, historyOpen, activeMoment, atEnd, lineIndex, scene])
+  }, [auto, typing, historyOpen, suspended, activeMoment, atEnd, lineIndex, scene])
 
   const toggleAuto = () => {
     setAuto((value) => {
@@ -156,7 +169,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
   const chooseMoment = (choice: DialogueMomentChoice) => {
     if (!activeMoment) return
     setSelectedMoments((current) => ({ ...current, [activeMoment.id]: choice }))
-    recordMoment({ sceneId, choice })
+    recordMoment({ sceneId, momentId: activeMoment.id, choice })
     audioDirector.playSfx('uiClick', 0.22)
   }
 
@@ -167,7 +180,9 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (suspended) return
       if (historyOpen) { if (event.key === 'Escape') setHistoryOpen(false); return }
+      if (event.repeat || (event.target instanceof HTMLElement && event.target.closest('button, input, select, textarea, [contenteditable="true"]'))) return
       const key = event.key.toLowerCase()
       if (key === 'a') { toggleAuto(); return }
       if (key === 't') { setHistoryOpen(true); return }
@@ -196,7 +211,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
   return (
     <section className={`dialogue-scene scene-${scene.sceneType ?? 'standard'} shot-${line.shot ?? 'medium'} pause-${line.pause ?? 'none'} ${typing ? 'is-typing' : ''}`} style={{ '--scene-bg': `url(${scene.background})` } as React.CSSProperties}>
       <div className="cinematic-bars" aria-hidden="true" />
-      <header className="scene-heading">
+      <header className="scene-heading" inert={historyOpen || suspended}>
         <div className="scene-orientation">
           <small>{scene.chapter}</small>
           <strong>{scene.title}</strong>
@@ -211,7 +226,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
         </div>
       </header>
 
-      <div className="dialogue-stage" onClick={(event) => { if ((event.target as HTMLElement).closest('button')) return; if (typing) revealAll() }}>
+      <div className="dialogue-stage" inert={historyOpen || suspended} onClick={(event) => { if ((event.target as HTMLElement).closest('button')) return; if (typing) revealAll() }}>
         {portrait && <img key={`${line.speaker}-${line.emotion ?? 'neutral'}-${lineIndex}`} className={`speaker-portrait emotion-${line.emotion ?? 'neutral'} ${typing ? 'speaking' : ''}`} src={portrait} alt={line.name} />}
         {reactionPortrait && <figure className="reaction-portrait"><img src={reactionPortrait} alt={`${line.reaction?.name} reacts`} /><figcaption>{line.reaction?.name}</figcaption></figure>}
         <div key={lineIndex} className={`dialogue-panel ${portrait ? '' : 'narration'} ${line.cutaway ? 'with-cutaway' : ''}`} aria-live="polite">
@@ -270,7 +285,7 @@ export function DialogueScene({ scene, onChoice, onContinue }: DialogueSceneProp
       </div>
 
       {historyOpen && (
-        <aside className="dialogue-transcript" role="dialog" aria-modal="true" aria-label="Scene transcript">
+        <aside ref={transcriptRef} tabIndex={-1} className="dialogue-transcript" role="dialog" aria-modal="true" aria-label="Scene transcript">
           <header><div><small>{scene.chapter}</small><h2>{scene.title}</h2></div><button onClick={() => setHistoryOpen(false)}>Close</button></header>
           <ol>
             {sequence.slice(0, lineIndex + 1).map((entry, index) => (

@@ -20,31 +20,31 @@ function conversations(game: GameState): readonly RefugeConversation[] {
     {
       id: 'mori', name: 'LENA MORI', station: 'REFIT GARDEN', portrait: ASSETS.portraits['lena-mori'], want: 'A SHIP THAT CAN REST',
       lines: [
-        'Listen. No pump cavitation. No compartment alarms. The Ithaca has not been this quiet since before we launched.',
+        'Hear that? Nothing. I keep waking up to check why nothing is breaking. Tea? You have to hold a cloth under the kettle. Seal’s gone. I’ll fix it tomorrow.',
         allied ? 'Cirene’s scaffolds ask before crossing a bulkhead now. I wrote the boundary. She honoured it.' : 'I still do not trust the living scaffolds. I trust what forty-seven days without another funeral has done to my crews.',
-        'If you order departure, I will make her fly. I need you to understand that competence is not the same thing as wanting to leave.',
+        'I have a list of little things I’ll fix tomorrow. First time in months I’ve believed there’d be a tomorrow for them. If we’re leaving, give me a day. Let me finish something.',
       ],
     },
     {
       id: 'corelli', name: 'ISABELLA CORELLI', station: 'RECOVERY TERRACE', portrait: ASSETS.portraits['isabella-corelli'], want: 'LIVES BEYOND THE MISSION',
       lines: [
-        'Rao walked six kilometres this week. Venn slept through the night without reliving the sphere chamber.',
+        'Venn says he’s sleeping. I asked again when the others left. He said he keeps a light on. I put him on the yellow sheet—people to ask twice.',
         copies ? 'The continuations have started using middle names so their friends can stop flinching. They should not have to make themselves smaller for our comfort.' : 'The people left in Cirene’s care are not casualties. They are living somewhere the mission cannot reach them.',
-        'Home is not automatically the humane choice because it is yours. Make a case stronger than longing.',
+        'He’s planted something outside his room. Won’t say what it is until it flowers. If you ask him to leave, ask about that first.',
       ],
     },
     {
       id: 'cross', name: 'GABRIEL CROSS', station: 'FORMER FIRING DECK', portrait: ASSETS.portraits['gabriel-cross'], want: 'PURPOSE WITHOUT ANOTHER WAR',
       lines: [
         'They are growing tomatoes where the secondary magazine used to be. I keep checking the ceiling for blast shutters.',
-        'I thought comfort would make us soft. The truth is worse: it has made me wonder how much of discipline was exhaustion wearing a uniform.',
-        'I still want to leave. I just no longer want obedience to be the only reason anyone comes with us.',
+        'I brought the bottle down here last night. Sat with it for an hour. Took it back unopened. I don’t know what I’m waiting for now.',
+        'I still want to leave. Just—when you ask the others, let them say it themselves. We’ve had enough people answer at attention.',
       ],
     },
     {
       id: 'morozova', name: 'HELEN MOROZOVA', station: 'TEMPORAL OBSERVATORY', portrait: ASSETS.portraits['helen-morozova'], want: 'THE OUTSIDE CLOCK',
       lines: [
-        'Cirene measures every day we experience. Ask her how many days the stars experience and she changes the subject to recovery.',
+        'The blue tabs are the skies we couldn’t name. I thought we might get a quiet afternoon to finish them. Then I checked Cirene’s clock against a pulsar.',
         mutinyForgiven ? 'You accepted that silence helped create the sphere mutiny. Do not build another silence because this one feels merciful.' : 'After the sphere, you answered fear with control. Here control has been replaced by comfort. Both can stop people asking the necessary question.',
         'N’Dala found a carrier leaking through the shield. Come to communications. We need to know what this refuge has cost outside it.',
       ],
